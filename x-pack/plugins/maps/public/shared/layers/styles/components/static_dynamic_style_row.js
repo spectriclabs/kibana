@@ -52,6 +52,7 @@ export class StaticDynamicStyleRow extends React.Component {
       type: VectorStyle.STYLE_TYPE.DYNAMIC,
       options
     };
+    console.log("on Dynamic Style Change", options);
     this.props.handlePropertyChange(this.props.property, styleDescriptor);
   }
 

@@ -15,6 +15,7 @@ import { SOURCE_DATA_ID_ORIGIN, GEO_JSON_TYPE } from '../../../../common/constan
 import { VectorIcon } from './components/vector/legend/vector_icon';
 import { VectorStyleLegend } from './components/vector/legend/vector_style_legend';
 import { VECTOR_SHAPE_TYPES } from '../sources/vector_feature_types';
+import { colorProvider } from '../../../kibana_services';
 
 export class VectorStyle extends AbstractStyle {
 
@@ -368,20 +369,33 @@ export class VectorStyle extends AbstractStyle {
     }
   }
 
-  _getMBDataDrivenColor({ fieldName, color }) {
-    const colorRange = getHexColorRangeStrings(color, 8)
-      .reduce((accu, curColor, idx, srcArr) => {
-        accu = [ ...accu, idx / srcArr.length, curColor ];
-        return accu;
-      }, []);
+  _getMBDataDrivenColor({ fieldName, fieldType, color }) {
     const targetName = VectorStyle.getComputedFieldName(fieldName);
-    return [
-      'interpolate',
-      ['linear'],
-      ['coalesce', ['feature-state', targetName], -1],
-      -1, 'rgba(0,0,0,0)',
-      ...colorRange
-    ];
+
+    if (!fieldType || fieldType === "number") {
+      const colorRange = getHexColorRangeStrings(color, 8)
+	.reduce((accu, curColor, idx, srcArr) => {
+	  accu = [ ...accu, idx / srcArr.length, curColor ];
+	  return accu;
+	}, []);
+
+      return [
+	'interpolate',
+	['linear'],
+	['coalesce', ['feature-state', targetName], -1],
+	-1, 'rgba(0,0,0,0)',
+	...colorRange
+      ];
+    } else if (fieldType === "string") {
+      let termColor = colorProvider(['US', 'MX', 'Other']);
+      return [
+	'match',
+	['get', fieldName],
+	'US', termColor('US'),
+	'MX', termColor('MX'),
+	termColor('Other')
+      ];
+    }
   }
 
   _getMbDataDrivenSize({ fieldName, minSize, maxSize }) {
@@ -396,6 +410,7 @@ export class VectorStyle extends AbstractStyle {
   }
 
   _getMBColor(styleDescriptor) {
+    console.log("getMBColor", styleDescriptor);
     const isStatic = styleDescriptor.type === VectorStyle.STYLE_TYPE.STATIC;
     if (isStatic) {
       return _.get(styleDescriptor, 'options.color', null);
@@ -406,7 +421,8 @@ export class VectorStyle extends AbstractStyle {
     if (isDynamicConfigComplete) {
       return this._getMBDataDrivenColor({
         fieldName: styleDescriptor.options.field.name,
-        color: styleDescriptor.options.color,
+        fieldType: styleDescriptor.options.field.type,
+        color: styleDescriptor.options.color
       });
     }
 
@@ -463,6 +479,7 @@ export class VectorStyle extends AbstractStyle {
   setMBPaintPropertiesForPoints({ alpha, mbMap, pointLayerId }) {
     if (this._descriptor.properties.fillColor) {
       const color = this._getMBColor(this._descriptor.properties.fillColor);
+      console.log('circle-color', color);
       mbMap.setPaintProperty(pointLayerId, 'circle-color', color);
       mbMap.setPaintProperty(pointLayerId, 'circle-opacity', alpha);
     } else {

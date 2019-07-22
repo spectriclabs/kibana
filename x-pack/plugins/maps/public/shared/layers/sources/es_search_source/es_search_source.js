@@ -81,6 +81,17 @@ export class ESSearchSource extends AbstractESSource {
     }
   }
 
+  async getFields() {
+    try {
+      const indexPattern = await this._getIndexPattern();
+      return indexPattern.fields.map(field => {
+        return { name: field.name, label: field.name, type: field.type };
+      });
+    } catch (error) {
+      return [];
+    }
+  }
+
   getMetricFields() {
     return [];
   }
@@ -128,6 +139,7 @@ export class ESSearchSource extends AbstractESSource {
   }
 
   async getGeoJsonWithMeta(layerName, searchFilters) {
+    // TODO can we do terms aggregation here?
     const searchSource = await this._makeSearchSource(searchFilters, DEFAULT_ES_DOC_LIMIT);
     // Setting "fields" instead of "source: { includes: []}"
     // because SearchSource automatically adds the following by default

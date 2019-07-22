@@ -14,6 +14,7 @@ import { EuiSpacer } from '@elastic/eui';
 
 export function DynamicColorSelection({ ordinalFields, onChange, styleOptions }) {
   const onFieldChange = ({ field }) => {
+    console.log('dynamic color change field', field);
     onChange({ ...styleOptions, field });
   };
 

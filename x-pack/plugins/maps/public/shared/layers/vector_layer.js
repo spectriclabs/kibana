@@ -156,11 +156,12 @@ export class VectorLayer extends AbstractLayer {
   }
 
   async getOrdinalFields() {
-    const numberFields = await this._source.getNumberFields();
-    const numberFieldOptions = numberFields.map(({ label, name }) => {
+    const numberFields = await this._source.getFields();
+    const numberFieldOptions = numberFields.map(({ label, name, type }) => {
       return {
         label,
         name,
+	type,
         origin: SOURCE_DATA_ID_ORIGIN
       };
     });

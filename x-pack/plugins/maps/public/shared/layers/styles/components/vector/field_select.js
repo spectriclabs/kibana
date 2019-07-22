@@ -14,6 +14,7 @@ import { i18n } from '@kbn/i18n';
 export function FieldSelect({ fields, selectedField, onChange }) {
 
   const onFieldChange = (selectedFields) => {
+    console.log("Field Change", selectedFields);
     onChange({
       field: selectedFields.length > 0 ? selectedFields[0].value : null
     });
