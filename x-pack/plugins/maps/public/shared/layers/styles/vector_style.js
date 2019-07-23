@@ -216,6 +216,27 @@ export class VectorStyle extends AbstractStyle {
     return fieldNames;
   }
 
+  getSourceAggregations() {
+    const properties = this.getProperties();
+    const fieldNames = [];
+    Object.keys(properties).forEach(propertyName => {
+      if (!this._isPropertyDynamic(propertyName)) {
+        return;
+      }
+      if (propertyName !== "fillColor") {
+        return;
+      }
+
+      const field = _.get(properties[propertyName], 'options.field', {});
+      console.log(propertyName, field);
+      if (field.origin === SOURCE_DATA_ID_ORIGIN && field.name && field.type !== "number") {
+        fieldNames.push(field.name);
+      }
+    });
+
+    return fieldNames;
+  }
+
   getProperties() {
     return this._descriptor.properties || {};
   }
@@ -329,7 +350,8 @@ export class VectorStyle extends AbstractStyle {
     }
   }
 
-  setFeatureState(featureCollection, mbMap, sourceId) {
+  setFeatureState(featureCollection, mbMap, sourceId, meta) {
+    console.log("FEATURE", featureCollection);
 
     if (!featureCollection) {
       return;
@@ -345,6 +367,9 @@ export class VectorStyle extends AbstractStyle {
       id: null
     };
     const tmpFeatureState = {};
+
+    // TODO use either 'meta.aggregations.fillColor' or loop through features 
+    // to get the set of colors
 
     //scale to [0,1] domain
     for (let i = 0; i < featureCollection.features.length; i++) {

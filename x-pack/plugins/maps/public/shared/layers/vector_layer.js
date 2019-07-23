@@ -338,6 +338,7 @@ export class VectorLayer extends AbstractLayer {
       geogridPrecision: this._source.getGeoGridPrecision(dataFilters.zoom),
       layerQuery: this.getQuery(),
       applyGlobalQuery: this.getApplyGlobalQuery(),
+      bucketAggregations: this._style.getSourceAggregations()	  
     };
   }
 
@@ -363,7 +364,8 @@ export class VectorLayer extends AbstractLayer {
       stopLoading(SOURCE_DATA_ID_ORIGIN, requestToken, featureCollection, meta);
       return {
         refreshed: true,
-        featureCollection: featureCollection
+        featureCollection: featureCollection,
+	meta: meta
       };
     } catch (error) {
       onLoadError(SOURCE_DATA_ID_ORIGIN, requestToken, error.message);
@@ -415,10 +417,17 @@ export class VectorLayer extends AbstractLayer {
     return sourceDataRequest ? sourceDataRequest.getData() : null;
   }
 
+  _getSourceMeta() {
+    const sourceDataRequest = this.getSourceDataRequest();
+    return sourceDataRequest ? sourceDataRequest.getMeta() : null;
+  }
+
   _syncFeatureCollectionWithMb(mbMap) {
 
     const mbGeoJSONSource = mbMap.getSource(this.getId());
     const featureCollection = this._getSourceFeatureCollection();
+    const meta = this._getSourceMeta();
+	  console.log("META", meta);
     const featureCollectionOnMap = AbstractLayer.getBoundDataForSource(mbMap, this.getId());
 
     if (!featureCollection) {
@@ -432,7 +441,9 @@ export class VectorLayer extends AbstractLayer {
     if (featureCollection !== featureCollectionOnMap) {
       mbGeoJSONSource.setData(featureCollection);
     }
-    this._style.setFeatureState(featureCollection, mbMap, this.getId());
+    // This is where we need to pass the aggregations data to make
+    // the colors work right
+    this._style.setFeatureState(featureCollection, mbMap, this.getId(), meta);
   }
 
   _setMbPointsProperties(mbMap) {

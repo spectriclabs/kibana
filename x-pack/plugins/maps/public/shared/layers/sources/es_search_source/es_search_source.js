@@ -10,6 +10,8 @@ import uuid from 'uuid/v4';
 
 import { VECTOR_SHAPE_TYPES } from '../vector_feature_types';
 import { AbstractESSource } from '../es_source';
+import { AggConfigs } from 'ui/vis/agg_configs';
+import { Schemas } from 'ui/vis/editors/default/schemas';
 import { SearchSource } from '../../../../kibana_services';
 import { hitsToGeoJson } from '../../../../elasticsearch_geo_utils';
 import { CreateSourceEditor } from './create_source_editor';
@@ -21,6 +23,9 @@ import { ESTooltipProperty } from '../../tooltips/es_tooltip_property';
 import { getTermsFields } from '../../../utils/get_terms_fields';
 
 import { DEFAULT_FILTER_BY_MAP_BOUNDS } from './constants';
+
+const aggSchemas = new Schemas([
+]);
 
 export class ESSearchSource extends AbstractESSource {
 
@@ -147,6 +152,8 @@ export class ESSearchSource extends AbstractESSource {
     // 2) docvalue_fields value is added for each date field in an index - see getComputedFields
     // By setting "fields", SearchSource removes all of defaults
     searchSource.setField('fields', searchFilters.fieldNames);
+	  console.log("getGeoJson", layerName, searchFilters);
+   
 
     let featureCollection;
     const indexPattern = await this._getIndexPattern();
@@ -161,6 +168,20 @@ export class ESSearchSource extends AbstractESSource {
       });
       return properties;
     };
+
+    if (searchFilters.bucketAggregations && searchFilters.bucketAggregations.length > 0) {
+      const aggConfigs = new AggConfigs(
+        indexPattern, this._makeAggConfigs(searchFilters.bucketAggregations), aggSchemas.all);
+      // TODO use aggConfigs.toDsl());
+      searchSource.setField('aggs', {
+	"fillColor": {
+	  "terms": {
+	    "field": searchFilters.bucketAggregations[0],
+	    "order": { "_count": "desc" }
+	  }
+	}
+      });
+    }
 
     const resp = await this._runEsQuery(layerName, searchSource, 'Elasticsearch document request');
     try {
@@ -178,7 +199,8 @@ export class ESSearchSource extends AbstractESSource {
     return {
       data: featureCollection,
       meta: {
-        areResultsTrimmed: resp.hits.total > resp.hits.hits.length
+        areResultsTrimmed: resp.hits.total > resp.hits.hits.length,
+	aggregations: resp.aggregations
       }
     };
   }
@@ -232,6 +254,22 @@ export class ESSearchSource extends AbstractESSource {
 
   isFilterByMapBounds() {
     return _.get(this._descriptor, 'filterByMapBounds', false);
+  }
+
+  _makeAggConfigs(buckets) {
+    const bucketAggConfigs = buckets.map(bucket => {
+      const bucketAggConfig = {
+        id: bucket,
+        enabled: true,
+        schema: 'buckets',
+	field: bucket,
+        params: {}
+      };
+      return bucketAggConfig;
+    });
+
+    console.log("BUCKET", bucketAggConfigs);
+    return bucketAggConfigs;
   }
 
   async getLeftJoinFields() {
