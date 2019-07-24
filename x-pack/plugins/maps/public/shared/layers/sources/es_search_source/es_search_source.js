@@ -169,18 +169,18 @@ export class ESSearchSource extends AbstractESSource {
       return properties;
     };
 
-    if (searchFilters.bucketAggregations && searchFilters.bucketAggregations.length > 0) {
+    if (searchFilters.aggs && searchFilters.aggs.length > 0) {
       const aggConfigs = new AggConfigs(
-        indexPattern, this._makeAggConfigs(searchFilters.bucketAggregations), aggSchemas.all);
+        indexPattern, this._makeAggConfigs(searchFilters.aggs), aggSchemas.all);
       // TODO use aggConfigs.toDsl());
-      searchSource.setField('aggs', {
-	"fillColor": {
-	  "terms": {
-	    "field": searchFilters.bucketAggregations[0],
-	    "order": { "_count": "desc" }
-	  }
-	}
-      });
+      const agg = {};
+      agg[searchFilters.aggs[0]] = {
+        "terms": {
+          "field": searchFilters.aggs[0],
+          "order": { "_count": "desc" }
+        }
+      };
+      searchSource.setField('aggs', agg);
     }
 
     const resp = await this._runEsQuery(layerName, searchSource, 'Elasticsearch document request');
@@ -200,7 +200,7 @@ export class ESSearchSource extends AbstractESSource {
       data: featureCollection,
       meta: {
         areResultsTrimmed: resp.hits.total > resp.hits.hits.length,
-	aggregations: resp.aggregations
+	      aggregations: resp.aggregations
       }
     };
   }

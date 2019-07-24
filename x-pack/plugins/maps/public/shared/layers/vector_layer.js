@@ -338,7 +338,7 @@ export class VectorLayer extends AbstractLayer {
       geogridPrecision: this._source.getGeoGridPrecision(dataFilters.zoom),
       layerQuery: this.getQuery(),
       applyGlobalQuery: this.getApplyGlobalQuery(),
-      bucketAggregations: this._style.getSourceAggregations()	  
+      aggs: this._style.getSourceAggregations()	  
     };
   }
 

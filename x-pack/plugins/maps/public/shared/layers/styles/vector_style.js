@@ -136,7 +136,14 @@ export class VectorStyle extends AbstractStyle {
       return {};
     }
 
+    const meta = sourceDataRequest.getMeta();
+
+    const featuresMeta = {}
+
     const scaledFields = this.getDynamicPropertiesArray()
+      .filter(( { options }) => {
+        return (options.field.type === "number");
+      })
       .map(({ options }) => {
         return {
           name: options.field.name,
@@ -145,10 +152,31 @@ export class VectorStyle extends AbstractStyle {
         };
       });
 
+    const bucketFields = this.getDynamicPropertiesArray()
+      .filter(( { options }) => {
+        return (options.field.type === "string");
+      })
+      .map(({ options }) => {
+        return {
+          name: options.field.name,
+          buckets: _.get(meta.aggregations, [options.field.name, "buckets"], {})
+        };
+      });
+
+    if (bucketFields.length > 0) {
+      featuresMeta["buckets"] = {}
+
+      bucketFields.forEach(({ buckets, name }) => {
+        if (buckets) {
+          featuresMeta["buckets"][name] = buckets;
+        }
+      });
+    }
+
     const supportedFeatures = await this._source.getSupportedShapeTypes();
     const isSingleFeatureType = supportedFeatures.length === 1;
 
-    if (scaledFields.length === 0 && isSingleFeatureType) {
+    if (scaledFields.length === 0 && bucketFields === 0 && isSingleFeatureType) {
       // no meta data to pull from source data request.
       return {};
     }
@@ -178,13 +206,11 @@ export class VectorStyle extends AbstractStyle {
       }
     }
 
-    const featuresMeta = {
-      hasFeatureType: {
+     featuresMeta["hasFeatureType"] = {
         [VECTOR_SHAPE_TYPES.POINT]: hasPoints,
         [VECTOR_SHAPE_TYPES.LINE]: hasLines,
         [VECTOR_SHAPE_TYPES.POLYGON]: hasPolygons
-      }
-    };
+      };
 
     scaledFields.forEach(({ min, max, name }) => {
       if (min !== Infinity && max !== -Infinity) {
@@ -195,6 +221,7 @@ export class VectorStyle extends AbstractStyle {
         };
       }
     });
+
 
     return featuresMeta;
   }
@@ -298,6 +325,10 @@ export class VectorStyle extends AbstractStyle {
     return _.get(this._descriptor, ['__styleMeta', fieldName]);
   }
 
+  _getFieldBuckets = (fieldName) => {
+    return _.get(this._descriptor, ['__styleMeta', 'buckets', fieldName]);
+  }
+
   getIcon = () => {
     const styles = this.getProperties();
     return (
@@ -327,11 +358,28 @@ export class VectorStyle extends AbstractStyle {
 
   _getScaledFields() {
     return this.getDynamicPropertiesArray()
+      .filter(({ options }) => {
+        return (options.field.type === "number")
+      })
       .map(({ options }) => {
         const name = options.field.name;
         return {
           name,
           range: this._getFieldRange(name),
+          computedName: VectorStyle.getComputedFieldName(name),
+        };
+      });
+  }
+
+  _getBucketFields() {
+    return this.getDynamicPropertiesArray()
+      .filter(({ options }) => {
+        return (options.field.type !== "number")
+      })
+      .map(({ options }) => {
+        const name = options.field.name;
+        return {
+          name,
           computedName: VectorStyle.getComputedFieldName(name),
         };
       });
@@ -351,8 +399,6 @@ export class VectorStyle extends AbstractStyle {
   }
 
   setFeatureState(featureCollection, mbMap, sourceId, meta) {
-    console.log("FEATURE", featureCollection);
-
     if (!featureCollection) {
       return;
     }
@@ -367,9 +413,6 @@ export class VectorStyle extends AbstractStyle {
       id: null
     };
     const tmpFeatureState = {};
-
-    // TODO use either 'meta.aggregations.fillColor' or loop through features 
-    // to get the set of colors
 
     //scale to [0,1] domain
     for (let i = 0; i < featureCollection.features.length; i++) {
@@ -399,27 +442,32 @@ export class VectorStyle extends AbstractStyle {
 
     if (!fieldType || fieldType === "number") {
       const colorRange = getHexColorRangeStrings(color, 8)
-	.reduce((accu, curColor, idx, srcArr) => {
-	  accu = [ ...accu, idx / srcArr.length, curColor ];
-	  return accu;
-	}, []);
+        .reduce((accu, curColor, idx, srcArr) => {
+          accu = [...accu, idx / srcArr.length, curColor];
+          return accu;
+        }, []);
 
       return [
-	'interpolate',
-	['linear'],
-	['coalesce', ['feature-state', targetName], -1],
-	-1, 'rgba(0,0,0,0)',
-	...colorRange
+        'interpolate',
+        ['linear'],
+        ['coalesce', ['feature-state', targetName], -1],
+        -1, 'rgba(0,0,0,0)',
+        ...colorRange
       ];
     } else if (fieldType === "string") {
-      let termColor = colorProvider(['US', 'MX', 'Other']);
-      return [
-	'match',
-	['get', fieldName],
-	'US', termColor('US'),
-	'MX', termColor('MX'),
-	termColor('Other')
-      ];
+      const buckets = this._getFieldBuckets(fieldName);
+
+      const bucketKeys = _.map(buckets, 'key');
+      const termColor = colorProvider(bucketKeys);
+
+      const style = bucketKeys.reduce((accum, key) => {
+        accum.push(key);
+        accum.push(termColor(key));
+        return accum;
+      }, ['match', ['get', fieldName]]);
+      style.push(termColor('Other'));
+      
+      return style;
     }
   }
 
