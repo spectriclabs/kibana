@@ -9,11 +9,13 @@ import { SearchSourceProvider } from 'ui/courier';
 import { FilterBarQueryFilterProvider } from 'ui/filter_bar/query_filter';
 import { getRequestInspectorStats, getResponseInspectorStats } from 'ui/courier/utils/courier_inspector_utils';
 import { XPackInfoProvider } from 'plugins/xpack_main/services/xpack_info';
+import { VislibComponentsColorColorProvider } from 'ui/vis/components/color/color';
 
 export let indexPatternService;
 export let SearchSource;
 export let filterBarQueryFilter;
 export let xpackInfo;
+export let colorProvider;
 
 export async function fetchSearchSourceAndRecordWithInspector({ searchSource, requestId, requestName, requestDesc, inspectorAdapters }) {
   const inspectorRequest = inspectorAdapters.requests.start(
@@ -43,4 +45,5 @@ uiModules.get('app/maps').run(($injector) => {
   SearchSource = Private(SearchSourceProvider);
   filterBarQueryFilter = Private(FilterBarQueryFilterProvider);
   xpackInfo = Private(XPackInfoProvider);
+  colorProvider = Private(VislibComponentsColorColorProvider);
 });

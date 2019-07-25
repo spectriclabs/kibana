@@ -273,6 +273,7 @@ export class ESGeoGridSource extends AbstractESSource {
           field: {
             label: COUNT_PROP_LABEL,
             name: COUNT_PROP_NAME,
+            type: 'number',
             origin: SOURCE_DATA_ID_ORIGIN
           },
           color: 'Blues'
@@ -284,6 +285,7 @@ export class ESGeoGridSource extends AbstractESSource {
           field: {
             label: COUNT_PROP_LABEL,
             name: COUNT_PROP_NAME,
+            type: 'number',
             origin: SOURCE_DATA_ID_ORIGIN
           },
           minSize: 4,

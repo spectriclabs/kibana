@@ -76,7 +76,11 @@ function extractColorFromStyleProperty(colorStyleProperty, defaultColor) {
   }
 
   // return middle of gradient for dynamic style property
-  return getColorRampCenterColor(colorStyleProperty.options.color);
+  if (colorStyleProperty.options.color !== 'Palette') {
+    return getColorRampCenterColor(colorStyleProperty.options.color);
+  } else {
+    return 'grey'; // TODO - what would be appropriate here?  Maybe a rainbow?
+  }
 }
 
 const colorStylePropertyShape = PropTypes.shape({

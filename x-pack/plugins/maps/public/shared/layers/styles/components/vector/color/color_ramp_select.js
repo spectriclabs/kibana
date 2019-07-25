@@ -10,12 +10,20 @@ import PropTypes from 'prop-types';
 import { EuiSuperSelect } from '@elastic/eui';
 import { vislibColorMaps } from 'ui/vislib/components/color/colormaps';
 import { ColorGradient } from '../../../../../icons/color_gradient';
+import { ColorPalette } from '../../../../../icons/color_palette';
+
 
 export const COLOR_GRADIENTS = Object.keys(vislibColorMaps).map(colorKey => ({
   value: colorKey,
   text: colorKey,
   inputDisplay: <ColorGradient color={colorKey}/>
 }));
+
+COLOR_GRADIENTS.push({
+  value: 'Palette',
+  text: 'Palette',
+  inputDisplay: <ColorPalette/>
+});
 
 export function ColorRampSelect({ color, onChange }) {
   const onColorRampChange = (selectedColorRampString) => {

@@ -15,6 +15,7 @@ export function VectorStyleColorEditor(props) {
   return (
     <StaticDynamicStyleRow
       ordinalFields={props.ordinalFields}
+      termFields={props.termFields}
       property={props.styleProperty}
       label={getVectorStyleLabel(props.styleProperty)}
       styleDescriptor={props.styleDescriptor}

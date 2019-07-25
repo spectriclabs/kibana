@@ -6,7 +6,7 @@
 
 export class AbstractStyle {
 
-  getDescriptorWithMissingStylePropsRemoved(/* nextOrdinalFields */) {
+  getDescriptorWithMissingStylePropsRemoved(/* nextOrdinalFields, nextTermFields */) {
     return {
       hasChanges: false,
     };

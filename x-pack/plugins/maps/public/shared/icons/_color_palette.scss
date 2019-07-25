@@ -1,0 +1,16 @@
+div.mapColorPalette {
+  width: 100%;
+  height: $euiSizeXS;
+  position: relative;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-around;
+}
+
+div.mapColorPalette i {
+  display: table-cell;
+  text-align: center;
+}

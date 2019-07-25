@@ -335,5 +335,9 @@ export class AbstractLayer {
     return [];
   }
 
+  async getTermFields() {
+    return [];
+  }
+
 }
 

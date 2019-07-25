@@ -25,7 +25,8 @@ export class StaticDynamicStyleRow extends React.Component {
   prevDynamicStyleOptions = this.props.defaultDynamicStyleOptions;
 
   _canBeDynamic() {
-    return this.props.ordinalFields.length > 0;
+    return ((this.props.ordinalFields && this.props.ordinalFields.length > 0) ||
+            (this.props.termFields && this.props.termFields.length > 0));
   }
 
   _isDynamic() {
@@ -76,6 +77,7 @@ export class StaticDynamicStyleRow extends React.Component {
       return (
         <DynamicSelector
           ordinalFields={this.props.ordinalFields}
+          termFields={this.props.termFields}
           onChange={this._onDynamicStyleChange}
           styleOptions={this._getStyleOptions()}
         />

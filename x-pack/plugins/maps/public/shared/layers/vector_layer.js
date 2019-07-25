@@ -161,6 +161,7 @@ export class VectorLayer extends AbstractLayer {
       return {
         label,
         name,
+        type: 'number',
         origin: SOURCE_DATA_ID_ORIGIN
       };
     });
@@ -169,6 +170,7 @@ export class VectorLayer extends AbstractLayer {
       const fields = join.getJoinFields().map(joinField => {
         return {
           ...joinField,
+          type: 'number',
           origin: 'join',
         };
       });
@@ -176,6 +178,31 @@ export class VectorLayer extends AbstractLayer {
     });
 
     return [...numberFieldOptions, ...joinFields];
+  }
+
+  async getTermFields() {
+    const termFields = await this._source.getStringFields();
+    const termFieldOptions = termFields.map(({ label, name }) => {
+      return {
+        label,
+        name,
+        type: 'string',
+        origin: SOURCE_DATA_ID_ORIGIN
+      };
+    });
+    const joinFields = [];
+    this.getValidJoins().forEach(join => {
+      const fields = join.getJoinFields().map(joinField => {
+        return {
+          ...joinField,
+          type: 'string',
+          origin: 'join',
+        };
+      });
+      joinFields.push(...fields);
+    });
+
+    return [...termFieldOptions, ...joinFields];
   }
 
   getIndexPatternIds() {

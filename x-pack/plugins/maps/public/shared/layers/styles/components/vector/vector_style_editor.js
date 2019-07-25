@@ -18,6 +18,7 @@ import { EuiSpacer, EuiButtonGroup } from '@elastic/eui';
 export class VectorStyleEditor extends Component {
   state = {
     ordinalFields: [],
+    termFields: [],
     defaultDynamicProperties: getDefaultDynamicProperties(),
     defaultStaticProperties: getDefaultStaticProperties(),
     supportedFeatures: undefined,
@@ -31,11 +32,13 @@ export class VectorStyleEditor extends Component {
   componentDidMount() {
     this._isMounted = true;
     this._loadOrdinalFields();
+    this._loadTermFields();
     this._loadSupportedFeatures();
   }
 
   componentDidUpdate() {
     this._loadOrdinalFields();
+    this._loadTermFields();
     this._loadSupportedFeatures();
   }
 
@@ -46,6 +49,16 @@ export class VectorStyleEditor extends Component {
     }
     if (!_.isEqual(ordinalFields, this.state.ordinalFields)) {
       this.setState({ ordinalFields });
+    }
+  }
+
+  async _loadTermFields() {
+    const termFields = await this.props.layer.getTermFields();
+    if (!this._isMounted) {
+      return;
+    }
+    if (!_.isEqual(termFields, this.state.termFields)) {
+      this.setState({ termFields });
     }
   }
 
@@ -89,6 +102,7 @@ export class VectorStyleEditor extends Component {
         handlePropertyChange={this.props.handlePropertyChange}
         styleDescriptor={this.props.styleProperties.fillColor}
         ordinalFields={this.state.ordinalFields}
+        termFields={this.state.termFields}
         defaultStaticStyleOptions={this.state.defaultStaticProperties.fillColor.options}
         defaultDynamicStyleOptions={this.state.defaultDynamicProperties.fillColor.options}
       />
@@ -102,6 +116,7 @@ export class VectorStyleEditor extends Component {
         handlePropertyChange={this.props.handlePropertyChange}
         styleDescriptor={this.props.styleProperties.lineColor}
         ordinalFields={this.state.ordinalFields}
+        termFields={this.state.termFields}
         defaultStaticStyleOptions={this.state.defaultStaticProperties.lineColor.options}
         defaultDynamicStyleOptions={this.state.defaultDynamicProperties.lineColor.options}
       />

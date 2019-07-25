@@ -12,14 +12,35 @@ import { FieldSelect, fieldShape } from '../field_select';
 import { ColorRampSelect } from './color_ramp_select';
 import { EuiSpacer } from '@elastic/eui';
 
-export function DynamicColorSelection({ ordinalFields, onChange, styleOptions }) {
+export function DynamicColorSelection({ ordinalFields, termFields, onChange, styleOptions }) {
+
+  let fields = [];
+
+  const updateFields = (color) => {
+    const selectedField = _.get(styleOptions, 'field');
+    if (color === 'Palette') {
+      fields = termFields;
+      if (selectedField && selectedField.type !== 'string') {
+        styleOptions.field = undefined;
+      }
+    } else {
+      fields = ordinalFields;
+      if (selectedField && selectedField.type !== 'number') {
+        styleOptions.field = undefined;
+      }
+    }
+  };
+
   const onFieldChange = ({ field }) => {
     onChange({ ...styleOptions, field });
   };
 
   const onColorChange = ({ color }) => {
     onChange({ ...styleOptions, color });
+    updateFields(color);
   };
+
+  updateFields(styleOptions.color);
 
   return (
     <Fragment>
@@ -29,7 +50,7 @@ export function DynamicColorSelection({ ordinalFields, onChange, styleOptions })
       />
       <EuiSpacer size="s" />
       <FieldSelect
-        fields={ordinalFields}
+        fields={fields}
         selectedField={_.get(styleOptions, 'field')}
         onChange={onFieldChange}
       />
@@ -38,7 +59,8 @@ export function DynamicColorSelection({ ordinalFields, onChange, styleOptions })
 }
 
 DynamicColorSelection.propTypes = {
-  ordinalFields: PropTypes.arrayOf(fieldShape).isRequired,
+  ordinalFields: PropTypes.arrayOf(fieldShape),
+  termFields: PropTypes.arrayOf(fieldShape),
   styleOptions: dynamicColorShape.isRequired,
   onChange: PropTypes.func.isRequired
 };

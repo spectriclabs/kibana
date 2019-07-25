@@ -15,6 +15,7 @@ import { SOURCE_DATA_ID_ORIGIN, GEO_JSON_TYPE } from '../../../../common/constan
 import { VectorIcon } from './components/vector/legend/vector_icon';
 import { VectorStyleLegend } from './components/vector/legend/vector_style_legend';
 import { VECTOR_SHAPE_TYPES } from '../sources/vector_feature_types';
+import { colorProvider } from '../../../kibana_services';
 
 export class VectorStyle extends AbstractStyle {
 
@@ -83,7 +84,7 @@ export class VectorStyle extends AbstractStyle {
    * This method does not update its descriptor. It just returns a new descriptor that the caller
    * can then use to update store state via dispatch.
    */
-  getDescriptorWithMissingStylePropsRemoved(nextOrdinalFields) {
+  getDescriptorWithMissingStylePropsRemoved(nextOrdinalFields, nextTermFields) {
     const originalProperties = this.getProperties();
     const updatedProperties = {};
     Object.keys(originalProperties).forEach(propertyName => {
@@ -91,16 +92,35 @@ export class VectorStyle extends AbstractStyle {
         return;
       }
 
+
       const fieldName = _.get(originalProperties[propertyName], 'options.field.name');
       if (!fieldName) {
         return;
       }
 
-      const matchingOrdinalField = nextOrdinalFields.find(oridinalField => {
-        return fieldName === oridinalField.name;
-      });
+      let matchingField = null;
 
-      if (matchingOrdinalField) {
+      if ((propertyName === 'fillColor') || (propertyName === 'lineColor')) {
+        const propertyColor = _.get(originalProperties[propertyName], 'options.color');
+        if (propertyColor === 'Palette') {
+          // colorPalette's are terms
+          matchingField = nextTermFields.find(termField => {
+            return fieldName === termField.name;
+          });
+        } else {
+          // ColorRamps are ordinal
+          matchingField = nextOrdinalFields.find(oridinalField => {
+            return fieldName === oridinalField.name;
+          });
+        }
+      } else {
+        // all other dynamic properties only accept ordinal
+        matchingField = nextOrdinalFields.find(oridinalField => {
+          return fieldName === oridinalField.name;
+        });
+      }
+
+      if (matchingField) {
         return;
       }
 
@@ -135,19 +155,21 @@ export class VectorStyle extends AbstractStyle {
       return {};
     }
 
-    const scaledFields = this.getDynamicPropertiesArray()
+    const dynamicFields = this.getDynamicPropertiesArray()
       .map(({ options }) => {
         return {
           name: options.field.name,
+          type: options.field.type,
           min: Infinity,
-          max: -Infinity
+          max: -Infinity,
+          terms: new Set()
         };
       });
 
     const supportedFeatures = await this._source.getSupportedShapeTypes();
     const isSingleFeatureType = supportedFeatures.length === 1;
 
-    if (scaledFields.length === 0 && isSingleFeatureType) {
+    if (dynamicFields.length === 0 && isSingleFeatureType) {
       // no meta data to pull from source data request.
       return {};
     }
@@ -167,12 +189,17 @@ export class VectorStyle extends AbstractStyle {
         hasPolygons = true;
       }
 
-      for (let j = 0; j < scaledFields.length; j++) {
-        const scaledField = scaledFields[j];
-        const newValue = parseFloat(feature.properties[scaledField.name]);
-        if (!isNaN(newValue)) {
-          scaledField.min = Math.min(scaledField.min, newValue);
-          scaledField.max = Math.max(scaledField.max, newValue);
+      for (let j = 0; j < dynamicFields.length; j++) {
+        const dynamicField = dynamicFields[j];
+        const fieldValue = feature.properties[dynamicField.name];
+        if (dynamicField.type === undefined || dynamicField.type === 'number') {
+          const newValue = parseFloat(fieldValue);
+          if (!isNaN(newValue)) {
+            dynamicField.min = Math.min(dynamicField.min, newValue);
+            dynamicField.max = Math.max(dynamicField.max, newValue);
+          }
+        } else if (dynamicField.type === 'string') {
+          dynamicField.terms.add(fieldValue);
         }
       }
     }
@@ -185,12 +212,17 @@ export class VectorStyle extends AbstractStyle {
       }
     };
 
-    scaledFields.forEach(({ min, max, name }) => {
+    dynamicFields.forEach(({ min, max, name, terms }) => {
       if (min !== Infinity && max !== -Infinity) {
         featuresMeta[name] = {
           min,
           max,
           delta: max - min,
+        };
+      }
+      if (terms.size > 0) {
+        featuresMeta[name] = {
+          terms: Array.from(terms)
         };
       }
     });
@@ -305,6 +337,9 @@ export class VectorStyle extends AbstractStyle {
 
   _getScaledFields() {
     return this.getDynamicPropertiesArray()
+      .filter(({ options }) => {
+        return (options.field.type === undefined || options.field.type === 'number');
+      })
       .map(({ options }) => {
         const name = options.field.name;
         return {
@@ -369,19 +404,39 @@ export class VectorStyle extends AbstractStyle {
   }
 
   _getMBDataDrivenColor({ fieldName, color }) {
-    const colorRange = getHexColorRangeStrings(color, 8)
-      .reduce((accu, curColor, idx, srcArr) => {
-        accu = [ ...accu, idx / srcArr.length, curColor ];
-        return accu;
-      }, []);
-    const targetName = VectorStyle.getComputedFieldName(fieldName);
-    return [
-      'interpolate',
-      ['linear'],
-      ['coalesce', ['feature-state', targetName], -1],
-      -1, 'rgba(0,0,0,0)',
-      ...colorRange
-    ];
+    if (color === 'Palette') {
+      const range = this._getFieldRange(fieldName);
+      if (range && range.terms) {
+        const termColorProvider = colorProvider(range.terms);
+        const style = range.terms.reduce((accum, key) => {
+          accum.push(key);
+          accum.push(termColorProvider(key));
+          return accum;
+        }, ['match', ['get', fieldName]]);
+
+        style.push('rgba(0,0,0,0)'); // default color
+        return style;
+
+      } else {
+        return ['rgba(0,0,0,0)'];
+      }
+
+
+    } else {
+      const colorRange = getHexColorRangeStrings(color, 8)
+        .reduce((accu, curColor, idx, srcArr) => {
+          accu = [ ...accu, idx / srcArr.length, curColor ];
+          return accu;
+        }, []);
+      const targetName = VectorStyle.getComputedFieldName(fieldName);
+      return [
+        'interpolate',
+        ['linear'],
+        ['coalesce', ['feature-state', targetName], -1],
+        -1, 'rgba(0,0,0,0)',
+        ...colorRange
+      ];
+    }
   }
 
   _getMbDataDrivenSize({ fieldName, minSize, maxSize }) {

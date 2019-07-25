@@ -81,6 +81,17 @@ export class ESSearchSource extends AbstractESSource {
     }
   }
 
+  async getStringFields() {
+    try {
+      const indexPattern = await this._getIndexPattern();
+      return indexPattern.fields.byType.string.map(field => {
+        return { name: field.name, label: field.name };
+      });
+    } catch (error) {
+      return [];
+    }
+  }
+
   getMetricFields() {
     return [];
   }
