@@ -201,6 +201,8 @@
     "mustache": "2.3.2",
     "ngreact": "0.5.1",
     "node-fetch": "1.7.3",
+    "nouislider": "^14.0.3",
+    "nouislider-react": "^3.3.5",
     "opn": "^5.5.0",
     "oppsy": "^2.0.0",
     "pegjs": "0.10.0",

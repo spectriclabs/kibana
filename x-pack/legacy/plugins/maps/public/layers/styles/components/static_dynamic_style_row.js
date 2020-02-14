@@ -17,6 +17,11 @@ export class StaticDynamicStyleRow extends React.Component {
   prevStaticStyleOptions = this.props.defaultStaticStyleOptions;
   prevDynamicStyleOptions = this.props.defaultDynamicStyleOptions;
 
+  _canBeStatic() {
+    // time slider is only dynamic
+    return (this.props.property !== 'time');
+  }
+
   _canBeDynamic() {
     return this.props.ordinalFields.length > 0;
   }
@@ -104,7 +109,7 @@ export class StaticDynamicStyleRow extends React.Component {
             {this._renderStyleSelector()}
           </EuiFormRow>
         </EuiFlexItem>
-        {this._canBeDynamic() && (
+        {this._canBeStatic() && this._canBeDynamic() && (
           <EuiFlexItem grow={false}>
             <EuiFormRow hasEmptyLabelSpace display="centerCompressed">
               <EuiToolTip content={dynamicTooltipContent} delay="long">

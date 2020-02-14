@@ -200,7 +200,7 @@ export class VectorLayer extends AbstractLayer {
       return await source.getFieldFormatter(field.name);
     };
 
-    return this._style.getLegendDetails(getFieldLabel, getFieldFormatter);
+    return this._style.getLegendDetails(getFieldLabel, getFieldFormatter, this.getId());
   }
 
   _getBoundsBasedOnData() {
@@ -239,6 +239,17 @@ export class VectorLayer extends AbstractLayer {
 
   async getSourceName() {
     return this._source.getDisplayName();
+  }
+
+  async getDateFields() {
+    const timeFields = await this._source.getDateFields();
+    return timeFields.map(({ label, name }) => {
+      return {
+        label,
+        name,
+        origin: SOURCE_DATA_ID_ORIGIN
+      };
+    });
   }
 
   async getOrdinalFields() {

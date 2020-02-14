@@ -36,13 +36,23 @@ export const dynamicSizeShape = PropTypes.shape({
   field: fieldShape,
 });
 
+export const staticTimeShape = PropTypes.shape({
+  time: PropTypes.number.isRequired,
+});
+
+export const dynamicTimeShape = PropTypes.shape({
+  field: fieldShape,
+});
+
 export const styleOptionShapes = [
   staticColorShape,
   dynamicColorShape,
   staticOrientationShape,
   dynamicOrientationShape,
   staticSizeShape,
-  dynamicSizeShape
+  dynamicSizeShape,
+  staticTimeShape,
+  dynamicTimeShape
 ];
 
 export const rangeShape = PropTypes.shape({

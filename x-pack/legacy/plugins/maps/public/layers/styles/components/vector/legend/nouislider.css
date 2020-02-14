@@ -1,0 +1,22 @@
+.noUi-handle {
+  cursor: col-resize;
+}
+
+.noUi-connect {
+  cursor: grab;
+}
+
+html:not([dir="rtl"]) .noUi-horizontal .noUi-handle {
+  right: -3px;
+}
+
+.noUi-horizontal .noUi-handle {
+  background: #fff;
+  width: 6px;
+  height: 24px;
+  left: auto;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+  display: none;
+}

@@ -7,6 +7,9 @@
 import _ from 'lodash';
 import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
+import Nouislider from 'nouislider-react'; // eslint-disable-line import/no-extraneous-dependencies
+import 'nouislider/distribute/nouislider.css'; // eslint-disable-line import/no-extraneous-dependencies
+import './nouislider.css';
 
 import { styleOptionShapes, rangeShape } from '../style_option_shapes';
 import { VectorStyle } from '../../../vector_style';
@@ -70,6 +73,46 @@ function renderHeaderWithIcons(icons) {
   );
 }
 
+function renderSlider(ref, range, field, layerId) {
+  const onUpdate = (values, handle) => {
+    const label = ref._formatValue(parseInt(values[handle]));
+    if (handle === 0) {
+      ref.setState({ minLabel: label });
+    }
+    else {
+      ref.setState({ maxLabel: label });
+    }
+
+    // update the map
+    const map = ref.props.getMap();
+    if (map) {
+      const filter = ['all', ['>=', field, values[0]], ['<=', field, values[1]]];
+      map.setFilter(layerId + '_circle', filter);
+    }
+  };
+
+  if (!range) {
+    range = { min: 0, max: 1 };
+  }
+
+  return (
+    <Nouislider
+      range={{ min: range.min, max: range.max }}
+      behaviour="drag"
+      start={[range.min, range.max]}
+      onUpdate={onUpdate}
+      instanceRef={instance => {
+        if (instance) {
+          ref.setState({ sliderRef: instance });
+        }
+      }}
+      layerId={layerId}
+      connect
+      isTime
+    />
+  );
+}
+
 const EMPTY_VALUE = '';
 
 export class StylePropertyLegendRow extends Component {
@@ -77,6 +120,9 @@ export class StylePropertyLegendRow extends Component {
   state = {
     label: '',
     hasLoadedFieldFormatter: false,
+    sliderRef: null,
+    minLabel: '',
+    maxLabel: '',
   }
 
   componentDidMount() {
@@ -90,10 +136,21 @@ export class StylePropertyLegendRow extends Component {
   componentDidUpdate() {
     // label could change so it needs to be loaded on update
     this._loadLabel();
+    this._loadMin();
+    this._loadMax();
   }
 
   componentWillUnmount() {
     this._isMounted = false;
+
+    if (this.state.sliderRef) {
+      // remove the time filter when time slider is hidden
+      const map = this.props.getMap();
+      if (map) {
+        const layerId = this.props.layerId;
+        map.setFilter(layerId + '_circle');
+      }
+    }
   }
 
   async _loadFieldFormatter() {
@@ -120,6 +177,38 @@ export class StylePropertyLegendRow extends Component {
     }
   }
 
+  _loadMin = async () => {
+    if (this._isStatic()) {
+      return;
+    }
+
+    const minLabel = this._formatValue(_.get(this.props.range, 'min', EMPTY_VALUE));
+    if (this._prevMin === minLabel) {
+      return;
+    }
+
+    this._prevMin = minLabel;
+    if (this._isMounted) {
+      this.setState({ minLabel });
+    }
+  }
+
+  _loadMax = async () => {
+    if (this._isStatic()) {
+      return;
+    }
+
+    const maxLabel = this._formatValue(_.get(this.props.range, 'max', EMPTY_VALUE));
+    if (this._prevMax === maxLabel) {
+      return;
+    }
+
+    this._prevMax = maxLabel;
+    if (this._isMounted) {
+      this.setState({ maxLabel });
+    }
+  }
+
   _isStatic() {
     return this.props.type === VectorStyle.STYLE_TYPE.STATIC ||
         !this.props.options.field || !this.props.options.field.name;
@@ -131,6 +220,34 @@ export class StylePropertyLegendRow extends Component {
     }
 
     return this._fieldValueFormatter(value);
+  }
+
+  play = (isPlaying) => {
+    if (isPlaying) {
+      const doPlay = this.doPlay;
+      const slider = this.state.sliderRef.noUiSlider;
+      this.interval = setInterval(function () {doPlay(slider);}, 80);
+    }
+    else {
+      clearInterval(this.interval);
+    }
+  }
+
+  doPlay = (slider) => {
+    const range = slider.options.range;
+    const timeDelta = (range.max - range.min) / 100;
+    const values = slider.get();
+    let first = parseInt(values[0]);
+    let second = parseInt(values[1]);
+    first += timeDelta;
+    second += timeDelta;
+    if (second > range.max) {
+      const playTimeDelta = second - first;
+      first = range.min;
+      second = range.min + playTimeDelta;
+    }
+    const newValues = [first, second];
+    slider.set(newValues);
   }
 
   render() {
@@ -146,15 +263,20 @@ export class StylePropertyLegendRow extends Component {
       header = renderHeaderWithIcons(getLineWidthIcons());
     } else if (name === 'iconSize') {
       header = renderHeaderWithIcons(getSymbolSizeIcons());
+    } else if (name === 'time') {
+      const field = options.field.name;
+      const layerId = this.props.layerId;
+      header = renderSlider(this, range, field, layerId);
     }
 
     return (
       <StyleLegendRow
         header={header}
-        minLabel={this._formatValue(_.get(range, 'min', EMPTY_VALUE))}
-        maxLabel={this._formatValue(_.get(range, 'max', EMPTY_VALUE))}
+        minLabel={this.state.minLabel}
+        maxLabel={this.state.maxLabel}
         propertyLabel={getVectorStyleLabel(name)}
         fieldLabel={this.state.label}
+        play={this.play}
       />
     );
   }
@@ -167,4 +289,6 @@ StylePropertyLegendRow.propTypes = {
   range: rangeShape,
   getFieldLabel: PropTypes.func.isRequired,
   getFieldFormatter: PropTypes.func.isRequired,
+  getMap: PropTypes.func.isRequired,
+  layerId: PropTypes.string.isRequired,
 };
