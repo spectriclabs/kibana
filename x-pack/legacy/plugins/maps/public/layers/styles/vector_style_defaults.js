@@ -23,7 +23,8 @@ export const vectorStyles = {
   LINE_COLOR: 'lineColor',
   LINE_WIDTH: 'lineWidth',
   ICON_SIZE: 'iconSize',
-  ICON_ORIENTATION: 'iconOrientation'
+  ICON_ORIENTATION: 'iconOrientation',
+  TIME: 'time'
 };
 
 export function getDefaultProperties(mapColors = []) {
@@ -78,6 +79,12 @@ export function getDefaultStaticProperties(mapColors = []) {
         orientation: 0
       }
     },
+    [vectorStyles.TIME]: {
+      type: VectorStyle.STYLE_TYPE.DYNAMIC,
+      options: {
+        field: undefined,
+      }
+    },
   };
 }
 
@@ -115,6 +122,12 @@ export function getDefaultDynamicProperties() {
     },
     [vectorStyles.ICON_ORIENTATION]: {
       type: VectorStyle.STYLE_TYPE.STATIC,
+      options: {
+        field: undefined,
+      }
+    },
+    [vectorStyles.TIME]: {
+      type: VectorStyle.STYLE_TYPE.DYNAMIC,
       options: {
         field: undefined,
       }

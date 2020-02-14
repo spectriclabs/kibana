@@ -20234,6 +20234,18 @@ normalize-url@^3.3.0:
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-3.3.0.tgz#b2e1c4dc4f7c6d57743df733a4f5978d18650559"
   integrity sha512-U+JJi7duF1o+u2pynbp2zXDW2/PADgC30f0GsHZtRh+HOcXHnw137TrNlyxxRvWW5fjKd3bcLHPxofWuCjaeZg==
 
+nouislider-react@^3.3.5:
+  version "3.3.7"
+  resolved "https://registry.yarnpkg.com/nouislider-react/-/nouislider-react-3.3.7.tgz#4efbeb8a2407b990154e5a6819840f6752af0d58"
+  integrity sha512-vC2r66CAQrQCWmGXX8KTCy7uf/DnFN+z08brm9Yke9WiWTs9TXMlmjCj+vMbUXgLEyI3nDtAyScraoOBuqlmag==
+  dependencies:
+    nouislider "^14.1.1"
+
+nouislider@^14.0.3, nouislider@^14.1.1:
+  version "14.1.1"
+  resolved "https://registry.yarnpkg.com/nouislider/-/nouislider-14.1.1.tgz#def812b2aaaa2ccf9e7a41dd0144a25dab5673e5"
+  integrity sha512-3/+Z/pTBoWoJf2YXSEWRmS27LW2XxOBmGEzkPyRzB/J6QvL+0mS3QwcQp0SmWhgO5CMzbSxPmb1lDDD4HP12bg==
+
 now-and-later@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/now-and-later/-/now-and-later-2.0.0.tgz#bc61cbb456d79cb32207ce47ca05136ff2e7d6ee"

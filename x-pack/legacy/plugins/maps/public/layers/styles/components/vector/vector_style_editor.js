@@ -12,6 +12,7 @@ import { VectorStyleColorEditor } from './color/vector_style_color_editor';
 import { VectorStyleSizeEditor } from './size/vector_style_size_editor';
 import { VectorStyleSymbolEditor } from './vector_style_symbol_editor';
 import { OrientationEditor } from './orientation/orientation_editor';
+import { TimeEditor } from './time/time_editor';
 import {
   getDefaultDynamicProperties,
   getDefaultStaticProperties,
@@ -24,9 +25,11 @@ import { i18n } from '@kbn/i18n';
 import { SYMBOL_OPTIONS } from '../../symbol_utils';
 
 import { EuiSpacer, EuiButtonGroup } from '@elastic/eui';
+import { ES_SEARCH } from '../../../../../common/constants';
 
 export class VectorStyleEditor extends Component {
   state = {
+    dateFields: [],
     ordinalFields: [],
     defaultDynamicProperties: getDefaultDynamicProperties(),
     defaultStaticProperties: getDefaultStaticProperties(),
@@ -50,6 +53,14 @@ export class VectorStyleEditor extends Component {
   }
 
   async _loadOrdinalFields() {
+    const dateFields = await this.props.layer.getDateFields();
+    if (!this._isMounted) {
+      return;
+    }
+    if (!_.isEqual(dateFields, this.state.dateFields)) {
+      this.setState({ dateFields });
+    }
+
     const ordinalFields = await this.props.layer.getOrdinalFields();
     if (!this._isMounted) {
       return;
@@ -150,6 +161,19 @@ export class VectorStyleEditor extends Component {
     );
   }
 
+  _renderTime() {
+    return (
+      <TimeEditor
+        styleProperty={vectorStyles.TIME}
+        handlePropertyChange={this.props.handlePropertyChange}
+        styleDescriptor={this.props.styleProperties.time}
+        ordinalFields={this.state.dateFields}
+        defaultStaticStyleOptions={this.state.defaultStaticProperties.time.options}
+        defaultDynamicStyleOptions={this.state.defaultDynamicProperties.time.options}
+      />
+    );
+  }
+
   _renderPointProperties() {
     let iconOrientation;
     if (this.props.styleProperties.symbol.options.symbolizeAs === SYMBOLIZE_AS_ICON) {
@@ -164,6 +188,16 @@ export class VectorStyleEditor extends Component {
             defaultDynamicStyleOptions={this.state.defaultDynamicProperties.iconOrientation.options}
           />
           <EuiSpacer size="m" />
+        </Fragment>
+      );
+    }
+
+    let time;
+    if (this.props.layer.getSource()._descriptor.type === ES_SEARCH) {
+      time = (
+        <Fragment>
+          <EuiSpacer size="m" />
+          {this._renderTime()}
         </Fragment>
       );
     }
@@ -190,6 +224,8 @@ export class VectorStyleEditor extends Component {
         {iconOrientation}
 
         {this._renderSymbolSize()}
+
+        {time}
       </Fragment>
     );
   }
