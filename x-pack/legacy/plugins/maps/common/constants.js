@@ -39,6 +39,7 @@ export function createMapPath(id) {
 
 export const LAYER_TYPE = {
   TILE: 'TILE',
+  DATASHADER: 'DATASHADER',
   VECTOR: 'VECTOR',
   VECTOR_TILE: 'VECTOR_TILE',
   HEATMAP: 'HEATMAP',
