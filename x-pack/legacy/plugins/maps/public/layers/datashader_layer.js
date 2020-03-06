@@ -9,7 +9,7 @@ import _ from 'lodash';
 import { SOURCE_DATA_ID_ORIGIN, LAYER_TYPE } from '../../common/constants';
 
 export class DatashaderLayer extends AbstractLayer {
-  static type = LAYER_TYPE.TILE;
+  static type = LAYER_TYPE.DATASHADER;
   appliedParams = ''; //MRA
   mbMap = null; //MRA
 
