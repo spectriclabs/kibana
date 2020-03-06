@@ -35,8 +35,8 @@ export class DatashaderLayer extends AbstractLayer {
 
     if (this.appliedParams !== currentParams) {
       if (this.toLayerDescriptor().sourceDescriptor.urlTemplate) {
-        const baseUrl = this.toLayerDescriptor().sourceDescriptor.urlTemplate;
-        baseUrl.concat("?params=", currentParams);
+        let baseUrl = this.toLayerDescriptor().sourceDescriptor.urlTemplate;
+        baseUrl = baseUrl.concat("?params=", currentParams);
         //Swap layer
         const sourceId = this.getId();
         const mbLayerId = this._getMbLayerId();
@@ -127,7 +127,7 @@ export class DatashaderLayer extends AbstractLayer {
       }
 
       if (this.appliedParams) {
-        url.concat("?params=", this.appliedParams);
+        url = url.concat("?params=", this.appliedParams);
       }
 
       const sourceId = this.getId();
