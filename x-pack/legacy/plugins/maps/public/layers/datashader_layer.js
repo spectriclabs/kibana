@@ -7,14 +7,20 @@
 import { AbstractLayer } from './layer';
 import _ from 'lodash';
 import { SOURCE_DATA_ID_ORIGIN, LAYER_TYPE } from '../../common/constants';
+import { DatashaderStyle } from './styles/datashader/datashader_style';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
-  appliedParams = ''; //MRA
-  mbMap = null; //MRA
+  appliedUrl = '';
 
   constructor({ layerDescriptor, source, style }) {
     super({ layerDescriptor, source, style });
+    if (!layerDescriptor.style) {
+      const defaultStyle = DatashaderStyle.createDescriptor();
+      this._style = new DatashaderStyle(defaultStyle);
+    } else {
+      this._style = new DatashaderStyle(layerDescriptor.style);
+    }
   }
 
   static createDescriptor(options) {
@@ -25,63 +31,13 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   async syncData({ startLoading, stopLoading, onLoadError, dataFilters }) {
-    //MRA
-    const currentParamsObj = {};
-    let currentParams = '';
-    currentParamsObj.timeFilters = dataFilters.timeFilters;
-    currentParamsObj.filters = dataFilters.filters;
-    currentParamsObj.query = dataFilters.query;
-    currentParams = JSON.stringify(currentParamsObj);
-
-    if (this.appliedParams !== currentParams) {
-      if (this.toLayerDescriptor().sourceDescriptor.urlTemplate) {
-        let baseUrl = this.toLayerDescriptor().sourceDescriptor.urlTemplate;
-        baseUrl = baseUrl.concat("?params=", currentParams);
-        //Swap layer
-        const sourceId = this.getId();
-        const mbLayerId = this._getMbLayerId();
-        if (this.mbMap) {
-          if (this.mbMap.style._layers) {
-            //Remove & Add source/layer approach
-            try {
-              if (this.mbMap.getLayer(mbLayerId)) {
-                this.mbMap.removeLayer(mbLayerId);  
-              }
-              if (this.mbMap.getSource(sourceId)) {
-                this.mbMap.removeSource(sourceId)
-              }
-              this.mbMap.addSource(sourceId, {
-                type: 'raster',
-                tiles: [baseUrl],
-                tileSize: 256,
-                scheme: 'xyz',
-              });
-              this.mbMap.addLayer({
-                id: mbLayerId,
-                type: 'raster',
-                source: sourceId,
-                minzoom: this._descriptor.minZoom,
-                maxzoom: this._descriptor.maxZoom,
-              });
-              this._setTileLayerProperties(this.mbMap, mbLayerId);
-              //Store off the now applied params
-              this.appliedParams = currentParams;
-            } catch {
-              console.log('Exception while trying to add/remove layers');
-            }
-          }
-        }
-      }
-    }
-    //MRA
     if (!this.isVisible() || !this.showAtZoomLevel(dataFilters.zoom)) {
       return;
     }
-    const sourceDataRequest = this.getSourceDataRequest();
-    if (sourceDataRequest) {
-      //data is immmutable
-      return;
-    }
+
+    // TODO consider returning if there is no need to recalculate
+    // the tile URL
+
     const requestToken = Symbol(`layer-source-refresh:${this.getId()} - source`);
     startLoading(SOURCE_DATA_ID_ORIGIN, requestToken, dataFilters);
     try {
@@ -111,26 +67,46 @@ export class DatashaderLayer extends AbstractLayer {
   syncLayerWithMB(mbMap) {
     const source = mbMap.getSource(this.getId());
     const mbLayerId = this._getMbLayerId();
-    this.mbMap = mbMap; //MRA
+    const sourceId = this.getId();
 
-    if (!source) {
-      const sourceDataRequest = this.getSourceDataRequest();
-      if (!sourceDataRequest) {
-        //this is possible if the layer was invisible at startup.
-        //the actions will not perform any data=syncing as an optimization when a layer is invisible
-        //when turning the layer back into visible, it's possible the url has not been resovled yet.
-        return;
+    const sourceDataRequest = this.getSourceDataRequest();
+    if (!sourceDataRequest) {
+      //this is possible if the layer was invisible at startup.
+      //the actions will not perform any data=syncing as an optimization when a layer is invisible
+      //when turning the layer back into visible, it's possible the url has not been resovled yet.
+      return;
+    }
+
+    let currentParams = "";
+    let dataMeta = sourceDataRequest.getMeta();
+    if (dataMeta) {
+      const currentParamsObj = {};
+      currentParamsObj.timeFilters = dataMeta.timeFilters;
+      currentParamsObj.filters = dataMeta.filters;
+      currentParamsObj.query = dataMeta.query;
+
+      currentParams = currentParams.concat(
+        "params=", JSON.stringify(currentParamsObj),
+        this._style.getStyleUrlParams()
+      );
+    }
+
+    let url = sourceDataRequest.getData();
+    if (!url) {
+      return;
+    }
+
+    url = url.concat("/{z}/{x}/{y}.png?", currentParams);
+    
+    if ((!source) || (source.tiles[0] != url)) {
+      
+      if (mbMap.getLayer(mbLayerId)) {
+        mbMap.removeLayer(mbLayerId);  
       }
-      let url = sourceDataRequest.getData();
-      if (!url) {
-        return;
+      if (mbMap.getSource(sourceId)) {
+        mbMap.removeSource(sourceId)
       }
 
-      if (this.appliedParams) {
-        url = url.concat("?params=", this.appliedParams);
-      }
-
-      const sourceId = this.getId();
       mbMap.addSource(sourceId, {
         type: 'raster',
         tiles: [url],
@@ -145,6 +121,8 @@ export class DatashaderLayer extends AbstractLayer {
         minzoom: this._descriptor.minZoom,
         maxzoom: this._descriptor.maxZoom,
       });
+
+      mbMap._render();
     }
 
     this._setTileLayerProperties(mbMap, mbLayerId);

@@ -142,6 +142,7 @@ export const STYLE_TYPE = {
 export const LAYER_STYLE_TYPE = {
   VECTOR: 'VECTOR',
   HEATMAP: 'HEATMAP',
+  DATASHADER: 'DATASHADER'
 };
 
 export const COLOR_MAP_TYPE = {
