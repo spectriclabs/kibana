@@ -15,6 +15,27 @@ import { i18n } from '@kbn/i18n';
 import { getDataSourceLabel, getUrlLabel } from '../../../common/i18n_getters';
 import _ from 'lodash';
 
+import {
+  ES_GEO_FIELD_TYPE
+} from '../../../common/constants';
+import { SingleFieldSelect } from '../../components/single_field_select';
+import { indexPatternService } from '../../kibana_services';
+import { npStart } from 'ui/new_platform';
+const { IndexPatternSelect } = npStart.plugins.data.ui;
+
+import { isNestedField } from '../../../../../../../src/plugins/data/public';
+
+const RESET_INDEX_PATTERN_STATE = {
+  indexPattern: undefined,
+  indexTitle: undefined,
+  timeFieldName: undefined,
+  geoField: undefined,
+};
+
+function filterGeoField(field) {
+  return [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
+}
+
 export class DatashaderSource extends AbstractTMSSource {
   static type = 'Datashader';
   static title = i18n.translate('xpack.maps.source.ems_xyzTitle', {
@@ -25,12 +46,13 @@ export class DatashaderSource extends AbstractTMSSource {
   });
   static icon = 'grid';
 
-  static createDescriptor({ urlTemplate, attributionText, attributionUrl }) {
+  static createDescriptor({ urlTemplate, indexTitle, timeFieldName, geoField }) {
     return {
       type: DatashaderSource.type,
       urlTemplate,
-      attributionText,
-      attributionUrl,
+      indexTitle,
+      timeFieldName,
+      geoField,
     };
   }
 
@@ -42,6 +64,17 @@ export class DatashaderSource extends AbstractTMSSource {
     };
     return <DatashaderEditor onSourceConfigChange={onSourceConfigChange} />;
   }
+
+  /*
+  renderSourceSettingsEditor({ onChange }) {
+    return (
+      <DatashaderSourceEditor
+        source={this}
+        onChange={onChange}
+      />
+    );
+  }
+  */
 
   async getImmutableProperties() {
     return [
@@ -86,10 +119,22 @@ export class DatashaderSource extends AbstractTMSSource {
     return this._descriptor.urlTemplate;
   }
 
+  getIndexTitle() {
+    return this._descriptor.indexTitle;
+  }
+
+  getTimeFieldName() {
+    return this._descriptor.timeFieldName;
+  }
+
+  getGeoField() {
+    return this._descriptor.geoField;
+  }
+
   isTimeAware() {
     return true;
-
   }
+  
   isQueryAware() {
     return true;
   }
@@ -98,14 +143,24 @@ export class DatashaderSource extends AbstractTMSSource {
 
 class DatashaderEditor extends React.Component {
   state = {
+    isLoadingIndexPattern: false,
+    noGeoIndexPatternsExist: false,
     tmsInput: '',
-    tmsCanPreview: false,
-    attributionText: '',
-    attributionUrl: '',
+    canPreview: false,
+    ...RESET_INDEX_PATTERN_STATE,
   };
 
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  componentDidMount() {
+    this._isMounted = true;
+    this.loadIndexPattern(this.state.indexPatternId);
+  }
+
   _sourceConfigChange = _.debounce(updatedSourceConfig => {
-    if (this.state.tmsCanPreview) {
+    if (this.state.canPreview) {
       this.props.onSourceConfigChange(updatedSourceConfig);
     }
   }, 2000);
@@ -113,27 +168,198 @@ class DatashaderEditor extends React.Component {
   _handleTMSInputChange(e) {
     const url = e.target.value;
 
+    let canPreview = true;
+    if (!this.state.indexPattern) {
+      canPreview = false;
+    }
+    if (!this.state.tmsInput) {
+      canPreview = false;
+    }
+    if (!this.state.geoField) {
+      canPreview = false;
+    }
+
     this.setState(
       {
         tmsInput: url,
-        tmsCanPreview: true,
+        canPreview: canPreview,
       },
-      () => this._sourceConfigChange({ urlTemplate: url })
+      () => this._sourceConfigChange({
+        urlTemplate: url,
+        indexTitle: this.state.indexPattern.title,
+        timeFieldName: this.state.indexPattern.timeFieldName,
+        geoField: this.state.geoField
+      })
+    );
+
+  }
+
+  _onNoIndexPatterns = () => {
+    this.setState({ noGeoIndexPatternsExist: true });
+  };
+
+  onIndexPatternSelect = indexPatternId => {
+    this.setState(
+      {
+        indexPatternId,
+      },
+      this.loadIndexPattern(indexPatternId)
+    );
+  };
+
+  loadIndexPattern = indexPatternId => {
+    this.setState(
+      {
+        isLoadingIndexPattern: true,
+        ...RESET_INDEX_PATTERN_STATE,
+      },
+      this.debouncedLoad.bind(null, indexPatternId)
+    );
+  };
+
+  loadIndexDocCount = async indexPatternTitle => {
+    const { count } = await kfetch({
+      pathname: `../${GIS_API_PATH}/indexCount`,
+      query: {
+        index: indexPatternTitle,
+      },
+    });
+    return count;
+  };
+
+  onGeoFieldSelect = geoField => {
+    let canPreview = true;
+    if (!this.state.indexPattern) {
+      canPreview = false;
+    }
+    if (!this.state.tmsInput) {
+      canPreview = false;
+    }
+    if (!this.state.geoField) {
+      canPreview = false;
+    }
+
+    this.setState(
+      {
+        geoField: geoField,
+        canPreview: canPreview,
+      },
+      () => this._sourceConfigChange({
+        urlTemplate: this.state.tmsInput,
+        indexTitle: this.state.indexPattern.title,
+        timeFieldName: this.state.indexPattern.timeFieldName,
+        geoField: geoField
+      })
+    );
+  };
+
+  debouncedLoad = _.debounce(async indexPatternId => {
+    if (!indexPatternId || indexPatternId.length === 0) {
+      return;
+    }
+
+    let indexPattern;
+    try {
+      indexPattern = await indexPatternService.get(indexPatternId);
+    } catch (err) {
+      // index pattern no longer exists
+      return;
+    }
+
+    let indexHasSmallDocCount = false;
+    try {
+      const indexDocCount = await this.loadIndexDocCount(indexPattern.title);
+      indexHasSmallDocCount = indexDocCount <= DEFAULT_MAX_RESULT_WINDOW;
+    } catch (error) {
+      // retrieving index count is a nice to have and is not essential
+      // do not interrupt user flow if unable to retrieve count
+    }
+
+    if (!this._isMounted) {
+      return;
+    }
+
+    // props.indexPatternId may be updated before getIndexPattern returns
+    // ignore response when fetched index pattern does not match active index pattern
+    if (indexPattern.id !== indexPatternId) {
+      return;
+    }
+
+    let canPreview = true;
+    if (!this.state.indexPattern) {
+      canPreview = false;
+    }
+    if (!this.state.tmsInput) {
+      canPreview = false;
+    }
+    if (!this.state.geoField) {
+      canPreview = false;
+    }
+
+    this.setState({
+      indexPattern: indexPattern,
+      isLoadingIndexPattern: false,
+      filterByMapBounds: !indexHasSmallDocCount, // Turn off filterByMapBounds when index contains a limited number of documents
+      showFilterByBoundsSwitch: indexHasSmallDocCount,
+      canPreview: canPreview
+    });
+
+    () => this._sourceConfigChange({
+      urlTemplate: this.state.tmsInput,
+      indexTitle: indexPattern.title,
+      timeFieldName: this.state.timeFieldName,
+      geoField: this.state.geoField
+    })
+
+    //make default selection
+    const geoFields = indexPattern.fields
+      .filter(field => !isNestedField(field))
+      .filter(filterGeoField);
+    if (geoFields[0]) {
+      this.onGeoFieldSelect(geoFields[0].name);
+    }
+
+    }, 300);
+
+  _renderNoIndexPatternWarning() {
+    if (!this.state.noGeoIndexPatternsExist) {
+      return null;
+    }
+
+    return (
+      <Fragment>
+        <NoIndexPatternCallout />
+        <EuiSpacer size="s" />
+      </Fragment>
     );
   }
 
-  _handleTMSAttributionChange(attributionUpdate) {
-    this.setState(attributionUpdate, () => {
-      const { attributionText, attributionUrl, tmsInput } = this.state;
+  _renderGeoSelect() {
+    if (!this.state.indexPattern) {
+      return;
+    }
 
-      if (tmsInput && attributionText && attributionUrl) {
-        this._sourceConfigChange({
-          urlTemplate: tmsInput,
-          attributionText,
-          attributionUrl,
-        });
-      }
-    });
+    return (
+      <EuiFormRow
+        label={i18n.translate('xpack.maps.source.esSearch.geofieldLabel', {
+          defaultMessage: 'Geospatial field',
+        })}
+      >
+        <SingleFieldSelect
+          placeholder={i18n.translate('xpack.maps.source.esSearch.selectLabel', {
+            defaultMessage: 'Select geo field',
+          })}
+          value={this.state.geoField}
+          onChange={this.onGeoFieldSelect}
+          filterField={filterGeoField}
+          fields={
+            this.state.indexPattern
+              ? this.state.indexPattern.fields.filter(field => !isNestedField(field))
+              : undefined
+          }
+        />
+      </EuiFormRow>
+    );
   }
 
   render() {
@@ -141,44 +367,34 @@ class DatashaderEditor extends React.Component {
 
     return (
       <Fragment>
+        {this._renderNoIndexPatternWarning()}
         <EuiFormRow label="Url">
           <EuiFieldText
-            placeholder={'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'}
+            placeholder={'https://a.datashader.com'}
             onChange={e => this._handleTMSInputChange(e)}
           />
         </EuiFormRow>
         <EuiFormRow
-          label="Attribution text"
-          isInvalid={attributionUrl !== '' && attributionText === ''}
-          error={[
-            i18n.translate('xpack.maps.xyztmssource.attributionText', {
-              defaultMessage: 'Attribution url must have accompanying text',
-            }),
-          ]}
+          label={i18n.translate('xpack.maps.source.esSearch.indexPatternLabel', {
+            defaultMessage: 'Index pattern',
+          })}
         >
-          <EuiFieldText
-            placeholder={'© OpenStreetMap contributors'}
-            onChange={({ target }) =>
-              this._handleTMSAttributionChange({ attributionText: target.value })
-            }
+          <IndexPatternSelect
+            isDisabled={this.state.noGeoIndexPatternsExist}
+            indexPatternId={this.state.indexPatternId}
+            onChange={this.onIndexPatternSelect}
+            placeholder={i18n.translate(
+              'xpack.maps.source.esSearch.selectIndexPatternPlaceholder',
+              {
+                defaultMessage: 'Select index pattern',
+              }
+            )}
+            fieldTypes={[ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE]}
+            onNoIndexPatterns={this._onNoIndexPatterns}
           />
         </EuiFormRow>
-        <EuiFormRow
-          label="Attribution link"
-          isInvalid={attributionText !== '' && attributionUrl === ''}
-          error={[
-            i18n.translate('xpack.maps.xyztmssource.attributionLink', {
-              defaultMessage: 'Attribution text must have an accompanying link',
-            }),
-          ]}
-        >
-          <EuiFieldText
-            placeholder={'https://www.openstreetmap.org/copyright'}
-            onChange={({ target }) =>
-              this._handleTMSAttributionChange({ attributionUrl: target.value })
-            }
-          />
-        </EuiFormRow>
+
+        {this._renderGeoSelect()}
       </Fragment>
     );
   }

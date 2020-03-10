@@ -6,7 +6,7 @@
 
 import React, { Component, Fragment } from 'react';
 
-import { EuiFormRow, EuiSuperSelect, EuiRange, EuiSelect } from '@elastic/eui';
+import { EuiFormRow, EuiSuperSelect, EuiRange, EuiSelect, EuiFieldText } from '@elastic/eui';
 
 import {
   DEFAULT_RGB_DATASHADER_COLOR_RAMP,
@@ -32,6 +32,20 @@ export function DatashaderStyleEditor({ properties, handlePropertyChange }) {
   const onSpanChange = e => {
     handlePropertyChange(
       "spanRange",
+      e.target.value
+    );
+  };
+
+  const onModeChange = e => {
+    handlePropertyChange(
+      "mode",
+      e.target.value
+    );
+  };
+
+  const onCategoryFieldChange = e => {
+    handlePropertyChange(
+      "categoryField",
       e.target.value
     );
   };
@@ -68,6 +82,17 @@ export function DatashaderStyleEditor({ properties, handlePropertyChange }) {
     },
   ];
 
+  const modeOptions = [
+    {
+      value: "heat",
+      text: "Heat"
+    },
+    {
+      value: "category",
+      text: "Category"
+    }
+  ];
+
   return (
     <Fragment>
       <EuiFormRow label={DATASHADER_COLOR_RAMP_LABEL} display="rowCompressed">
@@ -93,6 +118,15 @@ export function DatashaderStyleEditor({ properties, handlePropertyChange }) {
           options={spanRangeOptions}
           value={properties.spanRange}
           onChange={onSpanChange}
+      />
+      <EuiSelect label="Mode"
+          options={modeOptions}
+          value={properties.mode}
+          onChange={onModeChange}
+      />
+      <EuiFieldText
+          value={properties.categoryField}
+          onChange={onCategoryFieldChange}
       />
     </Fragment>
   );
