@@ -73,7 +73,9 @@ export class DatashaderStyle extends AbstractStyle {
     return urlParams.concat(
         "&cmap=", this._descriptor.properties.colorRampName,
         "&spread=", this._descriptor.properties.spread,
-        "&span=", this._descriptor.properties.spanRange
+        "&span=", this._descriptor.properties.spanRange,
+        "&mode=", this._descriptor.properties.mode,
+        "&category_field=", this._descriptor.properties.categoryField
     )
   }
 }

@@ -42,7 +42,17 @@ export class DatashaderLayer extends AbstractLayer {
     startLoading(SOURCE_DATA_ID_ORIGIN, requestToken, dataFilters);
     try {
       const url = await this._source.getUrlTemplate();
-      stopLoading(SOURCE_DATA_ID_ORIGIN, requestToken, url, {});
+      const indexTitle = await this._source.getIndexTitle();
+      const timeFieldName = await this._source.getTimeFieldName();
+      const geoField = await this._source.getGeoField();
+      const data = {
+        url: url,
+        indexTitle: indexTitle,
+        timeFieldName: timeFieldName,
+        geoField: geoField
+      }
+
+      stopLoading(SOURCE_DATA_ID_ORIGIN, requestToken, data, {});
     } catch (error) {
       onLoadError(SOURCE_DATA_ID_ORIGIN, requestToken, error.message);
     }
@@ -77,6 +87,20 @@ export class DatashaderLayer extends AbstractLayer {
       return;
     }
 
+    let data = sourceDataRequest.getData()
+
+    if (!data.indexTitle) {
+      return;
+    }
+
+    if (!data.geoField) {
+      return;
+    }
+
+    if (!data.url) {
+      return;
+    }
+
     let currentParams = "";
     let dataMeta = sourceDataRequest.getMeta();
     if (dataMeta) {
@@ -87,16 +111,18 @@ export class DatashaderLayer extends AbstractLayer {
 
       currentParams = currentParams.concat(
         "params=", JSON.stringify(currentParamsObj),
-        this._style.getStyleUrlParams()
+        "&timestamp_field=", data.timeFieldName,
+        "&geopoint_field=", data.geoField,
+        this._style.getStyleUrlParams(),
       );
     }
 
-    let url = sourceDataRequest.getData();
-    if (!url) {
-      return;
-    }
-
-    url = url.concat("/{z}/{x}/{y}.png?", currentParams);
+    let url = data.url.concat(
+      "/tms/",
+      data.indexTitle,
+      "/{z}/{x}/{y}.png?",
+      currentParams
+    );
     
     if ((!source) || (source.tiles[0] != url)) {
       
@@ -146,5 +172,13 @@ export class DatashaderLayer extends AbstractLayer {
 
   isLayerLoading() {
     return false;
+  }
+
+  async hasLegendDetails() {
+    return true;
+  }
+
+  renderLegendDetails() {
+    return this._style.renderLegendDetails();
   }
 }
