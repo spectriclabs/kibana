@@ -85,6 +85,15 @@ export class DatashaderSource extends AbstractTMSSource {
   getUrlTemplate() {
     return this._descriptor.urlTemplate;
   }
+
+  isTimeAware() {
+    return true;
+
+  }
+  isQueryAware() {
+    return true;
+  }
+
 }
 
 class DatashaderEditor extends React.Component {
@@ -104,12 +113,10 @@ class DatashaderEditor extends React.Component {
   _handleTMSInputChange(e) {
     const url = e.target.value;
 
-    const canPreview =
-      url.indexOf('{x}') >= 0 && url.indexOf('{y}') >= 0 && url.indexOf('{z}') >= 0;
     this.setState(
       {
         tmsInput: url,
-        tmsCanPreview: canPreview,
+        tmsCanPreview: true,
       },
       () => this._sourceConfigChange({ urlTemplate: url })
     );
