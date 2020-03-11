@@ -186,8 +186,8 @@ class DatashaderEditor extends React.Component {
       },
       () => this._sourceConfigChange({
         urlTemplate: url,
-        indexTitle: this.state.indexPattern.title,
-        timeFieldName: this.state.indexPattern.timeFieldName,
+        indexTitle: this.state.indexPattern ? this.state.indexPattern.title : undefined,
+        timeFieldName: this.state.indexPattern ? this.state.indexPattern.timeFieldName : undefined,
         geoField: this.state.geoField
       })
     );
@@ -246,8 +246,8 @@ class DatashaderEditor extends React.Component {
       },
       () => this._sourceConfigChange({
         urlTemplate: this.state.tmsInput,
-        indexTitle: this.state.indexPattern.title,
-        timeFieldName: this.state.indexPattern.timeFieldName,
+        indexTitle: this.state.indexPattern ? this.state.indexPattern.title : undefined,
+        timeFieldName: this.state.indexPattern ? this.state.indexPattern.timeFieldName : undefined,
         geoField: geoField
       })
     );
@@ -307,7 +307,7 @@ class DatashaderEditor extends React.Component {
     () => this._sourceConfigChange({
       urlTemplate: this.state.tmsInput,
       indexTitle: indexPattern.title,
-      timeFieldName: this.state.timeFieldName,
+      timeFieldName: indexPattern.timeFieldName,
       geoField: this.state.geoField
     })
 
