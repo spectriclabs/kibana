@@ -59,8 +59,8 @@ export class DatashaderStyle extends AbstractStyle {
     );
   }
 
-  renderLegendDetails(field) {
-    return <DatashaderLegend colorRampName={this._descriptor.colorRampName} field={field} />;
+  renderLegendDetails(sourceDescriptor) {
+    return <DatashaderLegend styleDescriptor={this._descriptor} sourceDescriptor={sourceDescriptor} />;
   }
 
   getIcon() {

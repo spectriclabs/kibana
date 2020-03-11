@@ -179,6 +179,6 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   renderLegendDetails() {
-    return this._style.renderLegendDetails();
+    return this._style.renderLegendDetails(this._source);
   }
 }
