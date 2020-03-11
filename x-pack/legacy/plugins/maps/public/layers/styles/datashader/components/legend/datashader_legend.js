@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React from 'react';
+import React, { Fragment } from 'react';
 
 import { i18n } from '@kbn/i18n';
 import { EuiText } from '@elastic/eui';
@@ -18,28 +18,33 @@ import {
 export class DatashaderLegend extends React.Component {
   constructor() {
     super();
-    this.state = { label: '' };
+    this.state = { url: '' };
   }
 
   componentDidUpdate() {
-    this._loadLabel();
   }
 
   componentDidMount() {
     this._isMounted = true;
-    this._loadLabel();
+    this._loadLegendInfo();
   }
   componentWillUnmount() {
     this._isMounted = false;
   }
 
-  async _loadLabel() {
+  async _loadLegendInfo() {
+    let url = await this.props.sourceDescriptor.getUrlTemplate();
 
+    // TOOD this is where you would make HTTP calls
+    this.setState({url: url});
   }
 
   render() {
     return (
-      <EuiText grow={false}>Hello World</EuiText>
+      <Fragment>
+        <EuiText grow={false}>URL is {this.state.url}</EuiText>
+        <EuiText grow={false}>Mode is {this.props.styleDescriptor.properties.mode}</EuiText>
+      </Fragment>
     );
   }
 }
