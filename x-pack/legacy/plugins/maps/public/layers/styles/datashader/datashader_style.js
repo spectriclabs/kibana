@@ -16,7 +16,8 @@ import { DEFAULT_DATASHADER_COLOR_RAMP_NAME } from './components/datashader_cons
 import { LAYER_STYLE_TYPE } from '../../../../common/constants';
 import { getOrdinalColorRampStops } from '../color_utils';
 import { i18n } from '@kbn/i18n';
-import { EuiIcon } from '@elastic/eui';
+import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
+import { VectorIcon } from '../vector/components/legend/vector_icon';
 
 export class DatashaderStyle extends AbstractStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
@@ -59,8 +60,85 @@ export class DatashaderStyle extends AbstractStyle {
     );
   }
 
+  _renderStopIcon(color, isLinesOnly, isPointsOnly, symbolId) {
+    const fillColor = color; //this.getStyleName() === VECTOR_STYLES.FILL_COLOR ? color : 'none';
+    return (
+      <VectorIcon
+        fillColor={fillColor}
+        isPointsOnly={isPointsOnly}
+        isLinesOnly={isLinesOnly}
+        strokeColor={color}
+        symbolId={symbolId}
+      />
+    );
+  }
+
+  _renderColorbreaks({ isLinesOnly, isPointsOnly, symbolId, legend }) {
+    let colorAndLabels = []
+    for (let key in legend) {
+        colorAndLabels.push({
+            label: key,
+            color: legend[key],
+        });
+    }
+
+    const defaultColor = null;
+    if (defaultColor) {
+      colorAndLabels.push({
+        label: <EuiTextColor color="secondary">OTHER</EuiTextColor>,
+        color: defaultColor,
+      });
+    }
+
+    return colorAndLabels.map((config, index) => {
+      return (
+        <EuiFlexItem key={index}>
+          <EuiFlexGroup direction={'row'} gutterSize={'none'}>
+            <EuiFlexItem>
+              <EuiText size={'xs'}>{config.label}</EuiText>
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              {this._renderStopIcon(config.color, isLinesOnly, isPointsOnly, symbolId)}
+            </EuiFlexItem>
+          </EuiFlexGroup>
+        </EuiFlexItem>
+      );
+    });
+  }
+
+  getDisplayStyleName() {
+    return "Category Field";
+  }
+
+  renderBreakedLegend({ fieldLabel, isPointsOnly, isLinesOnly, symbolId, legend }) {
+    return (
+      <div>
+        <EuiSpacer size="s" />
+        <EuiFlexGroup direction={'column'} gutterSize={'none'}>
+          {this._renderColorbreaks({
+            isPointsOnly,
+            isLinesOnly,
+            symbolId,
+            legend
+          })}
+        </EuiFlexGroup>
+        <EuiFlexGroup gutterSize="xs" justifyContent="spaceAround">
+          <EuiFlexItem grow={false}>
+            <EuiToolTip position="top" title={this.getDisplayStyleName()} content={fieldLabel}>
+              <EuiText className="eui-textTruncate" size="xs" style={{ maxWidth: '180px' }}>
+                <small>
+                  <strong>{fieldLabel}</strong>
+                </small>
+              </EuiText>
+            </EuiToolTip>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      </div>
+    );
+  }
+  
   renderLegendDetails(sourceDescriptor) {
-    return <DatashaderLegend styleDescriptor={this._descriptor} sourceDescriptor={sourceDescriptor} />;
+    return <DatashaderLegend styleDescriptor={this._descriptor} sourceDescriptor={sourceDescriptor} style={this} />;
   }
 
   getIcon() {

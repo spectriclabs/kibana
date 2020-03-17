@@ -8,6 +8,7 @@ import React, { Fragment } from 'react';
 
 import { i18n } from '@kbn/i18n';
 import { EuiText } from '@elastic/eui';
+import fetch from 'node-fetch';
 
 import {
   DEFAULT_RGB_DATASHADER_COLOR_RAMP,
@@ -15,10 +16,16 @@ import {
   DATASHADER_COLOR_RAMP_LABEL,
 } from '../datashader_constants';
 
+
+
 export class DatashaderLegend extends React.Component {
   constructor() {
     super();
-    this.state = { url: '' };
+    this.state = { url: '', legend: null };
+  }
+
+  async _fetch(url) {
+    return fetch(url);
   }
 
   componentDidUpdate() {
@@ -35,16 +42,29 @@ export class DatashaderLegend extends React.Component {
   async _loadLegendInfo() {
     let url = await this.props.sourceDescriptor.getUrlTemplate();
 
-    // TOOD this is where you would make HTTP calls
-    this.setState({url: url});
+    //Fetch the legend content
+    const resp = await this._fetch(url + "/" + this.props.sourceDescriptor.getIndexTitle() + "/" + this.props.styleDescriptor.properties.categoryField + "/legend.json")
+    if (resp.status >= 400) {
+      throw new Error(`Unable to access ${this.state.serviceUrl}`);
+    }
+    const body = await resp.text();
+    const legend = JSON.parse(body)
+    this.setState({legend: legend});
   }
 
   render() {
-    return (
-      <Fragment>
-        <EuiText grow={false}>URL is {this.state.url}</EuiText>
-        <EuiText grow={false}>Mode is {this.props.styleDescriptor.properties.mode}</EuiText>
-      </Fragment>
-    );
+    if (this.state.legend === null) {
+      return null;
+    }
+
+    return this.props.style.renderBreakedLegend({
+      fieldLabel: this.state.category_field,
+      isLinesOnly: false,
+      isPointsOnly: true,
+      symbolId: null,
+      legend: this.state.legend
+    });
   }
+
+
 }
