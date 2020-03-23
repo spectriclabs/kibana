@@ -7,19 +7,19 @@
 import React, { Fragment } from 'react';
 import { EuiFieldText, EuiFormRow } from '@elastic/eui';
 
-import { AbstractTMSSource } from './tms_source';
+import { AbstractTMSSource } from '../../../../maps/public/layers/sources/tms_source';
 import { DatashaderLayer } from '../datashader_layer';
 //import { TileLayer } from '../tile_layer';
 
 import { i18n } from '@kbn/i18n';
-import { getDataSourceLabel, getUrlLabel } from '../../../common/i18n_getters';
+import { getDataSourceLabel, getUrlLabel } from '../../../../maps/common/i18n_getters';
 import _ from 'lodash';
 
 import {
   ES_GEO_FIELD_TYPE
-} from '../../../common/constants';
-import { SingleFieldSelect } from '../../components/single_field_select';
-import { indexPatternService } from '../../kibana_services';
+} from '../../../../maps/common/constants';
+import { SingleFieldSelect } from '../../../../maps/public/components/single_field_select';
+import { indexPatternService } from '../../../../maps/public/kibana_services';
 import { npStart } from 'ui/new_platform';
 const { IndexPatternSelect } = npStart.plugins.data.ui;
 
