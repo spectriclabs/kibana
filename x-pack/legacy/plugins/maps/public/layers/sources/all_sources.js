@@ -14,7 +14,7 @@ import { KibanaTilemapSource } from './kibana_tilemap_source';
 import { ESGeoGridSource } from './es_geo_grid_source';
 import { ESSearchSource } from './es_search_source';
 import { ESPewPewSource } from './es_pew_pew_source/es_pew_pew_source';
-import { DatashaderSource } from './datashader_source';
+import { DatashaderSource } from '../../../../datashader_layer/public/layers/sources/datashader_source';
 
 export const ALL_SOURCES = [
   DatashaderSource,

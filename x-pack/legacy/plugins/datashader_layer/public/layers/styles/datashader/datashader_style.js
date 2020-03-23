@@ -5,19 +5,19 @@
  */
 
 import React from 'react';
-import { GRID_RESOLUTION } from '../../grid_resolution';
-import { AbstractStyle } from '../abstract_style';
+import { GRID_RESOLUTION } from '../../../../../maps/public/layers/grid_resolution';
+import { AbstractStyle } from '../../../../../maps/public/layers/styles/abstract_style';
 import { DatashaderStyleEditor } from './components/datashader_style_editor';
 import { DatashaderLegend } from './components/legend/datashader_legend';
 import {
     getDefaultProperties,
 } from './datashader_style_defaults';
 import { DEFAULT_DATASHADER_COLOR_RAMP_NAME } from './components/datashader_constants';
-import { LAYER_STYLE_TYPE } from '../../../../common/constants';
-import { getOrdinalColorRampStops } from '../color_utils';
+import { LAYER_STYLE_TYPE } from '../../../../../maps/common/constants';
+import { getOrdinalColorRampStops } from '../../../../../maps/public/layers/styles/color_utils';
 import { i18n } from '@kbn/i18n';
 import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
-import { VectorIcon } from '../vector/components/legend/vector_icon';
+import { VectorIcon } from '../../../../../maps/public/layers/styles/vector/components/legend/vector_icon';
 
 export class DatashaderStyle extends AbstractStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;

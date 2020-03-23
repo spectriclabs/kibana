@@ -4,9 +4,9 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { AbstractLayer } from './layer';
+import { AbstractLayer } from '../../../maps/public/layers/layer';
 import _ from 'lodash';
-import { SOURCE_DATA_ID_ORIGIN, LAYER_TYPE } from '../../common/constants';
+import { SOURCE_DATA_ID_ORIGIN, LAYER_TYPE } from '../../../maps/common/constants';
 import { DatashaderStyle } from './styles/datashader/datashader_style';
 
 export class DatashaderLayer extends AbstractLayer {

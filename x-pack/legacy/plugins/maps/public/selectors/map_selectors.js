@@ -7,7 +7,7 @@
 import { createSelector } from 'reselect';
 import _ from 'lodash';
 import { TileLayer } from '../layers/tile_layer';
-import { DatashaderLayer } from '../layers/datashader_layer';
+import { DatashaderLayer } from '../../../datashader_layer/public/layers/datashader_layer';
 import { VectorTileLayer } from '../layers/vector_tile_layer';
 import { VectorLayer } from '../layers/vector_layer';
 import { HeatmapLayer } from '../layers/heatmap_layer';
