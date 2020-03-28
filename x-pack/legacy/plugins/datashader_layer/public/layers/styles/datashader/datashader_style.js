@@ -44,7 +44,7 @@ export class DatashaderStyle extends AbstractStyle {
     return this._descriptor.properties || {};
   }
 
-  renderEditor({ onStyleDescriptorChange }) {
+  renderEditor({ layer, onStyleDescriptorChange }) {
     const rawProperties = this.getRawProperties();
     const handlePropertyChange = (propertyName, settings) => {
       rawProperties[propertyName] = settings; //override single property, but preserve the rest
@@ -56,6 +56,7 @@ export class DatashaderStyle extends AbstractStyle {
       <DatashaderStyleEditor
         properties={this._descriptor.properties}
         handlePropertyChange={handlePropertyChange}
+        layer={layer}
       />
     );
   }
