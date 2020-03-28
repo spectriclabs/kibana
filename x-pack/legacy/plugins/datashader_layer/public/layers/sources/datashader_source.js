@@ -172,7 +172,7 @@ class DatashaderEditor extends React.Component {
     if (!this.state.indexPattern) {
       canPreview = false;
     }
-    if (!this.state.tmsInput) {
+    if (!url) {
       canPreview = false;
     }
     if (!this.state.geoField) {
@@ -235,7 +235,7 @@ class DatashaderEditor extends React.Component {
     if (!this.state.tmsInput) {
       canPreview = false;
     }
-    if (!this.state.geoField) {
+    if (!geoField) {
       canPreview = false;
     }
 
