@@ -30,6 +30,10 @@ export class DatashaderLayer extends AbstractLayer {
     return tileLayerDescriptor;
   }
 
+  async getCategoricalFields() {
+    return await this._source.getCategoricalFields();
+  }
+
   async syncData({ startLoading, stopLoading, onLoadError, dataFilters }) {
     if (!this.isVisible() || !this.showAtZoomLevel(dataFilters.zoom)) {
       return;

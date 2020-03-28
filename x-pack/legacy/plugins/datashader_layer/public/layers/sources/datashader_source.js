@@ -24,6 +24,8 @@ import { npStart } from 'ui/new_platform';
 const { IndexPatternSelect } = npStart.plugins.data.ui;
 
 import { isNestedField } from '../../../../../../../src/plugins/data/public';
+import { CATEGORICAL_DATA_TYPES, COLOR_MAP_TYPE } from '../../../../maps/common/constants';
+import { ESDocField } from '../../../../maps/public/layers/fields/es_doc_field';
 
 const RESET_INDEX_PATTERN_STATE = {
   indexPattern: undefined,
@@ -46,11 +48,12 @@ export class DatashaderSource extends AbstractTMSSource {
   });
   static icon = 'grid';
 
-  static createDescriptor({ urlTemplate, indexTitle, timeFieldName, geoField }) {
+  static createDescriptor({ urlTemplate, indexTitle, indexPatternId, timeFieldName, geoField }) {
     return {
       type: DatashaderSource.type,
       urlTemplate,
       indexTitle,
+      indexPatternId,
       timeFieldName,
       geoField,
     };
@@ -139,6 +142,59 @@ export class DatashaderSource extends AbstractTMSSource {
     return true;
   }
 
+  getIndexPatternIds() {
+    return [this._descriptor.indexPatternId];
+  }
+
+  async getIndexPattern() {
+    if (this.indexPattern) {
+      return this.indexPattern;
+    }
+
+    try {
+      console.log("LOADING", this._descriptor.indexPatternId)
+      this.indexPattern = await indexPatternService.get(this._descriptor.indexPatternId);
+      console.log("indexPattern", this.indexPattern)
+      return this.indexPattern;
+    } catch (error) {
+      console.log("indexPattern", error)
+      throw new Error(
+        i18n.translate('xpack.maps.source.esSource.noIndexPatternErrorMessage', {
+          defaultMessage: `Unable to find Index pattern for id: {indexPatternId}`,
+          values: { indexPatternId: this._descriptor.indexPatternId },
+        })
+      );
+    }
+  }
+
+  createField({ fieldName }) {
+    return new ESDocField({
+      fieldName,
+      source: this,
+    });
+  }
+
+  async getCategoricalFields() {
+    try {
+      const indexPattern = await this.getIndexPattern();
+      console.log("Get index Pattern", indexPattern)
+      const aggFields = [];
+      CATEGORICAL_DATA_TYPES.forEach(dataType => {
+        indexPattern.fields.getByType(dataType).forEach(field => {
+          if (field.aggregatable) {
+            aggFields.push(field);
+          }
+        });
+      });
+      return aggFields.map(field => {
+        return this.createField({ fieldName: field.name });
+      });
+    } catch (error) {
+      //error surfaces in the LayerTOC UI
+      return [];
+    }
+  }
+
 }
 
 class DatashaderEditor extends React.Component {
@@ -187,6 +243,7 @@ class DatashaderEditor extends React.Component {
       () => this._sourceConfigChange({
         urlTemplate: url,
         indexTitle: this.state.indexPattern ? this.state.indexPattern.title : undefined,
+        indexPatternId: this.state.indexPattern ? this.state.indexPattern.id : undefined,
         timeFieldName: this.state.indexPattern ? this.state.indexPattern.timeFieldName : undefined,
         geoField: this.state.geoField
       })
@@ -246,6 +303,7 @@ class DatashaderEditor extends React.Component {
       },
       () => this._sourceConfigChange({
         urlTemplate: this.state.tmsInput,
+        indexPatternId: this.state.indexPattern ? this.state.indexPattern.id : undefined,
         indexTitle: this.state.indexPattern ? this.state.indexPattern.title : undefined,
         timeFieldName: this.state.indexPattern ? this.state.indexPattern.timeFieldName : undefined,
         geoField: geoField
@@ -307,6 +365,7 @@ class DatashaderEditor extends React.Component {
     () => this._sourceConfigChange({
       urlTemplate: this.state.tmsInput,
       indexTitle: indexPattern.title,
+      indexPatternId: indexPattern.id,
       timeFieldName: indexPattern.timeFieldName,
       geoField: this.state.geoField
     })
