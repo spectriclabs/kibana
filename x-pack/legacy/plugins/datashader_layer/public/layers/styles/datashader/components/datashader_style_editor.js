@@ -74,6 +74,15 @@ export class DatashaderStyleEditor extends Component {
     categoryFields: [],
   }
 
+  constructor(props) {
+    super(props);
+    this.onColorRampChange = this.onColorRampChange.bind(this);
+    this.onSpreadChange = this.onSpreadChange.bind(this);
+    this.onSpanChange = this.onSpanChange.bind(this);
+    this.onModeChange = this.onModeChange.bind(this);
+    this.onCategoryFieldChange = this.onCategoryFieldChange.bind(this);
+  }
+
   componentWillUnmount() {
     this._isMounted = false;
   }
@@ -135,7 +144,7 @@ export class DatashaderStyleEditor extends Component {
   onCategoryFieldChange(e) {
     this.props.handlePropertyChange(
       "categoryField",
-      e.target.value
+      e.field.name
     );
   };
 
@@ -146,7 +155,7 @@ export class DatashaderStyleEditor extends Component {
           <EuiSuperSelect
             options={colorRampOptions}
             onChange={this.onColorRampChange}
-            valueOfSelected={this.props.colorRampName}
+            valueOfSelected={this.props.properties.colorRampName}
             hasDividers={true}
             compressed
           />
@@ -154,7 +163,7 @@ export class DatashaderStyleEditor extends Component {
         <EuiFormRow label="Spread" display="rowCompressed">
           <EuiRange
             onChange={this.onSpreadChange}
-            value={this.props.spread}
+            value={this.props.properties.spread}
             showValue={true}
             showLabels={true}
             min={-1}
@@ -163,17 +172,17 @@ export class DatashaderStyleEditor extends Component {
         </EuiFormRow>
         <EuiSelect label="Span Range"
             options={spanRangeOptions}
-            value={this.props.spanRange}
+            value={this.props.properties.spanRange}
             onChange={this.onSpanChange}
         />
         <EuiSelect label="Mode"
             options={modeOptions}
-            value={this.props.mode}
+            value={this.props.properties.mode}
             onChange={this.onModeChange}
         />
         <FieldSelect
             fields={this.state.categoryFields}
-            selectedFieldName={this.props.categoryField}
+            selectedFieldName={this.props.properties.categoryField}
             onChange={this.onCategoryFieldChange}
             compressed
         />
