@@ -6,7 +6,7 @@
 
 import React, { Component, Fragment } from 'react';
 
-import { EuiFormRow, EuiSuperSelect, EuiRange, EuiSelect, EuiFieldText } from '@elastic/eui';
+import { EuiFormRow, EuiSuperSelect, EuiRange, EuiSelect, EuiFieldText, EuiSwitch } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 
 import {
@@ -81,6 +81,7 @@ export class DatashaderStyleEditor extends Component {
     this.onSpanChange = this.onSpanChange.bind(this);
     this.onModeChange = this.onModeChange.bind(this);
     this.onCategoryFieldChange = this.onCategoryFieldChange.bind(this);
+    this.onShowEllipsesChanged = this.onShowEllipsesChanged.bind(this);
   }
 
   componentWillUnmount() {
@@ -148,6 +149,13 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
+  onShowEllipsesChanged(e) {
+    this.props.handlePropertyChange(
+      "showEllipses",
+      e.target.checked
+    );
+  };
+
   render() {
     return (
       <Fragment>
@@ -185,6 +193,12 @@ export class DatashaderStyleEditor extends Component {
             selectedFieldName={this.props.properties.categoryField}
             onChange={this.onCategoryFieldChange}
             compressed
+        />
+        <EuiSwitch
+          label={'Show ellipses'}
+          checked={this.props.properties.showEllipses}
+          onChange={this.onShowEllipsesChanged}
+          compressed
         />
       </Fragment>
     );
