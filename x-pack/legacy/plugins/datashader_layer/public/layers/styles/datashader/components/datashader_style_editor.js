@@ -295,6 +295,7 @@ export class DatashaderStyleEditor extends Component {
     const getFieldMeta = async field => {
       return {
         label: await field.getLabel(),
+        type: await field.getDataType(),
         name: field.getName(),
         origin: field.getOrigin(),
       };
@@ -354,6 +355,10 @@ export class DatashaderStyleEditor extends Component {
     this.props.handlePropertyChange(
       "categoryField",
       e.field.name
+    );
+    this.props.handlePropertyChange(
+      "categoryFieldType",
+      e.field.type
     );
   };
 

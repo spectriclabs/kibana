@@ -184,6 +184,11 @@ export class DatashaderSource extends AbstractTMSSource {
           }
         });
       });
+      NUMBER_DATA_TYPES.forEach(dataType => {
+        indexPattern.fields.getByType(dataType).forEach(field => {
+          aggFields.push(field);
+        });
+      });
       return aggFields.map(field => {
         return this.createField({ fieldName: field.name });
       });
