@@ -154,7 +154,8 @@ export class DatashaderStyle extends AbstractStyle {
         "&spread=", this._descriptor.properties.spread,
         "&span=", this._descriptor.properties.spanRange,
         "&mode=", this._descriptor.properties.mode,
-        "&category_field=", this._descriptor.properties.categoryField
+        "&category_field=", this._descriptor.properties.categoryField,
+        "&ellipses=", this._descriptor.properties.showEllipses
     )
   }
 }

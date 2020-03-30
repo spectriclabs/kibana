@@ -4,6 +4,7 @@ export function getDefaultProperties(mapColors = []) {
       spread: 1,
       spanRange: "auto",
       mode: "heat",
-      categoryField: null
+      categoryField: null,
+      showEllipses: false
     };
   }
