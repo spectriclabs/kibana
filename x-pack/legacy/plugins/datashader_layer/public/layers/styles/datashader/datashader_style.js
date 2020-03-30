@@ -162,19 +162,37 @@ export class DatashaderStyle extends AbstractStyle {
     } else if (this._descriptor.properties.spread === "finest") {
       spread = 1;
     }
-    return urlParams.concat(
-        "&cmap=", this._descriptor.properties.colorRampName,
+
+    urlParams = urlParams.concat(
         "&spread=", spread,
         "&span=", this._descriptor.properties.spanRange,
-        "&mode=", this._descriptor.properties.mode,
-        "&category_field=", this._descriptor.properties.categoryField,
-        "&ellipses=", this._descriptor.properties.showEllipses,
+    )
+
+    if (this._descriptor.properties.showEllipses &&
+        this._descriptor.properties.ellipseMajorField &&
+        this._descriptor.properties.ellipseMinorField &&
+        this._descriptor.properties.ellipseTiltField) {
+      urlParams = urlParams.concat(
         "&ellipses=", this._descriptor.properties.showEllipses,
         "&ellipse_major=", this._descriptor.properties.ellipseMajorField,
         "&ellipse_minor=", this._descriptor.properties.ellipseMinorField,
         "&ellipse_tilt=", this._descriptor.properties.ellipseTiltField,
         "&ellipse_units=", this._descriptor.properties.ellipseUnits,
+      );
+    }
+
+    if (this._descriptor.properties.mode === "heat") {
+      urlParams = urlParams.concat(
+        "&cmap=", this._descriptor.properties.colorRampName,
+      );
+    } else if (this._descriptor.properties.mode === "category") {
+      urlParams = urlParams.concat(
+        "&category_field=", this._descriptor.properties.categoryField,
+        "&category_type=", this._descriptor.properties.categoryFieldType,
         "&ckey=", this._descriptor.properties.colorKeyName,
-    )
+      );
+    }
+
+    return urlParams;
   }
 }
