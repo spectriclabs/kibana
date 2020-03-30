@@ -38,6 +38,8 @@ function filterGeoField(field) {
   return [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
 }
 
+const NUMBER_DATA_TYPES = [ "number" ]
+
 export class DatashaderSource extends AbstractTMSSource {
   static type = 'Datashader';
   static title = i18n.translate('xpack.maps.source.ems_xyzTitle', {
@@ -152,12 +154,9 @@ export class DatashaderSource extends AbstractTMSSource {
     }
 
     try {
-      console.log("LOADING", this._descriptor.indexPatternId)
       this.indexPattern = await indexPatternService.get(this._descriptor.indexPatternId);
-      console.log("indexPattern", this.indexPattern)
       return this.indexPattern;
     } catch (error) {
-      console.log("indexPattern", error)
       throw new Error(
         i18n.translate('xpack.maps.source.esSource.noIndexPatternErrorMessage', {
           defaultMessage: `Unable to find Index pattern for id: {indexPatternId}`,
@@ -177,7 +176,6 @@ export class DatashaderSource extends AbstractTMSSource {
   async getCategoricalFields() {
     try {
       const indexPattern = await this.getIndexPattern();
-      console.log("Get index Pattern", indexPattern)
       const aggFields = [];
       CATEGORICAL_DATA_TYPES.forEach(dataType => {
         indexPattern.fields.getByType(dataType).forEach(field => {
@@ -190,7 +188,23 @@ export class DatashaderSource extends AbstractTMSSource {
         return this.createField({ fieldName: field.name });
       });
     } catch (error) {
-      //error surfaces in the LayerTOC UI
+      return [];
+    }
+  }
+
+  async getNumberFields() {
+    try {
+      const indexPattern = await this.getIndexPattern();
+      const numberFields = [];
+      NUMBER_DATA_TYPES.forEach(dataType => {
+        indexPattern.fields.getByType(dataType).forEach(field => {
+          numberFields.push(field);
+        });
+      });
+      return numberFields.map(field => {
+        return this.createField({ fieldName: field.name });
+      });
+    } catch (error) {
       return [];
     }
   }
