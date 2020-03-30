@@ -149,13 +149,32 @@ export class DatashaderStyle extends AbstractStyle {
   getStyleUrlParams() {
     let urlParams = "";
 
+    // TODO instead of passing numeric values to datashader,
+    // pass the string values and let the server side deal with
+    // it more intelligently
+    let spread = -1;
+    if (this._descriptor.properties.spread === "auto") {
+      spread = -1;
+    } else if (this._descriptor.properties.spread === "coarse") {
+      spread = 10;
+    } else if (this._descriptor.properties.spread === "fine") {
+      spread = 3;
+    } else if (this._descriptor.properties.spread === "finest") {
+      spread = 1;
+    }
     return urlParams.concat(
         "&cmap=", this._descriptor.properties.colorRampName,
-        "&spread=", this._descriptor.properties.spread,
+        "&spread=", spread,
         "&span=", this._descriptor.properties.spanRange,
         "&mode=", this._descriptor.properties.mode,
         "&category_field=", this._descriptor.properties.categoryField,
-        "&ellipses=", this._descriptor.properties.showEllipses
+        "&ellipses=", this._descriptor.properties.showEllipses,
+        "&ellipses=", this._descriptor.properties.showEllipses,
+        "&ellipse_major=", this._descriptor.properties.ellipseMajorField,
+        "&ellipse_minor=", this._descriptor.properties.ellipseMinorField,
+        "&ellipse_tilt=", this._descriptor.properties.ellipseTiltField,
+        "&ellipse_units=", this._descriptor.properties.ellipseUnits,
+        "&ckey=", this._descriptor.properties.colorKeyName,
     )
   }
 }

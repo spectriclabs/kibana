@@ -1,10 +1,16 @@
 export function getDefaultProperties(mapColors = []) {
     return {
       colorRampName: "bmy",
-      spread: 1,
+      colorKeyName: "glasbey_light",
+      spread: "auto",
       spanRange: "auto",
       mode: "heat",
       categoryField: null,
-      showEllipses: false
+      showEllipses: false,
+      ellipseMajorField: null,
+      ellipseMinorField: null,
+      ellipseTiltField: null,
+      ellipseUnits: "semi_majmin_nm",
+      manualResolution: false,
     };
   }

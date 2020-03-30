@@ -34,6 +34,10 @@ export class DatashaderLayer extends AbstractLayer {
     return await this._source.getCategoricalFields();
   }
 
+  async getNumberFields() {
+    return await this._source.getNumberFields();
+  }
+
   async syncData({ startLoading, stopLoading, onLoadError, dataFilters }) {
     if (!this.isVisible() || !this.showAtZoomLevel(dataFilters.zoom)) {
       return;
