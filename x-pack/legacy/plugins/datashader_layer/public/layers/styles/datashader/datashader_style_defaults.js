@@ -12,6 +12,7 @@ export function getDefaultProperties(mapColors = []) {
       ellipseMinorField: "",
       ellipseTiltField: "",
       ellipseUnits: "semi_majmin_nm",
+      ellipseSearchDistance: "normal",
       manualResolution: false,
     };
   }

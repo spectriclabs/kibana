@@ -257,6 +257,21 @@ const ellipseUnitsOptions = [
   },
 ];
 
+const ellipseSearchDistance = [
+  {
+    value: "narrow",
+    text: "Narrow (1 nm)"
+  },
+  {
+    value: "normal",
+    text: "Normal (10 nm)"
+  },
+  {
+    value: "wide",
+    text: "Wide (50 nm)"
+  },
+];
+
 export class DatashaderStyleEditor extends Component {
   state = {
     categoryFields: [],
@@ -276,6 +291,7 @@ export class DatashaderStyleEditor extends Component {
     this.onEllipseMinorChange = this.onEllipseMinorChange.bind(this);
     this.onEllipseTiltChange = this.onEllipseTiltChange.bind(this);
     this.onEllipseUnitsChange = this.onEllipseUnitsChange.bind(this);
+    this.onEllipseSearchDistanceChange = this.onEllipseSearchDistanceChange.bind(this);
   }
 
   componentWillUnmount() {
@@ -397,6 +413,13 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
+  onEllipseSearchDistanceChange(e) {
+    this.props.handlePropertyChange(
+      "ellipseSearchDistance",
+      e.target.value
+    );
+  };
+
   _renderEllipseStyleConfiguration() {
     const ellipsesSwitch = (
       <EuiFormRow
@@ -460,6 +483,16 @@ export class DatashaderStyleEditor extends Component {
               options={ellipseUnitsOptions}
               value={this.props.properties.ellipseUnits}
               onChange={this.onEllipseUnitsChange}
+          />
+        </EuiFormRow>
+        <EuiFormRow
+          label={"Ellipse Search Distance"}
+          display="columnCompressed"
+        >
+          <EuiSelect label="Ellipse Search Distance"
+              options={ellipseSearchDistance}
+              value={this.props.properties.ellipseSearchDistance}
+              onChange={this.onEllipseSearchDistanceChange}
           />
         </EuiFormRow>
       </Fragment>
