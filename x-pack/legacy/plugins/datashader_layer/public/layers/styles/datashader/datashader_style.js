@@ -178,6 +178,7 @@ export class DatashaderStyle extends AbstractStyle {
         "&ellipse_minor=", this._descriptor.properties.ellipseMinorField,
         "&ellipse_tilt=", this._descriptor.properties.ellipseTiltField,
         "&ellipse_units=", this._descriptor.properties.ellipseUnits,
+        "&ellipse_search=", this._descriptor.properties.ellipseSearchDistance,
       );
     }
 
