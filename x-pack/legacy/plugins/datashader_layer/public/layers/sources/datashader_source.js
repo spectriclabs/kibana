@@ -85,6 +85,8 @@ export class DatashaderSource extends AbstractTMSSource {
     return [
       { label: getDataSourceLabel(), value: DatashaderSource.title },
       { label: getUrlLabel(), value: this._descriptor.urlTemplate },
+      { label: "Index", value: this._descriptor.indexTitle },
+      { label: "Location field", value: this._descriptor.geoField },
     ];
   }
 
