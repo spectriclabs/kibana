@@ -192,7 +192,11 @@ const colorKeyOptions = [
 const spanRangeOptions = [
   {
     value: "auto",
-    text: "Automatic"
+    text: "Automatic (slower)"
+  },
+  {
+    value: "flat",
+    text: "Flat"
   },
   {
     value: "narrow",
