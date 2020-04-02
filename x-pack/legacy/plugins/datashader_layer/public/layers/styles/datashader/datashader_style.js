@@ -163,9 +163,15 @@ export class DatashaderStyle extends AbstractStyle {
       spread = 1;
     }
 
+    // the current implementation of auto is too slow, so remove it
+    let span = this._descriptor.properties.spanRange;
+    if (span === "auto") {
+      span = "normal";
+    }
+
     urlParams = urlParams.concat(
-        "&spread=", spread,
-        "&span=", this._descriptor.properties.spanRange,
+        "&spread=", this._descriptor.properties.spread,
+        "&span=", span,
     )
 
     if (this._descriptor.properties.showEllipses &&
