@@ -3,7 +3,7 @@ export function getDefaultProperties(mapColors = []) {
       colorRampName: "bmy",
       colorKeyName: "glasbey_light",
       spread: "auto",
-      spanRange: "auto",
+      spanRange: "normal",
       mode: "heat",
       categoryField: "",
       categoryFieldType: null,

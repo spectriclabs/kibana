@@ -190,10 +190,12 @@ const colorKeyOptions = [
 ];
 
 const spanRangeOptions = [
+  /* auto is disabled because it is too slow in the current implementation
   {
     value: "auto",
     text: "Automatic (slower)"
   },
+  */
   {
     value: "flat",
     text: "Flat"
