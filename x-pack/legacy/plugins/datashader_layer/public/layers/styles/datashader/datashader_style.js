@@ -75,11 +75,16 @@ export class DatashaderStyle extends AbstractStyle {
   }
 
   _renderColorbreaks({ isLinesOnly, isPointsOnly, symbolId, legend }) {
+    if (!legend || legend.length === 0) {
+      return <EuiText size={'xs'}></EuiText>
+    }
+
     let colorAndLabels = []
-    for (let key in legend) {
+    for (let category of legend) {
         colorAndLabels.push({
-            label: key,
-            color: legend[key],
+            label: category.key,
+            color: category.color,
+            count: category.count,
         });
     }
 
@@ -92,11 +97,23 @@ export class DatashaderStyle extends AbstractStyle {
     }
 
     return colorAndLabels.map((config, index) => {
+      let label = "";
+      if (config.label && config.label.trim() !== "") {
+        label = config.label;
+      } else {
+        label = <em>empty</em>;
+      }
+
+      let count = "";
+      if (config.count) {
+        count = "(" + config.count + ")";
+      }
+
       return (
         <EuiFlexItem key={index}>
           <EuiFlexGroup direction={'row'} gutterSize={'none'}>
             <EuiFlexItem>
-              <EuiText size={'xs'}>{config.label}</EuiText>
+              <EuiText size={'xs'}>{label} {count}</EuiText>
             </EuiFlexItem>
             <EuiFlexItem grow={false}>
               {this._renderStopIcon(config.color, isLinesOnly, isPointsOnly, symbolId)}
@@ -138,8 +155,8 @@ export class DatashaderStyle extends AbstractStyle {
     );
   }
   
-  renderLegendDetails(sourceDescriptor) {
-    return <DatashaderLegend styleDescriptor={this._descriptor} sourceDescriptor={sourceDescriptor} style={this} />;
+  renderLegendDetails(sourceDescriptor, sourceDataRequest) {
+    return <DatashaderLegend styleDescriptor={this._descriptor} sourceDescriptor={sourceDescriptor} style={this} sourceDataRequest={sourceDataRequest}/>;
   }
 
   getIcon() {
@@ -192,7 +209,11 @@ export class DatashaderStyle extends AbstractStyle {
       urlParams = urlParams.concat(
         "&cmap=", this._descriptor.properties.colorRampName,
       );
-    } else if (this._descriptor.properties.mode === "category") {
+    } else if (this._descriptor.properties.mode === "category" &&
+              this._descriptor.properties.categoryField &&
+              this._descriptor.properties.categoryFieldType &&
+              this._descriptor.properties.colorKeyName
+    ) {
       urlParams = urlParams.concat(
         "&category_field=", this._descriptor.properties.categoryField,
         "&category_type=", this._descriptor.properties.categoryFieldType,
