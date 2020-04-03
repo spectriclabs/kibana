@@ -105,6 +105,10 @@ export class DatashaderLayer extends AbstractLayer {
       return;
     }
 
+    if (!data.timeFieldName) {
+      return;
+    }
+
     if (!data.url) {
       return;
     }
@@ -116,6 +120,7 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.timeFilters = dataMeta.timeFilters;
       currentParamsObj.filters = dataMeta.filters;
       currentParamsObj.query = dataMeta.query;
+      currentParamsObj.extent = dataMeta.buffer; // .buffer has been expanded to align with tile boundaries
 
       currentParams = currentParams.concat(
         "params=", JSON.stringify(currentParamsObj),
@@ -187,6 +192,7 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   renderLegendDetails() {
-    return this._style.renderLegendDetails(this._source);
+    const sourceDataRequest = this.getSourceDataRequest();
+    return this._style.renderLegendDetails(this._source, sourceDataRequest);
   }
 }

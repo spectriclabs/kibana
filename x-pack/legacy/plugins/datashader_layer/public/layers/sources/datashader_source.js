@@ -146,6 +146,14 @@ export class DatashaderSource extends AbstractTMSSource {
     return true;
   }
 
+  isFilterByMapBounds() {
+    return true;
+  }
+
+  isFilterByMapBoundsConfigurable() {
+    return false;
+  }
+
   getIndexPatternIds() {
     return [this._descriptor.indexPatternId];
   }
