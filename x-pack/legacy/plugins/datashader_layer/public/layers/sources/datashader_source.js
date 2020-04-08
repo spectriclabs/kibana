@@ -158,6 +158,14 @@ export class DatashaderSource extends AbstractTMSSource {
     return [this._descriptor.indexPatternId];
   }
 
+
+  getQueryableIndexPatternIds() {
+    if (this.getApplyGlobalQuery() || true) {
+      return [this._descriptor.indexPatternId];
+    }
+    return [];
+  }
+
   async getIndexPattern() {
     if (this.indexPattern) {
       return this.indexPattern;
