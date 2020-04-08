@@ -89,7 +89,8 @@ export class DatashaderLegend extends React.Component {
     currentParams = currentParams.concat(
       "params=", JSON.stringify(currentParamsObj),
       "&timestamp_field=", data.timeFieldName,
-      "&geopoint_field=", data.geoField
+      "&geopoint_field=", data.geoField,
+      this.props.style.getStyleUrlParams(),
     );
 
     url = url.concat(
