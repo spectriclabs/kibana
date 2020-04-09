@@ -138,6 +138,22 @@ export class DatashaderSource extends AbstractTMSSource {
     return this._descriptor.geoField;
   }
 
+  isFieldAware() {
+    return true;
+  }
+
+  isRefreshTimerAware() {
+    return true;
+  }
+
+  getApplyGlobalQuery() {
+    return true;
+  }
+
+  isESSource() {
+    return true;
+  }
+
   isTimeAware() {
     return true;
   }
