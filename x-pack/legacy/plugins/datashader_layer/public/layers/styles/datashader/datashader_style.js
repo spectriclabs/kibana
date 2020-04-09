@@ -219,6 +219,12 @@ export class DatashaderStyle extends AbstractStyle {
         "&category_type=", this._descriptor.properties.categoryFieldType,
         "&ckey=", this._descriptor.properties.colorKeyName,
       );
+
+      if (this._descriptor.properties.categoryFieldPattern) {
+        urlParams = urlParams.concat(
+          "&category_pattern=", this._descriptor.properties.categoryFieldPattern
+        );
+      }
     }
 
     return urlParams;
