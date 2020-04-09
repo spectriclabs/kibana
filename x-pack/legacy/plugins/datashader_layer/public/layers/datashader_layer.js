@@ -196,8 +196,17 @@ export class DatashaderLayer extends AbstractLayer {
     return this._style.renderLegendDetails(this._source, sourceDataRequest);
   }
 
+  getIndexPatternIds() {
+    const indexPatternIds = this._source.getIndexPatternIds();
+    return indexPatternIds;
+  }
+
   getQueryableIndexPatternIds() {
     const indexPatternIds = this._source.getQueryableIndexPatternIds();
     return indexPatternIds;
+  }
+
+  getApplyGlobalQuery() {
+    return true;
   }
 }
