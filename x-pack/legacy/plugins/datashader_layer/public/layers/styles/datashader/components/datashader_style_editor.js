@@ -315,9 +315,11 @@ export class DatashaderStyleEditor extends Component {
 
   async _loadFields() {
     const getFieldMeta = async field => {
+      let _field = await field._getField();
       return {
         label: await field.getLabel(),
         type: await field.getDataType(),
+        pattern: _field.format ? _field.format.param("pattern") : null,
         name: field.getName(),
         origin: field.getOrigin(),
       };
@@ -381,6 +383,10 @@ export class DatashaderStyleEditor extends Component {
     this.props.handlePropertyChange(
       "categoryFieldType",
       e.field.type
+    );
+    this.props.handlePropertyChange(
+      "categoryFieldPattern",
+      e.field.pattern
     );
   };
 

@@ -7,6 +7,7 @@ export function getDefaultProperties(mapColors = []) {
       mode: "heat",
       categoryField: "",
       categoryFieldType: null,
+      categoryFieldPattern: null,
       showEllipses: false,
       ellipseMajorField: "",
       ellipseMinorField: "",
