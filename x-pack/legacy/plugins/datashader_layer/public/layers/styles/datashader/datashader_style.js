@@ -182,12 +182,11 @@ export class DatashaderStyle extends AbstractStyle {
 
     // the current implementation of auto is too slow, so remove it
     let span = this._descriptor.properties.spanRange;
-    if (span === "auto") {
-      span = "normal";
-    }
+    //if (span === "auto") {
+    //  span = "normal";
+    //}
 
     urlParams = urlParams.concat(
-        "&spread=", this._descriptor.properties.spread,
         "&span=", span,
     )
 
@@ -203,6 +202,11 @@ export class DatashaderStyle extends AbstractStyle {
         "&ellipse_units=", this._descriptor.properties.ellipseUnits,
         "&ellipse_search=", this._descriptor.properties.ellipseSearchDistance,
       );
+    } else {
+      urlParams = urlParams.concat(
+        "&spread=", this._descriptor.properties.spread,
+        "&resolution=", this._descriptor.properties.gridResolution
+      )
     }
 
     if (this._descriptor.properties.mode === "heat") {

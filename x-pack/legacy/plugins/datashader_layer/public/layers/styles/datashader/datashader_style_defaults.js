@@ -4,6 +4,7 @@ export function getDefaultProperties(mapColors = []) {
       colorKeyName: "glasbey_light",
       spread: "auto",
       spanRange: "normal",
+      gridResolution: "finest",
       mode: "heat",
       categoryField: "",
       categoryFieldType: null,
