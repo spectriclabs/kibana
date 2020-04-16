@@ -190,12 +190,10 @@ const colorKeyOptions = [
 ];
 
 const spanRangeOptions = [
-  /* auto is disabled because it is too slow in the current implementation
   {
     value: "auto",
     text: "Automatic (slower)"
   },
-  */
   {
     value: "flat",
     text: "Flat"
@@ -219,6 +217,21 @@ const spreadRangeOptions = [
     value: "auto",
     text: "Automatic"
   },
+  {
+    value: "large",
+    text: "Large"
+  },
+  {
+    value: "medium",
+    text: "Medium"
+  },
+  {
+    value: "small",
+    text: "Small"
+  },
+];
+
+const gridResolutionOptions = [
   {
     value: "coarse",
     text: "Coarse"
@@ -290,6 +303,7 @@ export class DatashaderStyleEditor extends Component {
     this.onColorKeyChange = this.onColorKeyChange.bind(this);
     this.onSpreadChange = this.onSpreadChange.bind(this);
     this.onSpanChange = this.onSpanChange.bind(this);
+    this.onResolutionChange = this.onResolutionChange.bind(this);
     this.onModeChange = this.onModeChange.bind(this);
     this.onCategoryFieldChange = this.onCategoryFieldChange.bind(this);
     this.onShowEllipsesChanged = this.onShowEllipsesChanged.bind(this);
@@ -357,6 +371,13 @@ export class DatashaderStyleEditor extends Component {
   onSpreadChange(e) {
     this.props.handlePropertyChange(
       "spread",
+      e.target.value
+    );
+  };
+
+  onResolutionChange(e) {
+    this.props.handlePropertyChange(
+      "gridResolution",
       e.target.value
     );
   };
@@ -432,10 +453,10 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
-  _renderEllipseStyleConfiguration() {
+  _renderStyleConfiguration() {
     const ellipsesSwitch = (
       <EuiFormRow
-        label={'Ellipses'}
+        label={'Render Mode'}
         display="columnCompressed"
       >
         <EuiSwitch
@@ -447,13 +468,41 @@ export class DatashaderStyleEditor extends Component {
       </EuiFormRow>
     );
 
-    if (!this.props.properties.showEllipses) {
-      return ellipsesSwitch;
-    }
-
-    return (
+    const pointStyleConfiguration = (
       <Fragment>
-        {ellipsesSwitch}
+        <EuiFormRow label="Dynamic Range" display="rowCompressed">
+        <EuiSelect label="Span Range"
+            options={spanRangeOptions}
+            value={this.props.properties.spanRange}
+            onChange={this.onSpanChange}
+        />
+        </EuiFormRow>
+        <EuiFormRow label="Point Size" display="rowCompressed">
+          <EuiSelect label="Point Size"
+              options={spreadRangeOptions}
+              value={this.props.properties.spread}
+              onChange={this.onSpreadChange}
+          />
+        </EuiFormRow>
+        <EuiFormRow label="Grid resolution" display="rowCompressed">
+        <EuiSelect label="Grid resolution"
+            options={gridResolutionOptions}
+            value={this.props.properties.gridResolution}
+            onChange={this.onResolutionChange}
+          />
+        </EuiFormRow>        
+      </Fragment>
+    );
+
+    const ellipseStyleConfiguration = (
+      <Fragment>
+        <EuiFormRow label="Dynamic Range" display="rowCompressed">
+        <EuiSelect label="Span Range"
+            options={spanRangeOptions}
+            value={this.props.properties.spanRange}
+            onChange={this.onSpanChange}
+        />
+        </EuiFormRow>
         <EuiFormRow
           label={"Ellipse Major"}
           display="columnCompressed"
@@ -509,6 +558,22 @@ export class DatashaderStyleEditor extends Component {
         </EuiFormRow>
       </Fragment>
     );
+
+    if (!this.props.properties.showEllipses) {
+      return (
+        <Fragment>
+          {ellipsesSwitch}
+          {pointStyleConfiguration}
+        </Fragment>
+      );
+    } else {
+      return (
+        <Fragment>
+          {ellipsesSwitch}
+          {ellipseStyleConfiguration}
+        </Fragment>
+      );
+    }
 
   };
 
@@ -584,25 +649,11 @@ export class DatashaderStyleEditor extends Component {
   render() {
     return (
       <Fragment>
-        <EuiFormRow label="Resolution" display="rowCompressed">
-          <EuiSelect label="Point Spread"
-              options={spreadRangeOptions}
-              value={this.props.properties.spread}
-              onChange={this.onSpreadChange}
-          />
-        </EuiFormRow>
-        <EuiFormRow label="Dynamic Range" display="rowCompressed">
-          <EuiSelect label="Span Range"
-              options={spanRangeOptions}
-              value={this.props.properties.spanRange}
-              onChange={this.onSpanChange}
-          />
-        </EuiFormRow>
 
-        <EuiHorizontalRule margin="xs" />
+
         {this._renderColorStyleConfiguration()}
         <EuiHorizontalRule margin="xs" />
-        {this._renderEllipseStyleConfiguration()}
+        {this._renderStyleConfiguration()}
       </Fragment>
     );
   }
