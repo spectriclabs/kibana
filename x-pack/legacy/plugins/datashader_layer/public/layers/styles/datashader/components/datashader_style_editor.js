@@ -246,10 +246,22 @@ const gridResolutionOptions = [
   },
 ];
 
-const modeOptions = [
+
+const pointModeOptions = [
   {
     value: "heat",
     text: "By Density"
+  },
+  {
+    value: "category",
+    text: "By Value"
+  }
+];
+
+const ellipseModeOptions = [
+  {
+    value: "heat",
+    text: "One Color"
   },
   {
     value: "category",
@@ -616,9 +628,16 @@ export class DatashaderStyleEditor extends Component {
   }
 
   _renderColorStyleConfiguration() {
+    let colorModeOptions;
+    if (!this.props.properties.showEllipses) {
+      colorModeOptions = pointModeOptions;
+    } else {
+      colorModeOptions = ellipseModeOptions;
+    }
+
     const modeSwitch = (
       <EuiSelect label="Color Mode"
-        options={modeOptions}
+        options={colorModeOptions}
         value={this.props.properties.mode}
         onChange={this.onModeChange}
       />
