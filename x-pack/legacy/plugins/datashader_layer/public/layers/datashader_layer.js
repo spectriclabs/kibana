@@ -53,11 +53,13 @@ export class DatashaderLayer extends AbstractLayer {
       const indexTitle = await this._source.getIndexTitle();
       const timeFieldName = await this._source.getTimeFieldName();
       const geoField = await this._source.getGeoField();
+      const applyGlobalQuery = this._source.getApplyGlobalQuery();
       const data = {
         url: url,
         indexTitle: indexTitle,
         timeFieldName: timeFieldName,
-        geoField: geoField
+        geoField: geoField,
+        applyGlobalQuery: applyGlobalQuery,
       }
 
       stopLoading(SOURCE_DATA_ID_ORIGIN, requestToken, data, {});
@@ -118,8 +120,11 @@ export class DatashaderLayer extends AbstractLayer {
     if (dataMeta) {
       const currentParamsObj = {};
       currentParamsObj.timeFilters = dataMeta.timeFilters;
-      currentParamsObj.filters = dataMeta.filters;
-      currentParamsObj.query = dataMeta.query;
+      currentParamsObj.filters = []
+      if (data.applyGlobalQuery) {
+        currentParamsObj.filters = dataMeta.filters;
+        currentParamsObj.query = dataMeta.query;
+      }
       currentParamsObj.extent = dataMeta.buffer; // .buffer has been expanded to align with tile boundaries
 
       currentParams = currentParams.concat(
@@ -206,7 +211,4 @@ export class DatashaderLayer extends AbstractLayer {
     return indexPatternIds;
   }
 
-  getApplyGlobalQuery() {
-    return true;
-  }
 }

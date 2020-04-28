@@ -81,8 +81,11 @@ export class DatashaderLegend extends React.Component {
 
     const currentParamsObj = {};
     currentParamsObj.timeFilters = dataMeta.timeFilters;
-    currentParamsObj.filters = dataMeta.filters;
-    currentParamsObj.query = dataMeta.query;
+    currentParamsObj.filters = []
+    if (data.applyGlobalQuery) {
+      currentParamsObj.filters = dataMeta.filters;
+      currentParamsObj.query = dataMeta.query;
+    }
     currentParamsObj.extent = dataMeta.extent;
     
     let currentParams = "";
