@@ -8,6 +8,7 @@ import { AbstractLayer } from '../../../maps/public/layers/layer';
 import _ from 'lodash';
 import { SOURCE_DATA_ID_ORIGIN, LAYER_TYPE } from '../../../maps/common/constants';
 import { DatashaderStyle } from './styles/datashader/datashader_style';
+import { esKuery } from '../../../../../../src/plugins/data/common/es_query';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
@@ -27,6 +28,7 @@ export class DatashaderLayer extends AbstractLayer {
     const tileLayerDescriptor = super.createDescriptor(options);
     tileLayerDescriptor.type = DatashaderLayer.type;
     tileLayerDescriptor.alpha = _.get(options, 'alpha', 1);
+    tileLayerDescriptor.query = null;
     return tileLayerDescriptor;
   }
 
@@ -122,11 +124,20 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.timeFilters = dataMeta.timeFilters;
       currentParamsObj.filters = []
       if (data.applyGlobalQuery) {
-        currentParamsObj.filters = dataMeta.filters;
+        currentParamsObj.filters = [...dataMeta.filters];
         currentParamsObj.query = dataMeta.query;
       }
       currentParamsObj.extent = dataMeta.buffer; // .buffer has been expanded to align with tile boundaries
-
+      if (this._descriptor.query && this._descriptor.query.language === "kuery") {
+        const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
+        const esQuery = esKuery.toElasticsearchQuery(kueryNode);
+        currentParamsObj.filters.push( {
+          "meta": {
+            "type" : "bool",
+          },
+          "query": esQuery
+         } );
+      }
       currentParams = currentParams.concat(
         "params=", JSON.stringify(currentParamsObj),
         "&timestamp_field=", data.timeFieldName,
@@ -198,7 +209,8 @@ export class DatashaderLayer extends AbstractLayer {
 
   renderLegendDetails() {
     const sourceDataRequest = this.getSourceDataRequest();
-    return this._style.renderLegendDetails(this._source, sourceDataRequest);
+    const query = this._descriptor.query;
+    return this._style.renderLegendDetails(this._source, sourceDataRequest, query);
   }
 
   getIndexPatternIds() {

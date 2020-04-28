@@ -155,8 +155,16 @@ export class DatashaderStyle extends AbstractStyle {
     );
   }
   
-  renderLegendDetails(sourceDescriptor, sourceDataRequest) {
-    return <DatashaderLegend styleDescriptor={this._descriptor} sourceDescriptor={sourceDescriptor} style={this} sourceDataRequest={sourceDataRequest}/>;
+  renderLegendDetails(sourceDescriptor, sourceDataRequest, query) {
+    return (
+      <DatashaderLegend
+        styleDescriptor={this._descriptor}
+        sourceDescriptor={sourceDescriptor}
+        style={this}
+        sourceDataRequest={sourceDataRequest}
+        query={query}
+      />
+    );
   }
 
   getIcon() {

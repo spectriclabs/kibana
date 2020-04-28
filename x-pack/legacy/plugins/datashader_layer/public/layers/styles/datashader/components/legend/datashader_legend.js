@@ -9,6 +9,7 @@ import React, { Fragment } from 'react';
 import { i18n } from '@kbn/i18n';
 import { EuiText } from '@elastic/eui';
 import fetch from 'node-fetch';
+import { esKuery } from '../../../../../../../../../../src/plugins/data/common/es_query';
 
 import {
   DEFAULT_RGB_DATASHADER_COLOR_RAMP,
@@ -83,11 +84,20 @@ export class DatashaderLegend extends React.Component {
     currentParamsObj.timeFilters = dataMeta.timeFilters;
     currentParamsObj.filters = []
     if (data.applyGlobalQuery) {
-      currentParamsObj.filters = dataMeta.filters;
+      currentParamsObj.filters = [...dataMeta.filters];
       currentParamsObj.query = dataMeta.query;
     }
     currentParamsObj.extent = dataMeta.extent;
-    
+    if (this.props.query && this.props.query.language === "kuery") {
+      const kueryNode = esKuery.fromKueryExpression(this.props.query.query);
+      const esQuery = esKuery.toElasticsearchQuery(kueryNode);
+      currentParamsObj.filters.push( {
+        "meta": {
+          "type" : "bool",
+        },
+        "query": esQuery
+       } ); 
+    }
     let currentParams = "";
     currentParams = currentParams.concat(
       "params=", JSON.stringify(currentParamsObj),
