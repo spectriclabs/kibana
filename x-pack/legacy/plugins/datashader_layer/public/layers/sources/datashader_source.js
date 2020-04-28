@@ -50,9 +50,10 @@ export class DatashaderSource extends AbstractTMSSource {
   });
   static icon = 'grid';
 
-  static createDescriptor({ urlTemplate, indexTitle, indexPatternId, timeFieldName, geoField }) {
+  static createDescriptor({ urlTemplate, indexTitle, indexPatternId, timeFieldName, geoField, applyGlobalQuery }) {
     return {
       type: DatashaderSource.type,
+      applyGlobalQuery: applyGlobalQuery,
       urlTemplate,
       indexTitle,
       indexPatternId,
@@ -68,6 +69,16 @@ export class DatashaderSource extends AbstractTMSSource {
       onPreviewSource(source);
     };
     return <DatashaderEditor onSourceConfigChange={onSourceConfigChange} />;
+  }
+
+  constructor(descriptor, inspectorAdapters) {
+    super(
+      {
+        ...descriptor,
+        applyGlobalQuery: _.get(descriptor, 'applyGlobalQuery', true),
+      },
+      inspectorAdapters
+    );
   }
 
   /*
@@ -143,10 +154,6 @@ export class DatashaderSource extends AbstractTMSSource {
   }
 
   isRefreshTimerAware() {
-    return true;
-  }
-
-  getApplyGlobalQuery() {
     return true;
   }
 
