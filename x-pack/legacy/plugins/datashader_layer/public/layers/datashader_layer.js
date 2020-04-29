@@ -125,7 +125,16 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.filters = []
       if (data.applyGlobalQuery) {
         currentParamsObj.filters = [...dataMeta.filters];
-        currentParamsObj.query = dataMeta.query;
+        if (dataMeta.query && dataMeta.query.language === "kuery") {
+          const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
+          const esQuery = esKuery.toElasticsearchQuery(kueryNode);
+          currentParamsObj.query = {
+            language: "dsl",
+            query: esQuery,
+          };
+        } else {
+          currentParamsObj.query = dataMeta.query;
+        }
       }
       currentParamsObj.extent = dataMeta.buffer; // .buffer has been expanded to align with tile boundaries
       if (this._descriptor.query && this._descriptor.query.language === "kuery") {
