@@ -317,6 +317,7 @@ export class DatashaderStyleEditor extends Component {
     this.onSpanChange = this.onSpanChange.bind(this);
     this.onResolutionChange = this.onResolutionChange.bind(this);
     this.onModeChange = this.onModeChange.bind(this);
+    this.onUseHistogramChanged = this.onUseHistogramChanged.bind(this);
     this.onCategoryFieldChange = this.onCategoryFieldChange.bind(this);
     this.onShowEllipsesChanged = this.onShowEllipsesChanged.bind(this);
     this.onEllipseMajorChange = this.onEllipseMajorChange.bind(this);
@@ -421,11 +422,23 @@ export class DatashaderStyleEditor extends Component {
       "categoryFieldPattern",
       e.field.pattern
     );
+    if (this.props.properties.useHistogram === undefined) {
+      this.props.properties.useHistogram = (this.props.properties.categoryFieldType === "number");
+    } else {
+      this.props.properties.useHistogram = false;
+    }
   };
 
   onShowEllipsesChanged(e) {
     this.props.handlePropertyChange(
       "showEllipses",
+      e.target.checked
+    );
+  };
+
+  onUseHistogramChanged(e) {
+    this.props.handlePropertyChange(
+      "useHistogram",
       e.target.checked
     );
   };
@@ -604,6 +617,38 @@ export class DatashaderStyleEditor extends Component {
   }
 
   _renderCategoricalColorStyleConfiguration() {
+    const histogramDisabled = (this.props.properties.categoryFieldType !== "number");
+    let histogramChecked = (!histogramDisabled && this.props.properties.useHistogram);
+
+    let histogramSwitch = "";
+    if (!histogramDisabled) {
+      // migrate legacy configurations
+      if (this.props.properties.useHistogram === undefined) {
+        this.props.handlePropertyChange(
+          "useHistogram",
+          true
+        );
+        histogramChecked = true;
+      }
+
+      histogramSwitch = (
+        <Fragment>
+          <EuiFormRow
+            label={'Numeric Mode'}
+            display="columnCompressed"
+          >
+            <EuiSwitch
+              label={'Histogram Numeric Values'}
+              checked={histogramChecked}
+              onChange={this.onUseHistogramChanged}
+              disabled={histogramDisabled}
+              compressed
+            />
+          </EuiFormRow>
+        </Fragment>
+      );
+    }
+
     return (
       <Fragment>
         <EuiFormRow label="Value" display="rowCompressed">
@@ -623,8 +668,9 @@ export class DatashaderStyleEditor extends Component {
             compressed
           />
         </EuiFormRow>
+        {histogramSwitch}
       </Fragment>
-    )
+    );
   }
 
   _renderColorStyleConfiguration() {
