@@ -62,7 +62,7 @@ export class DatashaderStyle extends AbstractStyle {
   }
 
   _renderStopIcon(color, isLinesOnly, isPointsOnly, symbolId) {
-    const fillColor = color; //this.getStyleName() === VECTOR_STYLES.FILL_COLOR ? color : 'none';
+    const fillColor = color || 'none';
     return (
       <VectorIcon
         fillColor={fillColor}
