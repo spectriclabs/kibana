@@ -231,6 +231,15 @@ export class DatashaderStyle extends AbstractStyle {
         "&category_type=", this._descriptor.properties.categoryFieldType,
         "&cmap=", this._descriptor.properties.colorKeyName,
       );
+      if (this._descriptor.properties.useHistogram === true) {
+        urlParams = urlParams.concat(
+          "&category_histogram=true" 
+        );
+      } else if (this._descriptor.properties.useHistogram === false) {
+        urlParams = urlParams.concat(
+          "&category_histogram=false" 
+        );        
+      }
 
       if (this._descriptor.properties.categoryFieldPattern) {
         urlParams = urlParams.concat(

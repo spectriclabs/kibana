@@ -10,6 +10,7 @@ export function getDefaultProperties(mapColors = []) {
       categoryFieldType: null,
       categoryFieldPattern: null,
       showEllipses: false,
+      useHistogram: undefined,
       ellipseMajorField: "",
       ellipseMinorField: "",
       ellipseTiltField: "",
