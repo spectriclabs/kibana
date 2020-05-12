@@ -145,7 +145,7 @@ export class DatashaderLegend extends React.Component {
     }
 
     return this.props.style.renderBreakedLegend({
-      fieldLabel: this.state.category_field,
+      fieldLabel: this.props.styleDescriptor.properties.categoryField,
       isLinesOnly: false,
       isPointsOnly: true,
       symbolId: null,
