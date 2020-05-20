@@ -10,6 +10,7 @@ import { i18n } from '@kbn/i18n';
 import { EuiText } from '@elastic/eui';
 import fetch from 'node-fetch';
 import { esKuery } from '../../../../../../../../../../src/plugins/data/common/es_query';
+import { luceneStringToDsl } from '../../../../../../../../../../src/plugins/data/common/es_query/es_query/lucene_string_to_dsl';
 
 import {
   DEFAULT_RGB_DATASHADER_COLOR_RAMP,
@@ -92,6 +93,12 @@ export class DatashaderLegend extends React.Component {
           language: "dsl",
           query: esQuery,
         };
+      } else if (dataMeta.query && dataMeta.query.language === "lucene") {
+        const esQuery = luceneStringToDsl(dataMeta.query.query);
+        currentParamsObj.query = {
+          language: "dsl",
+          query: esQuery,
+        };
       } else {
         currentParamsObj.query = dataMeta.query;
       }
@@ -106,6 +113,14 @@ export class DatashaderLegend extends React.Component {
         },
         "query": esQuery
        } ); 
+      } else if (this.props.query && this.props.query.language === "lucene") {
+      const esQuery = luceneStringToDsl(this.props.query.query);
+      currentParamsObj.filters.push( {
+        "meta": {
+          "type" : "bool",
+        },
+        "query": esQuery
+       } );
     }
     let currentParams = "";
     currentParams = currentParams.concat(

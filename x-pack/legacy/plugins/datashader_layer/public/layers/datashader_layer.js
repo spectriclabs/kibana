@@ -9,6 +9,7 @@ import _ from 'lodash';
 import { SOURCE_DATA_ID_ORIGIN, LAYER_TYPE } from '../../../maps/common/constants';
 import { DatashaderStyle } from './styles/datashader/datashader_style';
 import { esKuery } from '../../../../../../src/plugins/data/common/es_query';
+import { luceneStringToDsl } from '../../../../../../src/plugins/data/common/es_query/es_query/lucene_string_to_dsl';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
@@ -132,6 +133,12 @@ export class DatashaderLayer extends AbstractLayer {
             language: "dsl",
             query: esQuery,
           };
+        } else if (this._descriptor.query && this._descriptor.query.language === "lucene") {
+          const esQuery = luceneStringToDsl(this._descriptor.query.query);
+          currentParamsObj.query = {
+            language: "dsl",
+            query: esQuery,
+          };
         } else {
           currentParamsObj.query = dataMeta.query;
         }
@@ -140,6 +147,14 @@ export class DatashaderLayer extends AbstractLayer {
       if (this._descriptor.query && this._descriptor.query.language === "kuery") {
         const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
         const esQuery = esKuery.toElasticsearchQuery(kueryNode);
+        currentParamsObj.filters.push( {
+          "meta": {
+            "type" : "bool",
+          },
+          "query": esQuery
+         } );
+      } else if (this._descriptor.query && this._descriptor.query.language === "lucene") {
+        const esQuery = luceneStringToDsl(this._descriptor.query.query);
         currentParamsObj.filters.push( {
           "meta": {
             "type" : "bool",
