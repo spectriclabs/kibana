@@ -133,8 +133,8 @@ export class DatashaderLayer extends AbstractLayer {
             language: "dsl",
             query: esQuery,
           };
-        } else if (this._descriptor.query && this._descriptor.query.language === "lucene") {
-          const esQuery = luceneStringToDsl(this._descriptor.query.query);
+        } else if (dataMeta.query && dataMeta.query.language === "lucene") {
+          const esQuery = luceneStringToDsl(dataMeta.query.query);
           currentParamsObj.query = {
             language: "dsl",
             query: esQuery,
