@@ -275,6 +275,9 @@ export default () =>
         desaturated: 'road_map_desaturated',
         dark: 'dark_map',
       }),
+      datashader: Joi.object({
+        url: Joi.string(),
+      }).default(),
     }).default(),
 
     i18n: Joi.object({

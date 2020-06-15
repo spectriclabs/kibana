@@ -49,6 +49,7 @@ export function maps(kibana) {
           kbnPkgVersion: serverConfig.get('pkg.version'),
           regionmapLayers: _.get(mapConfig, 'regionmap.layers', []),
           tilemap: _.get(mapConfig, 'tilemap', []),
+          datashader: _.get(mapConfig, 'datashader', {}),
         };
       },
       embeddableFactories: ['plugins/maps/embeddable/map_embeddable_factory'],

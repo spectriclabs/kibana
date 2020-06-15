@@ -21,6 +21,7 @@ import {
 import { SingleFieldSelect } from '../../../../maps/public/components/single_field_select';
 import { indexPatternService } from '../../../../maps/public/kibana_services';
 import { npStart } from 'ui/new_platform';
+import chrome from 'ui/chrome';
 const { IndexPatternSelect } = npStart.plugins.data.ui;
 
 import { isNestedField } from '../../../../../../../src/plugins/data/public';
@@ -36,6 +37,10 @@ const RESET_INDEX_PATTERN_STATE = {
 
 function filterGeoField(field) {
   return [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
+}
+
+function getDatashaderLayerSettings() {
+  return chrome.getInjected('datashader');
 }
 
 const NUMBER_DATA_TYPES = [ "number" ]
@@ -68,7 +73,10 @@ export class DatashaderSource extends AbstractTMSSource {
       const source = new DatashaderSource(sourceDescriptor, inspectorAdapters);
       onPreviewSource(source);
     };
-    return <DatashaderEditor onSourceConfigChange={onSourceConfigChange} />;
+
+    const settings = getDatashaderLayerSettings();
+
+    return <DatashaderEditor settings={settings} nSourceConfigChange={onSourceConfigChange} />;
   }
 
   constructor(descriptor, inspectorAdapters) {
@@ -261,11 +269,18 @@ class DatashaderEditor extends React.Component {
   state = {
     isLoadingIndexPattern: false,
     noGeoIndexPatternsExist: false,
-    tmsInput: '',
+    datashaderUrl: '',
     canPreview: false,
     ...RESET_INDEX_PATTERN_STATE,
   };
 
+  constructor(props) {
+    super(props);
+
+    if (this.props.settings.url) {
+      this.state.datashaderUrl = this.props.settings.url;
+    }
+  }
   componentWillUnmount() {
     this._isMounted = false;
   }
@@ -281,7 +296,7 @@ class DatashaderEditor extends React.Component {
     }
   }, 2000);
 
-  _handleTMSInputChange(e) {
+  _handleDataShaderURLInputChange(e) {
     const url = e.target.value;
 
     let canPreview = true;
@@ -297,7 +312,7 @@ class DatashaderEditor extends React.Component {
 
     this.setState(
       {
-        tmsInput: url,
+        datashaderUrl: url,
         canPreview: canPreview,
       },
       () => this._sourceConfigChange({
@@ -349,7 +364,7 @@ class DatashaderEditor extends React.Component {
     if (!this.state.indexPattern) {
       canPreview = false;
     }
-    if (!this.state.tmsInput) {
+    if (!this.state.datashaderUrl) {
       canPreview = false;
     }
     if (!geoField) {
@@ -362,7 +377,7 @@ class DatashaderEditor extends React.Component {
         canPreview: canPreview,
       },
       () => this._sourceConfigChange({
-        urlTemplate: this.state.tmsInput,
+        urlTemplate: this.state.datashaderUrl,
         indexPatternId: this.state.indexPattern ? this.state.indexPattern.id : undefined,
         indexTitle: this.state.indexPattern ? this.state.indexPattern.title : undefined,
         timeFieldName: this.state.indexPattern ? this.state.indexPattern.timeFieldName : undefined,
@@ -407,7 +422,7 @@ class DatashaderEditor extends React.Component {
     if (!this.state.indexPattern) {
       canPreview = false;
     }
-    if (!this.state.tmsInput) {
+    if (!this.state.datashaderUrl) {
       canPreview = false;
     }
     if (!this.state.geoField) {
@@ -423,7 +438,7 @@ class DatashaderEditor extends React.Component {
     });
 
     () => this._sourceConfigChange({
-      urlTemplate: this.state.tmsInput,
+      urlTemplate: this.state.datashaderUrl,
       indexTitle: indexPattern.title,
       indexPatternId: indexPattern.id,
       timeFieldName: indexPattern.timeFieldName,
@@ -490,7 +505,8 @@ class DatashaderEditor extends React.Component {
         <EuiFormRow label="Url">
           <EuiFieldText
             placeholder={'https://a.datashader.com'}
-            onChange={e => this._handleTMSInputChange(e)}
+            value={this.state.datashaderUrl}
+            onChange={e => this._handleDataShaderURLInputChange(e)}
           />
         </EuiFormRow>
         <EuiFormRow
