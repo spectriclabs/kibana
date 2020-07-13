@@ -41,6 +41,12 @@ import { VisualizationsSetup } from '../../../../src/plugins/visualizations/publ
 import { MAP_SAVED_OBJECT_TYPE } from '../common/constants';
 import { MapEmbeddableFactory } from './embeddable/map_embeddable_factory';
 import { EmbeddableSetup } from '../../../../src/plugins/embeddable/public';
+import { MapsXPackConfig, MapsConfigType } from '../config';
+import { getAppTitle } from '../common/i18n_getters';
+import { ILicense } from '../../licensing/common/types';
+import { lazyLoadMapModules } from './lazy_load_bundle';
+import { MapsStartApi } from './api';
+import { registerLayerWizard, registerSource } from './api';
 
 export interface MapsPluginSetupDependencies {
   inspector: InspectorSetupContract;
@@ -115,5 +121,9 @@ export class MapsPlugin
 
   public start(core: CoreStart, plugins: any) {
     bindStartCoreAndPlugins(core, plugins);
+    return {
+      registerLayerWizard,
+      registerSource,
+    };
   }
 }
