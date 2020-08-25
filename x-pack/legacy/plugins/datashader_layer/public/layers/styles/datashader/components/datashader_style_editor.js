@@ -343,25 +343,29 @@ export class DatashaderStyleEditor extends Component {
   async _loadFields() {
     const getFieldMeta = async field => {
       let _field = await field._getField();
-      return {
-        label: await field.getLabel(),
-        type: await field.getDataType(),
-        pattern: _field.format ? _field.format.param("pattern") : null,
-        name: field.getName(),
-        origin: field.getOrigin(),
-      };
+      if (_field !== undefined) {
+        return {
+          label: await field.getLabel(),
+          type: await field.getDataType(),
+          pattern: _field.format ? _field.format.param("pattern") : null,
+          name: field.getName(),
+          origin: field.getOrigin(),
+        };
+      } else {
+        return null;
+      }
     };
 
     const categoryFields = await this.props.layer.getCategoricalFields();
     const categoryFieldPromises = categoryFields.map(getFieldMeta);
-    const categoryFieldsArray = await Promise.all(categoryFieldPromises);
+    const categoryFieldsArray = (await Promise.all(categoryFieldPromises)).filter((f) => (f !== null));
     if (this._isMounted && !_.isEqual(categoryFieldsArray, this.state.categoryFields)) {
       this.setState({ categoryFields: categoryFieldsArray });
     }
 
     const numberFields = await this.props.layer.getNumberFields();
     const numberFieldPromises = numberFields.map(getFieldMeta);
-    const numberFieldsArray = await Promise.all(numberFieldPromises);
+    const numberFieldsArray = (await Promise.all(numberFieldPromises)).filter((f) => (f !== null));
     if (this._isMounted && !_.isEqual(numberFieldsArray, this.state.numberFields)) {
       this.setState({ numberFields: numberFieldsArray });
     }
