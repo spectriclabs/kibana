@@ -76,7 +76,7 @@ export class DatashaderSource extends AbstractTMSSource {
 
     const settings = getDatashaderLayerSettings();
 
-    return <DatashaderEditor settings={settings} nSourceConfigChange={onSourceConfigChange} />;
+    return <DatashaderEditor settings={settings} onSourceConfigChange={onSourceConfigChange} />;
   }
 
   constructor(descriptor, inspectorAdapters) {
