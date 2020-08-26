@@ -23,6 +23,7 @@ export class DatashaderLayer extends AbstractLayer {
     } else {
       this._style = new DatashaderStyle(layerDescriptor.style);
     }
+    this._mbMap = null;
   }
 
   static createDescriptor(options) {
@@ -88,6 +89,8 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   syncLayerWithMB(mbMap) {
+    this._mbMap = mbMap;
+
     const source = mbMap.getSource(this.getId());
     const mbLayerId = this._getMbLayerId();
     const sourceId = this.getId();
@@ -224,7 +227,16 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   isLayerLoading() {
-    return false;
+    const sourceId = this.getId();
+
+    if (sourceId == null) {
+      return false;
+    }
+    if (this._mbMap == null) {
+      return false;
+    }
+
+    return this._mbMap.isSourceLoaded(sourceId);
   }
 
   async hasLegendDetails() {
