@@ -277,7 +277,7 @@ class DatashaderEditor extends React.Component {
   constructor(props) {
     super(props);
 
-    if (this.props.settings.url) {
+    if (this.props && this.props.settings && this.props.settings.url) {
       this.state.datashaderUrl = this.props.settings.url;
     }
   }
