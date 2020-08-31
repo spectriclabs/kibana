@@ -99,18 +99,15 @@ export class VectorStyleEditor extends Component {
       return;
     }
 
-    let selectedFeature = VECTOR_SHAPE_TYPES.POLYGON;
-    if (this.props.isPointsOnly) {
-      selectedFeature = VECTOR_SHAPE_TYPES.POINT;
-    } else if (this.props.isLinesOnly) {
-      selectedFeature = VECTOR_SHAPE_TYPES.LINE;
+    if (_.isEqual(supportedFeatures, this.state.supportedFeatures)) {
+      return;
     }
 
-    if (
-      !_.isEqual(supportedFeatures, this.state.supportedFeatures) ||
-      selectedFeature !== this.state.selectedFeature
-    ) {
+    if (_.indexOf(supportedFeatures, this.state.selectedFeature) < 0) {
+      const selectedFeature = supportedFeatures[0];
       this.setState({ supportedFeatures, selectedFeature });
+    } else {
+      this.setState({ supportedFeatures });
     }
   }
 
