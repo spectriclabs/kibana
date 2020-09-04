@@ -25,7 +25,7 @@ export class ESDocField extends AbstractField {
 
   async getDataType() {
     const field = await this._getField();
-    return field.type;
+    return field ? field.type : null;
   }
 
   supportsFieldMeta() {
