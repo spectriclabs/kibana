@@ -9,6 +9,7 @@ import React from 'react';
 import { AbstractLayer } from './layer';
 import { VectorStyle } from './styles/vector/vector_style';
 import { InnerJoin } from './joins/inner_join';
+import { getGlyphUrl } from '../meta';
 import {
   FEATURE_ID_PROPERTY_NAME,
   SOURCE_DATA_ID_ORIGIN,
@@ -642,20 +643,24 @@ export class VectorLayer extends AbstractLayer {
       }
       this._setMbCircleProperties(mbMap);
     } else {
-      markerLayerId = symbolLayerId;
-      textLayerId = symbolLayerId;
       if (pointLayer) {
         mbMap.setLayoutProperty(pointLayerId, 'visibility', 'none');
+      }
+      if (mbMap.getLayer(this._getMbTextLayerId())) {
         mbMap.setLayoutProperty(this._getMbTextLayerId(), 'visibility', 'none');
       }
+      markerLayerId = symbolLayerId;
+      textLayerId = symbolLayerId;
       this._setMbSymbolProperties(mbMap);
     }
 
     this.syncVisibilityWithMb(mbMap, markerLayerId);
     mbMap.setLayerZoomRange(markerLayerId, this._descriptor.minZoom, this._descriptor.maxZoom);
     if (markerLayerId !== textLayerId) {
-      this.syncVisibilityWithMb(mbMap, textLayerId);
-      mbMap.setLayerZoomRange(textLayerId, this._descriptor.minZoom, this._descriptor.maxZoom);
+      if (mbMap.getLayer(textLayerId)) {
+        this.syncVisibilityWithMb(mbMap, textLayerId);
+        mbMap.setLayerZoomRange(textLayerId, this._descriptor.minZoom, this._descriptor.maxZoom);
+      }
     }
   }
 
@@ -674,7 +679,8 @@ export class VectorLayer extends AbstractLayer {
 
     const textLayerId = this._getMbTextLayerId();
     const textLayer = mbMap.getLayer(textLayerId);
-    if (!textLayer) {
+    const glyphUrl = getGlyphUrl();
+    if (!textLayer && glyphUrl) {
       mbMap.addLayer({
         id: textLayerId,
         type: 'symbol',
@@ -685,7 +691,9 @@ export class VectorLayer extends AbstractLayer {
     const filterExpr = getPointFilterExpression(this._hasJoins());
     if (filterExpr !== mbMap.getFilter(pointLayerId)) {
       mbMap.setFilter(pointLayerId, filterExpr);
-      mbMap.setFilter(textLayerId, filterExpr);
+      if (mbMap.getLayer(textLayerId)) {
+        mbMap.setFilter(textLayerId, filterExpr);
+      }
     }
 
     this._style.setMBPaintPropertiesForPoints({
@@ -694,11 +702,13 @@ export class VectorLayer extends AbstractLayer {
       pointLayerId,
     });
 
-    this._style.setMBPropertiesForLabelText({
-      alpha: this.getAlpha(),
-      mbMap,
-      textLayerId,
-    });
+    if (mbMap.getLayer(textLayerId)) {
+      this._style.setMBPropertiesForLabelText({
+	alpha: this.getAlpha(),
+	mbMap,
+	textLayerId,
+      });
+    }
   }
 
   _setMbSymbolProperties(mbMap) {
