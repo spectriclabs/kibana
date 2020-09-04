@@ -10,6 +10,10 @@ import { DEFAULT_MAX_RESULT_WINDOW, DEFAULT_MAX_INNER_RESULT_WINDOW } from '../.
 export function getIndexPatternSettings(indicesSettingsResp) {
   let maxResultWindow = Infinity;
   let maxInnerResultWindow = Infinity;
+  if (_.isEmpty(indicesSettingsResp)) {
+    maxResultWindow = DEFAULT_MAX_RESULT_WINDOW;
+    maxInnerResultWindow = DEFAULT_MAX_INNER_RESULT_WINDOW;
+  }
   Object.values(indicesSettingsResp).forEach(indexSettings => {
     const indexMaxResultWindow = _.get(
       indexSettings,
