@@ -236,7 +236,11 @@ export class DatashaderLayer extends AbstractLayer {
       return false;
     }
 
-    return this._mbMap.isSourceLoaded(sourceId);
+    if (this._mbMap.getSource(sourceId)) {
+        return this._mbMap.isSourceLoaded(sourceId);
+    } else {
+      return false;
+    }
   }
 
   async hasLegendDetails() {
