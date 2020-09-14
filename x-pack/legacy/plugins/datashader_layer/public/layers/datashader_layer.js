@@ -228,20 +228,7 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   isLayerLoading() {
-    const sourceId = this.getId();
-
-    if (sourceId == null) {
-      return false;
-    }
-    if (this._mbMap == null) {
-      return false;
-    }
-
-    if (this._mbMap.getSource(sourceId)) {
-        return this._mbMap.isSourceLoaded(sourceId);
-    } else {
-      return false;
-    }
+    return false;
   }
 
   async hasLegendDetails() {
