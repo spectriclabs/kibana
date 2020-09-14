@@ -209,6 +209,7 @@ export class DatashaderStyle extends AbstractStyle {
         "&ellipse_tilt=", this._descriptor.properties.ellipseTiltField,
         "&ellipse_units=", this._descriptor.properties.ellipseUnits,
         "&ellipse_search=", this._descriptor.properties.ellipseSearchDistance,
+        "&spread=", this._descriptor.properties.ellipseThickness,
       );
     } else {
       urlParams = urlParams.concat(

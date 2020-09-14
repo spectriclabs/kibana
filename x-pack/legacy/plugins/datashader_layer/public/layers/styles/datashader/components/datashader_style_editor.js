@@ -231,6 +231,21 @@ const spreadRangeOptions = [
   },
 ];
 
+const thicknessRangeOptions = [
+  {
+    value: 0,
+    text: "Thin"
+  },
+  {
+    value: 1,
+    text: "Medium"
+  },
+  {
+    value: 3,
+    text: "Thick"
+  },
+]
+
 const gridResolutionOptions = [
   {
     value: "coarse",
@@ -315,6 +330,7 @@ export class DatashaderStyleEditor extends Component {
     this.onColorKeyChange = this.onColorKeyChange.bind(this);
     this.onSpreadChange = this.onSpreadChange.bind(this);
     this.onSpanChange = this.onSpanChange.bind(this);
+    this.onThicknessChange = this.onThicknessChange.bind(this);
     this.onResolutionChange = this.onResolutionChange.bind(this);
     this.onModeChange = this.onModeChange.bind(this);
     this.onUseHistogramChanged = this.onUseHistogramChanged.bind(this);
@@ -388,6 +404,13 @@ export class DatashaderStyleEditor extends Component {
   onSpreadChange(e) {
     this.props.handlePropertyChange(
       "spread",
+      e.target.value
+    );
+  };
+
+  onThicknessChange(e) {
+    this.props.handlePropertyChange(
+      "ellipseThickness",
       e.target.value
     );
   };
@@ -531,6 +554,16 @@ export class DatashaderStyleEditor extends Component {
             value={this.props.properties.spanRange}
             onChange={this.onSpanChange}
         />
+        </EuiFormRow>
+        <EuiFormRow
+          label={"Ellipse Thicknes"}
+          display="rowCompressed"
+        >
+          <EuiSelect label="Point Size"
+              options={thicknessRangeOptions}
+              value={this.props.properties.ellipseThickness}
+              onChange={this.onThicknessChange}
+          />
         </EuiFormRow>
         <EuiFormRow
           label={"Ellipse Major"}
