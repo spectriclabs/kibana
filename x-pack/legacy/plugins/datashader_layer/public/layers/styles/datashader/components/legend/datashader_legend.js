@@ -104,6 +104,7 @@ export class DatashaderLegend extends React.Component {
       }
     }
     currentParamsObj.extent = dataMeta.extent;
+    currentParamsObj.zoom = dataMeta.zoom;
     if (this.props.query && this.props.query.language === "kuery") {
       const kueryNode = esKuery.fromKueryExpression(this.props.query.query);
       const esQuery = esKuery.toElasticsearchQuery(kueryNode);

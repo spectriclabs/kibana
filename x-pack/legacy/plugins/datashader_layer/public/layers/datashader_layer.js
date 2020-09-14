@@ -146,7 +146,8 @@ export class DatashaderLayer extends AbstractLayer {
           currentParamsObj.query = dataMeta.query;
         }
       }
-      currentParamsObj.extent = dataMeta.buffer; // .buffer has been expanded to align with tile boundaries
+      currentParamsObj.extent = dataMeta.extent; // .buffer has been expanded to align with tile boundaries
+      currentParamsObj.zoom = dataMeta.zoom;
       if (this._descriptor.query && this._descriptor.query.language === "kuery") {
         const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
         const esQuery = esKuery.toElasticsearchQuery(kueryNode);
