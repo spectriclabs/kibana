@@ -449,8 +449,17 @@ class DatashaderEditor extends React.Component {
     const geoFields = indexPattern.fields
       .filter(field => !isNestedField(field))
       .filter(filterGeoField);
-    if (geoFields[0]) {
-      this.onGeoFieldSelect(geoFields[0].name);
+
+    const defaultGeospatialField = this.props.settings.defaultGeospatialField;
+    if (!this.state.geoField) {
+      if (defaultGeospatialField && _.find(geoFields, {name: defaultGeospatialField})) {
+        this.onGeoFieldSelect(defaultGeospatialField);
+      } else {
+        // if a geoField isn't already selected use the first in the list
+        if (geoFields[0]) {
+          this.onGeoFieldSelect(geoFields[0].name);
+        }
+      }
     }
 
     }, 300);

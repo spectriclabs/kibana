@@ -16,6 +16,7 @@ import { DEFAULT_DATASHADER_COLOR_RAMP_NAME } from './components/datashader_cons
 import { LAYER_STYLE_TYPE } from '../../../../../maps/common/constants';
 import { getOrdinalColorRampStops } from '../../../../../maps/public/layers/styles/color_utils';
 import { i18n } from '@kbn/i18n';
+import chrome from 'ui/chrome';
 import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
 import { VectorIcon } from '../../../../../maps/public/layers/styles/vector/components/legend/vector_icon';
 
@@ -44,6 +45,10 @@ export class DatashaderStyle extends AbstractStyle {
     return this._descriptor.properties || {};
   }
 
+  getDatashaderLayerSettings() {
+    return chrome.getInjected('datashader');
+  }
+
   renderEditor({ layer, onStyleDescriptorChange }) {
     const rawProperties = this.getRawProperties();
     const handlePropertyChange = (propertyName, settings) => {
@@ -51,9 +56,22 @@ export class DatashaderStyle extends AbstractStyle {
       const datashaderStyleDescriptor = DatashaderStyle.createDescriptor(rawProperties);
       onStyleDescriptorChange(datashaderStyleDescriptor);
     };
+    const config = this.getDatashaderLayerSettings();
+
+    if (!this._descriptor.properties.ellipseMajorField && config.defaultEllipseMajor) {
+      handlePropertyChange("ellipseMajorField", config.defaultEllipseMajor);
+    }
+    if (!this._descriptor.properties.ellipseMinorField && config.defaultEllipseMinor) {
+      handlePropertyChange("ellipseMinorField", config.defaultEllipseMinor);
+    }
+    if (!this._descriptor.properties.ellipseTiltField && config.defaultEllipseTilt) {
+      handlePropertyChange("ellipseTiltField", config.defaultEllipseTilt);
+    }
+    
 
     return (
       <DatashaderStyleEditor
+        settings={config}
         properties={this._descriptor.properties}
         handlePropertyChange={handlePropertyChange}
         layer={layer}

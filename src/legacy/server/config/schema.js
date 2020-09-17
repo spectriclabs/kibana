@@ -277,6 +277,10 @@ export default () =>
       }),
       datashader: Joi.object({
         url: Joi.string(),
+        defaultGeospatialField: Joi.string(),
+        defaultEllipseMajor: Joi.string(),
+        defaultEllipseMinor: Joi.string(),
+        defaultEllipseTilt: Joi.string(),
       }).default(),
     }).default(),
 
