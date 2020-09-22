@@ -556,10 +556,10 @@ export class DatashaderStyleEditor extends Component {
         />
         </EuiFormRow>
         <EuiFormRow
-          label={"Ellipse Thicknes"}
+          label={"Ellipse Thickness"}
           display="rowCompressed"
         >
-          <EuiSelect label="Point Size"
+          <EuiSelect label="Ellipse Thickness"
               options={thicknessRangeOptions}
               value={this.props.properties.ellipseThickness}
               onChange={this.onThicknessChange}
