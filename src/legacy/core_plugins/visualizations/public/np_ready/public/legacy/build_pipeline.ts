@@ -27,6 +27,9 @@ import {
   isDateHistogramBucketAggConfig,
   createFormat,
 } from '../../../legacy_imports';
+import {
+  getTime,
+} from '../../../../../../../plugins/data/public';
 // eslint-disable-next-line
 import { ISearchSource } from '../../../../../../ui/public/courier/search_source/search_source';
 import { Vis, VisParams, VisState } from '..';
@@ -456,14 +459,6 @@ export const buildVislibDimensions = async (
       dimensions.x.params.intervalESUnit = esUnit;
       dimensions.x.params.format = xAgg.buckets.getScaledDateFormat();
       dimensions.x.params.bounds = xAgg.buckets.getBounds();
-    } else if (xAgg.type.name === 'histogram') {
-      const intervalParam = xAgg.type.paramByName('interval');
-      const output = { params: {} as any };
-      await intervalParam.modifyAggConfigOnSearchRequestStart(xAgg, params.searchSource, {
-        abortSignal: params.abortSignal,
-      });
-      intervalParam.write(xAgg, output);
-      dimensions.x.params.interval = output.params.interval;
     }
   }
 

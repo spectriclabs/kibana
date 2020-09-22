@@ -64,9 +64,11 @@ export function orderXValues(obj, orderBucketsBySum = false) {
           next.add(dateInterval);
         }
       } else {
-        while (next < gapEdge) {
-          vals.push(next);
-          next += interval;
+        let nextBin = Math.floor(next / interval);
+        let gapEdgeBin = Math.floor(gapEdge / interval);
+        while (nextBin < gapEdgeBin) {
+          vals.push(nextBin * interval);
+          nextBin += 1;
         }
       }
 
