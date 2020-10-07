@@ -212,6 +212,21 @@ const spanRangeOptions = [
   },
 ];
 
+const renderModeOptions = [
+  {
+    value: "points",
+    text: "Points"
+  },
+  {
+    value: "ellipses",
+    text: "Ellipses"
+  },
+  {
+    value: "tracks",
+    text: "Tracks"
+  }
+];
+
 const spreadRangeOptions = [
   {
     value: "auto",
@@ -318,6 +333,21 @@ const ellipseSearchDistance = [
   },
 ];
 
+const trackSearchDistance = [
+  {
+    value: "narrow",
+    text: "Narrow (1 nm)"
+  },
+  {
+    value: "normal",
+    text: "Normal (10 nm)"
+  },
+  {
+    value: "wide",
+    text: "Wide (50 nm)"
+  },
+];
+
 export class DatashaderStyleEditor extends Component {
   state = {
     categoryFields: [],
@@ -330,17 +360,20 @@ export class DatashaderStyleEditor extends Component {
     this.onColorKeyChange = this.onColorKeyChange.bind(this);
     this.onSpreadChange = this.onSpreadChange.bind(this);
     this.onSpanChange = this.onSpanChange.bind(this);
-    this.onThicknessChange = this.onThicknessChange.bind(this);
+    this.onRenderModeChange = this.onRenderModeChange.bind(this);
     this.onResolutionChange = this.onResolutionChange.bind(this);
     this.onModeChange = this.onModeChange.bind(this);
     this.onUseHistogramChanged = this.onUseHistogramChanged.bind(this);
     this.onCategoryFieldChange = this.onCategoryFieldChange.bind(this);
-    this.onShowEllipsesChanged = this.onShowEllipsesChanged.bind(this);
     this.onEllipseMajorChange = this.onEllipseMajorChange.bind(this);
     this.onEllipseMinorChange = this.onEllipseMinorChange.bind(this);
     this.onEllipseTiltChange = this.onEllipseTiltChange.bind(this);
     this.onEllipseUnitsChange = this.onEllipseUnitsChange.bind(this);
     this.onEllipseSearchDistanceChange = this.onEllipseSearchDistanceChange.bind(this);
+    this.onEllipseThicknessChange = this.onEllipseThicknessChange.bind(this);
+    this.onTrackChange = this.onTrackChange.bind(this);
+    this.onTrackSearchDistanceChange = this.onTrackSearchDistanceChange.bind(this);
+    this.onTrackThicknessChange = this.onTrackThicknessChange.bind(this);
   }
 
   componentWillUnmount() {
@@ -408,9 +441,16 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
-  onThicknessChange(e) {
+  onEllipseThicknessChange(e) {
     this.props.handlePropertyChange(
       "ellipseThickness",
+      e.target.value
+    );
+  };
+
+  onTrackThicknessChange(e) {
+    this.props.handlePropertyChange(
+      "trackThickness",
       e.target.value
     );
   };
@@ -420,6 +460,19 @@ export class DatashaderStyleEditor extends Component {
       "gridResolution",
       e.target.value
     );
+  };
+
+  onRenderModeChange(e) {
+    this.props.handlePropertyChange(
+      "renderMode",
+      e.target.value
+    );
+    if (this.props.showEllipses !== undefined) {
+      this.props.handlePropertyChange(
+        "showEllipses",
+        undefined
+      );
+    }
   };
 
   onSpanChange(e) {
@@ -454,13 +507,6 @@ export class DatashaderStyleEditor extends Component {
     } else {
       this.props.properties.useHistogram = false;
     }
-  };
-
-  onShowEllipsesChanged(e) {
-    this.props.handlePropertyChange(
-      "showEllipses",
-      e.target.checked
-    );
   };
 
   onUseHistogramChanged(e) {
@@ -505,18 +551,32 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
+  onTrackChange(e) {
+    this.props.handlePropertyChange(
+      "trackField",
+      e.field.name
+    );
+  };
+
+  onTrackSearchDistanceChange(e) {
+    this.props.handlePropertyChange(
+      "trackSearchDistance",
+      e.target.value
+    );
+  };
+
   _renderStyleConfiguration() {
-    const ellipsesSwitch = (
+    const renderModeRow = (
       <EuiFormRow
         label={'Render Mode'}
         display="columnCompressed"
       >
-        <EuiSwitch
-          label={'Show ellipses'}
-          checked={this.props.properties.showEllipses}
-          onChange={this.onShowEllipsesChanged}
-          compressed
+        <EuiSelect label="Render mode"
+            options={renderModeOptions}
+            value={this.props.properties.renderMode}
+            onChange={this.onRenderModeChange}
         />
+
       </EuiFormRow>
     );
 
@@ -562,7 +622,7 @@ export class DatashaderStyleEditor extends Component {
           <EuiSelect label="Ellipse Thickness"
               options={thicknessRangeOptions}
               value={this.props.properties.ellipseThickness}
-              onChange={this.onThicknessChange}
+              onChange={this.onEllipseThicknessChange}
           />
         </EuiFormRow>
         <EuiFormRow
@@ -621,18 +681,67 @@ export class DatashaderStyleEditor extends Component {
       </Fragment>
     );
 
-    if (!this.props.properties.showEllipses) {
+    const trackStyleConfiguration = (
+      <Fragment>
+        <EuiFormRow
+          label={"Track Thickness"}
+          display="rowCompressed"
+        >
+          <EuiSelect label="Track Thickness"
+              options={thicknessRangeOptions}
+              value={this.props.properties.trackThickness}
+              onChange={this.onTrackThicknessChange}
+          />
+        </EuiFormRow>
+        <EuiFormRow
+          label={"Track Connection"}
+          display="columnCompressed"
+        >
+           <FieldSelect
+            fields={this.state.numberFields}
+            selectedFieldName={this.props.properties.trackField}
+            onChange={this.onTrackChange}
+            compressed
+          />
+        </EuiFormRow>
+        <EuiFormRow
+          label={"Track Search Distance"}
+          display="columnCompressed"
+        >
+          <EuiSelect label="Track Search Distance"
+              options={trackSearchDistance}
+              value={this.props.properties.trackSearchDistance}
+              onChange={this.onTrackSearchDistanceChange}
+          />
+        </EuiFormRow>
+      </Fragment>
+    );
+
+    if (this.props.properties.renderMode === "points") {
       return (
         <Fragment>
-          {ellipsesSwitch}
+          {renderModeRow}
           {pointStyleConfiguration}
+        </Fragment>
+      );
+    } else if (this.props.properties.renderMode === "ellipses") {
+      return (
+        <Fragment>
+          {renderModeRow}
+          {ellipseStyleConfiguration}
+        </Fragment>
+      );
+    } else if (this.props.properties.renderMode === "tracks") {
+      return (
+        <Fragment>
+          {renderModeRow}
+          {trackStyleConfiguration}
         </Fragment>
       );
     } else {
       return (
         <Fragment>
-          {ellipsesSwitch}
-          {ellipseStyleConfiguration}
+          {renderModeRow}
         </Fragment>
       );
     }
@@ -712,7 +821,7 @@ export class DatashaderStyleEditor extends Component {
 
   _renderColorStyleConfiguration() {
     let colorModeOptions;
-    if (!this.props.properties.showEllipses) {
+    if (!this.props.properties.renderMode === "points") {
       colorModeOptions = pointModeOptions;
     } else {
       colorModeOptions = ellipseModeOptions;

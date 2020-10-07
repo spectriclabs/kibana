@@ -25,6 +25,9 @@ export class DatashaderStyle extends AbstractStyle {
 
   constructor(descriptor = {}) {
     super();
+    if (descriptor.properties.showEllipses === true && !descriptor.properties.renderMode) {
+      descriptor.properties.renderMode = "ellipses";
+    }
     this._descriptor = DatashaderStyle.createDescriptor(descriptor.properties);
   }
 
@@ -216,12 +219,12 @@ export class DatashaderStyle extends AbstractStyle {
         "&span=", span,
     )
 
-    if (this._descriptor.properties.showEllipses &&
+    if (this._descriptor.properties.renderMode === "ellipses" &&
         this._descriptor.properties.ellipseMajorField &&
         this._descriptor.properties.ellipseMinorField &&
         this._descriptor.properties.ellipseTiltField) {
       urlParams = urlParams.concat(
-        "&ellipses=", this._descriptor.properties.showEllipses,
+        "&ellipses=true",
         "&ellipse_major=", this._descriptor.properties.ellipseMajorField,
         "&ellipse_minor=", this._descriptor.properties.ellipseMinorField,
         "&ellipse_tilt=", this._descriptor.properties.ellipseTiltField,
@@ -229,12 +232,22 @@ export class DatashaderStyle extends AbstractStyle {
         "&ellipse_search=", this._descriptor.properties.ellipseSearchDistance,
         "&spread=", this._descriptor.properties.ellipseThickness,
       );
+    } else if (this._descriptor.properties.renderMode === "tracks") {
+      urlParams = urlParams.concat(
+        "&spread=", this._descriptor.properties.trackThickness,
+        "&track_search=", this._descriptor.properties.trackSearchDistance,
+        "&track_connection=", this._descriptor.properties.trackField,
+      )
     } else {
       urlParams = urlParams.concat(
         "&spread=", this._descriptor.properties.spread,
         "&resolution=", this._descriptor.properties.gridResolution
       )
     }
+
+    urlParams = urlParams.concat(
+      "&render_mode=", this._descriptor.properties.renderMode
+    );
 
     if (this._descriptor.properties.mode === "heat") {
       urlParams = urlParams.concat(
