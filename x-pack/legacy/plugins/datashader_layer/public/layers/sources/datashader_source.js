@@ -5,7 +5,7 @@
  */
 
 import React, { Fragment } from 'react';
-import { EuiFieldText, EuiFormRow } from '@elastic/eui';
+import { EuiFieldText, EuiFormRow, EuiSpacer } from '@elastic/eui';
 
 import { AbstractTMSSource } from '../../../../maps/public/layers/sources/tms_source';
 import { DatashaderLayer } from '../datashader_layer';
@@ -20,6 +20,8 @@ import {
 } from '../../../../maps/common/constants';
 import { SingleFieldSelect } from '../../../../maps/public/components/single_field_select';
 import { indexPatternService } from '../../../../maps/public/kibana_services';
+import { NoIndexPatternCallout } from '../../../../maps/public/components/no_index_pattern_callout';
+
 import { npStart } from 'ui/new_platform';
 import chrome from 'ui/chrome';
 const { IndexPatternSelect } = npStart.plugins.data.ui;
