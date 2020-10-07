@@ -25,7 +25,7 @@ export class DatashaderStyle extends AbstractStyle {
 
   constructor(descriptor = {}) {
     super();
-    if (descriptor.properties.showEllipses === true && !descriptor.properties.renderMode) {
+    if (descriptor.properties && descriptor.properties.showEllipses === true && !descriptor.properties.renderMode) {
       descriptor.properties.renderMode = "ellipses";
     }
     this._descriptor = DatashaderStyle.createDescriptor(descriptor.properties);
