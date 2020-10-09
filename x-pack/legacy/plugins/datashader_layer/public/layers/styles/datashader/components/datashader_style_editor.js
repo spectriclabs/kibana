@@ -212,6 +212,36 @@ const spanRangeOptions = [
   },
 ];
 
+const numericModeOptions = [
+  {
+    value: "categorical",
+    text: "Categorical"
+  },
+  {
+    value: "histogram",
+    text: "Histogram"
+  },
+  {
+    value: "ramp",
+    text: "Ramp"
+  }
+];
+
+const renderModeOptions = [
+  {
+    value: "points",
+    text: "Points"
+  },
+  {
+    value: "ellipses",
+    text: "Ellipses"
+  },
+  {
+    value: "tracks",
+    text: "Tracks"
+  }
+];
+
 const spreadRangeOptions = [
   {
     value: "auto",
@@ -318,6 +348,21 @@ const ellipseSearchDistance = [
   },
 ];
 
+const trackSearchDistance = [
+  {
+    value: "narrow",
+    text: "Narrow (1 nm)"
+  },
+  {
+    value: "normal",
+    text: "Normal (10 nm)"
+  },
+  {
+    value: "wide",
+    text: "Wide (50 nm)"
+  },
+];
+
 export class DatashaderStyleEditor extends Component {
   state = {
     categoryFields: [],
@@ -330,17 +375,20 @@ export class DatashaderStyleEditor extends Component {
     this.onColorKeyChange = this.onColorKeyChange.bind(this);
     this.onSpreadChange = this.onSpreadChange.bind(this);
     this.onSpanChange = this.onSpanChange.bind(this);
-    this.onThicknessChange = this.onThicknessChange.bind(this);
+    this.onRenderModeChange = this.onRenderModeChange.bind(this);
     this.onResolutionChange = this.onResolutionChange.bind(this);
     this.onModeChange = this.onModeChange.bind(this);
-    this.onUseHistogramChanged = this.onUseHistogramChanged.bind(this);
+    this.onNumericModeChanged = this.onNumericModeChanged.bind(this);
     this.onCategoryFieldChange = this.onCategoryFieldChange.bind(this);
-    this.onShowEllipsesChanged = this.onShowEllipsesChanged.bind(this);
     this.onEllipseMajorChange = this.onEllipseMajorChange.bind(this);
     this.onEllipseMinorChange = this.onEllipseMinorChange.bind(this);
     this.onEllipseTiltChange = this.onEllipseTiltChange.bind(this);
     this.onEllipseUnitsChange = this.onEllipseUnitsChange.bind(this);
     this.onEllipseSearchDistanceChange = this.onEllipseSearchDistanceChange.bind(this);
+    this.onEllipseThicknessChange = this.onEllipseThicknessChange.bind(this);
+    this.onTrackChange = this.onTrackChange.bind(this);
+    this.onTrackSearchDistanceChange = this.onTrackSearchDistanceChange.bind(this);
+    this.onTrackThicknessChange = this.onTrackThicknessChange.bind(this);
   }
 
   componentWillUnmount() {
@@ -408,9 +456,16 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
-  onThicknessChange(e) {
+  onEllipseThicknessChange(e) {
     this.props.handlePropertyChange(
       "ellipseThickness",
+      e.target.value
+    );
+  };
+
+  onTrackThicknessChange(e) {
+    this.props.handlePropertyChange(
+      "trackThickness",
       e.target.value
     );
   };
@@ -420,6 +475,19 @@ export class DatashaderStyleEditor extends Component {
       "gridResolution",
       e.target.value
     );
+  };
+
+  onRenderModeChange(e) {
+    this.props.handlePropertyChange(
+      "renderMode",
+      e.target.value
+    );
+    if (this.props.showEllipses !== undefined) {
+      this.props.handlePropertyChange(
+        "showEllipses",
+        undefined
+      );
+    }
   };
 
   onSpanChange(e) {
@@ -449,25 +517,24 @@ export class DatashaderStyleEditor extends Component {
       "categoryFieldPattern",
       e.field.pattern
     );
-    if (this.props.properties.useHistogram === undefined) {
-      this.props.properties.useHistogram = (this.props.properties.categoryFieldType === "number");
+    if (this.props.properties.numericMode === undefined) {
+      this.props.properties.numericMode = (this.props.properties.categoryFieldType === "number") ? "histogram": "categorical";
     } else {
-      this.props.properties.useHistogram = false;
+      this.props.properties.numericMode = "categorical";
     }
   };
 
-  onShowEllipsesChanged(e) {
+  onNumericModeChanged(e) {
     this.props.handlePropertyChange(
-      "showEllipses",
-      e.target.checked
+      "numericMode",
+      e.target.value
     );
-  };
-
-  onUseHistogramChanged(e) {
-    this.props.handlePropertyChange(
-      "useHistogram",
-      e.target.checked
-    );
+    if (this.props.useHistogram !== undefined) {
+      this.props.handlePropertyChange(
+        "useHistogram",
+        undefined
+      );
+    }
   };
 
   onEllipseMajorChange(e) {
@@ -505,17 +572,30 @@ export class DatashaderStyleEditor extends Component {
     );
   };
 
+  onTrackChange(e) {
+    this.props.handlePropertyChange(
+      "trackField",
+      e.field.name
+    );
+  };
+
+  onTrackSearchDistanceChange(e) {
+    this.props.handlePropertyChange(
+      "trackSearchDistance",
+      e.target.value
+    );
+  };
+
   _renderStyleConfiguration() {
-    const ellipsesSwitch = (
+    const renderModeRow = (
       <EuiFormRow
         label={'Render Mode'}
-        display="columnCompressed"
+        display="rowCompressed"
       >
-        <EuiSwitch
-          label={'Show ellipses'}
-          checked={this.props.properties.showEllipses}
-          onChange={this.onShowEllipsesChanged}
-          compressed
+        <EuiSelect label="Render mode"
+            options={renderModeOptions}
+            value={this.props.properties.renderMode}
+            onChange={this.onRenderModeChange}
         />
       </EuiFormRow>
     );
@@ -562,7 +642,7 @@ export class DatashaderStyleEditor extends Component {
           <EuiSelect label="Ellipse Thickness"
               options={thicknessRangeOptions}
               value={this.props.properties.ellipseThickness}
-              onChange={this.onThicknessChange}
+              onChange={this.onEllipseThicknessChange}
           />
         </EuiFormRow>
         <EuiFormRow
@@ -621,18 +701,67 @@ export class DatashaderStyleEditor extends Component {
       </Fragment>
     );
 
-    if (!this.props.properties.showEllipses) {
+    const trackStyleConfiguration = (
+      <Fragment>
+        <EuiFormRow
+          label={"Track Thickness"}
+          display="rowCompressed"
+        >
+          <EuiSelect label="Track Thickness"
+              options={thicknessRangeOptions}
+              value={this.props.properties.trackThickness}
+              onChange={this.onTrackThicknessChange}
+          />
+        </EuiFormRow>
+        <EuiFormRow
+          label={"Track Connection"}
+          display="columnCompressed"
+        >
+           <FieldSelect
+            fields={this.state.numberFields}
+            selectedFieldName={this.props.properties.trackField}
+            onChange={this.onTrackChange}
+            compressed
+          />
+        </EuiFormRow>
+        <EuiFormRow
+          label={"Track Search Distance"}
+          display="columnCompressed"
+        >
+          <EuiSelect label="Track Search Distance"
+              options={trackSearchDistance}
+              value={this.props.properties.trackSearchDistance}
+              onChange={this.onTrackSearchDistanceChange}
+          />
+        </EuiFormRow>
+      </Fragment>
+    );
+
+    if (this.props.properties.renderMode === "points") {
       return (
         <Fragment>
-          {ellipsesSwitch}
+          {renderModeRow}
           {pointStyleConfiguration}
+        </Fragment>
+      );
+    } else if (this.props.properties.renderMode === "ellipses") {
+      return (
+        <Fragment>
+          {renderModeRow}
+          {ellipseStyleConfiguration}
+        </Fragment>
+      );
+    } else if (this.props.properties.renderMode === "tracks") {
+      return (
+        <Fragment>
+          {renderModeRow}
+          {trackStyleConfiguration}
         </Fragment>
       );
     } else {
       return (
         <Fragment>
-          {ellipsesSwitch}
-          {ellipseStyleConfiguration}
+          {renderModeRow}
         </Fragment>
       );
     }
@@ -654,31 +783,53 @@ export class DatashaderStyleEditor extends Component {
   }
 
   _renderCategoricalColorStyleConfiguration() {
-    const histogramDisabled = (this.props.properties.categoryFieldType !== "number");
-    let histogramChecked = (!histogramDisabled && this.props.properties.useHistogram);
+    const numericDisabled = (
+      this.props.properties.categoryFieldType !== "number" &&
+      this.props.properties.categoryFieldType !== "date"
+    );
 
-    let histogramSwitch = "";
-    if (!histogramDisabled) {
-      // migrate legacy configurations
-      if (this.props.properties.useHistogram === undefined) {
-        this.props.handlePropertyChange(
-          "useHistogram",
-          true
-        );
-        histogramChecked = true;
-      }
-
-      histogramSwitch = (
+    let numericModeSelect = "";
+    if (!numericDisabled) {
+      numericModeSelect = (
         <Fragment>
           <EuiFormRow
             label={'Numeric Mode'}
-            display="columnCompressed"
+            display="rowCompressed"
           >
-            <EuiSwitch
-              label={'Histogram Numeric Values'}
-              checked={histogramChecked}
-              onChange={this.onUseHistogramChanged}
-              disabled={histogramDisabled}
+            <EuiSelect label="Numeric Mode"
+                options={numericModeOptions}
+                value={this.props.properties.numericMode}
+                onChange={this.onNumericModeChanged}
+            />
+          </EuiFormRow>
+        </Fragment>
+      );
+    }
+
+    let colorSelect = "";
+    if (this.props.properties.numericMode === "ramp") {
+      colorSelect = (
+        <Fragment>
+          <EuiFormRow label={DATASHADER_COLOR_RAMP_LABEL} display="rowCompressed">
+            <EuiSuperSelect
+              options={colorRampOptions}
+              onChange={this.onColorRampChange}
+              valueOfSelected={this.props.properties.colorRampName}
+              hasDividers={true}
+              compressed
+            />
+          </EuiFormRow>
+        </Fragment>
+      );
+    } else {
+      colorSelect = (
+        <Fragment>
+          <EuiFormRow label={DATASHADER_COLOR_KEY_LABEL} display="rowCompressed">
+            <EuiSuperSelect
+              options={colorKeyOptions}
+              onChange={this.onColorKeyChange}
+              valueOfSelected={this.props.properties.colorKeyName}
+              hasDividers={true}
               compressed
             />
           </EuiFormRow>
@@ -696,23 +847,15 @@ export class DatashaderStyleEditor extends Component {
               compressed
           />
         </EuiFormRow>
-        <EuiFormRow label={DATASHADER_COLOR_KEY_LABEL} display="rowCompressed">
-          <EuiSuperSelect
-            options={colorKeyOptions}
-            onChange={this.onColorKeyChange}
-            valueOfSelected={this.props.properties.colorKeyName}
-            hasDividers={true}
-            compressed
-          />
-        </EuiFormRow>
-        {histogramSwitch}
+        {colorSelect}
+        {numericModeSelect}
       </Fragment>
     );
   }
 
   _renderColorStyleConfiguration() {
     let colorModeOptions;
-    if (!this.props.properties.showEllipses) {
+    if (!this.props.properties.renderMode === "points") {
       colorModeOptions = pointModeOptions;
     } else {
       colorModeOptions = ellipseModeOptions;
@@ -726,7 +869,7 @@ export class DatashaderStyleEditor extends Component {
       />
     )
 
-    if (this.props.properties.mode === "heat") {
+    if ((this.props.properties.mode === "heat")) {
       return (
         <Fragment>
            <EuiFormRow label="Color" display="rowCompressed">
@@ -745,7 +888,6 @@ export class DatashaderStyleEditor extends Component {
         </Fragment>
       );
     }
-
   }
 
   render() {

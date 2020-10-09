@@ -113,7 +113,7 @@ export class MapEmbeddable extends Embeddable {
   render(domNode) {
     this._store.dispatch(setEventHandlers(this._eventHandlers));
     this._store.dispatch(setReadOnly(true));
-    this._store.dispatch(disableScrollZoom());
+    //this._store.dispatch(disableScrollZoom());
 
     if (_.has(this.input, 'isLayerTOCOpen')) {
       this._store.dispatch(setIsLayerTOCOpen(this.input.isLayerTOCOpen));

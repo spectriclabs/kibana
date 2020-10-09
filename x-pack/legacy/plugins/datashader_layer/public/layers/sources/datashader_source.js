@@ -45,7 +45,7 @@ function getDatashaderLayerSettings() {
   return chrome.getInjected('datashader');
 }
 
-const NUMBER_DATA_TYPES = [ "number" ]
+const NUMBER_DATA_TYPES = [ "number", "date" ]
 
 export class DatashaderSource extends AbstractTMSSource {
   static type = 'Datashader';

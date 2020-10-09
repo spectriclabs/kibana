@@ -199,6 +199,7 @@ export class MBMapContainer extends React.Component {
         });
       }, 100);
       this.state.mbMap.on('mousemove', throttledSetMouseCoordinates);
+      this.state.mbMap.on('wheel', () => { console.log("wheel") } );
       this.state.mbMap.on('mouseout', () => {
         throttledSetMouseCoordinates.cancel(); // cancel any delayed setMouseCoordinates invocations
         this.props.clearMouseCoordinates();

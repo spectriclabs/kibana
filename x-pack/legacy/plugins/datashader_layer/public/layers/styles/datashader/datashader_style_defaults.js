@@ -9,14 +9,17 @@ export function getDefaultProperties(mapColors = []) {
       categoryField: "",
       categoryFieldType: null,
       categoryFieldPattern: null,
-      showEllipses: false,
-      useHistogram: undefined,
+      numericMode: "categorical",
       ellipseMajorField: "",
       ellipseMinorField: "",
       ellipseTiltField: "",
       ellipseUnits: "semi_majmin_nm",
       ellipseSearchDistance: "normal",
       ellipseThickness: 0,
+      trackField: "",
+      trackThickness: 0,
+      trackSearchDistance: "normal",
       manualResolution: false,
+      renderMode: "points"
     };
   }
