@@ -12,6 +12,7 @@ import { updateDrawState } from '../../../actions/map_actions';
 function mapStateToProps(state = {}) {
   return {
     isDrawingFilter: isDrawingFilter(state),
+    mapExtent: state.map.mapState.extent,
   };
 }
 

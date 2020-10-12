@@ -18,7 +18,7 @@ export class ToolbarOverlay extends React.Component {
 
     return (
       <EuiFlexItem>
-        <ToolsControl geoFields={geoFields} />
+        <ToolsControl geoFields={geoFields} addFilters={addFilters}/>
       </EuiFlexItem>
     );
   }

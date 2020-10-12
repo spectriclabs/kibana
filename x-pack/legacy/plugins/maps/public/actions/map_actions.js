@@ -65,6 +65,7 @@ export const ROLLBACK_TO_TRACKED_LAYER_STATE = 'ROLLBACK_TO_TRACKED_LAYER_STATE'
 export const REMOVE_TRACKED_LAYER_STATE = 'REMOVE_TRACKED_LAYER_STATE';
 export const SET_TOOLTIP_STATE = 'SET_TOOLTIP_STATE';
 export const UPDATE_DRAW_STATE = 'UPDATE_DRAW_STATE';
+export const FILTER_TO_MAP_EXTENT = 'FILTER_TO_MAP_EXTENT';
 export const SET_SCROLL_ZOOM = 'SET_SCROLL_ZOOM';
 export const SET_MAP_INIT_ERROR = 'SET_MAP_INIT_ERROR';
 export const SET_INTERACTIVE = 'SET_INTERACTIVE';
@@ -835,6 +836,14 @@ export function updateDrawState(drawState) {
       drawState: drawState,
     });
   };
+}
+
+export function applyFilterByExtent() {
+    return async dispatch => {
+      dispatch({
+        type: FILTER_TO_MAP_EXTENT
+      });
+    }
 }
 
 export function disableInteractive() {

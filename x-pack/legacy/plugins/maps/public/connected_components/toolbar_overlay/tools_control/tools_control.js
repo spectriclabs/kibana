@@ -17,6 +17,7 @@ import { i18n } from '@kbn/i18n';
 import { DRAW_TYPE } from '../../../../common/constants';
 import { FormattedMessage } from '@kbn/i18n/react';
 import { GeometryFilterForm } from '../../../components/geometry_filter_form';
+import { createSpatialFilterWithExtent } from '../../../elasticsearch_geo_utils';
 
 const DRAW_SHAPE_LABEL = i18n.translate('xpack.maps.toolbarOverlay.drawShapeLabel', {
   defaultMessage: 'Draw shape to filter data',
@@ -26,12 +27,20 @@ const DRAW_BOUNDS_LABEL = i18n.translate('xpack.maps.toolbarOverlay.drawBoundsLa
   defaultMessage: 'Draw bounds to filter data',
 });
 
+const FILTER_EXTENT_LABEL = i18n.translate('xpack.maps.toolbarOverlay.filterExtentLabel', {
+  defaultMessage: 'Filter data to map extent',
+});
+
 const DRAW_SHAPE_LABEL_SHORT = i18n.translate('xpack.maps.toolbarOverlay.drawShapeLabelShort', {
   defaultMessage: 'Draw shape',
 });
 
 const DRAW_BOUNDS_LABEL_SHORT = i18n.translate('xpack.maps.toolbarOverlay.drawBoundsLabelShort', {
   defaultMessage: 'Draw bounds',
+});
+
+const FILTER_EXTENT_LABEL_SHORT = i18n.translate('xpack.maps.toolbarOverlay.filterExtentLabelShort', {
+  defaultMessage: 'Filter extent',
 });
 
 export class ToolsControl extends Component {
@@ -66,6 +75,15 @@ export class ToolsControl extends Component {
     this._closePopover();
   };
 
+  _filterByExtent = options => {
+    const filter = createSpatialFilterWithExtent({
+      mapExtent: this.props.mapExtent,
+      ...options,
+    });
+    this.props.addFilters([filter], options.replaceExistingFilter)
+    this._closePopover();
+  }
+
   _getDrawPanels() {
     return [
       {
@@ -81,6 +99,10 @@ export class ToolsControl extends Component {
           {
             name: DRAW_BOUNDS_LABEL,
             panel: 2,
+          },
+          {
+            name: FILTER_EXTENT_LABEL,
+            panel: 3,
           },
         ],
       },
@@ -119,6 +141,25 @@ export class ToolsControl extends Component {
               }
             )}
             onSubmit={this._initiateBoundsDraw}
+          />
+        ),
+      },
+      {
+        id: 3,
+        title: FILTER_EXTENT_LABEL_SHORT,
+        content: (
+          <GeometryFilterForm
+            className="mapDrawControl__geometryFilterForm"
+            buttonLabel={FILTER_EXTENT_LABEL_SHORT}
+            geoFields={this.props.geoFields}
+            replaceExistingFilter={this.state.replaceExistingFilter}
+            intitialGeometryLabel={i18n.translate(
+              'xpack.maps.toolbarOverlay.drawBounds.initialGeometryLabel',
+              {
+                defaultMessage: 'extent',
+              }
+            )}
+            onSubmit={this._filterByExtent}
           />
         ),
       },

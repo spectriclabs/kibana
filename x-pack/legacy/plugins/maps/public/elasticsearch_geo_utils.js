@@ -267,6 +267,12 @@ export function createExtentFilter(mapExtent, geoFieldName, geoFieldType) {
   };
 }
 
+export function createSpatialFilterWithExtent(options) {
+  const safePolygon = convertMapExtentToPolygon(options.mapExtent);
+
+  return createGeometryFilterWithMeta({ ...options, geometry: safePolygon, isBoundingBox: true });
+}
+
 export function createSpatialFilterWithBoundingBox(options) {
   return createGeometryFilterWithMeta({ ...options, isBoundingBox: true });
 }
