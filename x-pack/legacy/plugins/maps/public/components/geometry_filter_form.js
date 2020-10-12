@@ -18,6 +18,7 @@ import {
   EuiSpacer,
   EuiTextAlign,
   EuiFormErrorText,
+  EuiSwitch,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { ES_GEO_FIELD_TYPE, ES_SPATIAL_RELATIONS } from '../../common/constants';
@@ -56,6 +57,7 @@ export class GeometryFilterForm extends Component {
       ? createIndexGeoFieldName(this.props.geoFields[0])
       : '',
     geometryLabel: this.props.intitialGeometryLabel,
+    replaceExistingFilter: this.props.replaceExistingFilter,
     relation: ES_SPATIAL_RELATIONS.INTERSECTS,
   };
 
@@ -81,6 +83,12 @@ export class GeometryFilterForm extends Component {
     });
   };
 
+  _onReplaceExistingFilterChange = e => {
+    this.setState({
+      replaceExistingFilter: e.target.checked,
+    });
+  };
+
   _onRelationChange = e => {
     this.setState({
       relation: e.target.value,
@@ -95,6 +103,7 @@ export class GeometryFilterForm extends Component {
       geoFieldName: geoField.geoFieldName,
       geoFieldType: geoField.geoFieldType,
       relation: this.state.relation,
+      replaceExistingFilter: this.state.replaceExistingFilter,
     });
   };
 
@@ -173,7 +182,18 @@ export class GeometryFilterForm extends Component {
             onChange={this._onGeometryLabelChange}
           />
         </EuiFormRow>
-
+        <EuiFormRow
+          label={i18n.translate('xpack.maps.geometryFilterForm.replaceExistingFilterLabel', {
+            defaultMessage: 'Replace existing',
+          })}
+          display="rowCompressed"
+        >
+          <EuiSwitch
+              label="Replace existing"
+              checked={this.state.replaceExistingFilter}
+              onChange={this._onReplaceExistingFilterChange}
+            />
+        </EuiFormRow>
         <EuiFormRow
           className="mapGeometryFilter__geoFieldSuperSelectWrapper"
           label={i18n.translate('xpack.maps.geometryFilterForm.geoFieldLabel', {

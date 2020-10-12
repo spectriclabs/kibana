@@ -82,7 +82,7 @@ export class DrawControl extends React.Component {
             ...options,
             geometry,
           });
-      this.props.addFilters([filter]);
+      this.props.addFilters([filter], this.props.drawState.replaceExistingFilter);
     } catch (error) {
       // TODO notify user why filter was not created
       console.error(error);

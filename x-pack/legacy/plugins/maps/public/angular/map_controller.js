@@ -256,10 +256,26 @@ app.controller(
       store.dispatch(setRefreshConfig($scope.refreshConfig));
     };
 
-    function addFilters(newFilters) {
+    function addFilters(newFilters, replaceExisting) {
       newFilters.forEach(filter => {
         filter.$state = esFilters.FilterStateStore.APP_STATE;
       });
+
+      // if replaceExisting is true, match filters based on their 'alias'
+      // and update the existing rather than creating a new filter.
+      if (replaceExisting) {
+        _.remove($scope.filters, filter => {
+          let result = false;
+          for (const newFilter of newFilters) {
+            if ((newFilter.meta.alias) && (filter.meta.alias === newFilter.meta.alias)) {
+              result = true;
+              break;
+            }
+          }
+          return result;
+        });
+      }
+
       $scope.updateFiltersAndDispatch([...$scope.filters, ...newFilters]);
     }
 

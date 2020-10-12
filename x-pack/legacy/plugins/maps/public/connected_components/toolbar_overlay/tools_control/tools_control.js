@@ -37,6 +37,7 @@ const DRAW_BOUNDS_LABEL_SHORT = i18n.translate('xpack.maps.toolbarOverlay.drawBo
 export class ToolsControl extends Component {
   state = {
     isPopoverOpen: false,
+    replaceExistingFilter: true,
   };
 
   _togglePopover = () => {
@@ -91,6 +92,7 @@ export class ToolsControl extends Component {
             className="mapDrawControl__geometryFilterForm"
             buttonLabel={DRAW_SHAPE_LABEL_SHORT}
             geoFields={this.props.geoFields}
+            replaceExistingFilter={this.state.replaceExistingFilter}
             intitialGeometryLabel={i18n.translate(
               'xpack.maps.toolbarOverlay.drawShape.initialGeometryLabel',
               {
@@ -109,6 +111,7 @@ export class ToolsControl extends Component {
             className="mapDrawControl__geometryFilterForm"
             buttonLabel={DRAW_BOUNDS_LABEL_SHORT}
             geoFields={this.props.geoFields}
+            replaceExistingFilter={this.state.replaceExistingFilter}
             intitialGeometryLabel={i18n.translate(
               'xpack.maps.toolbarOverlay.drawBounds.initialGeometryLabel',
               {
