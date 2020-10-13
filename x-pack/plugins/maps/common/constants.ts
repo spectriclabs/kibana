@@ -58,6 +58,7 @@ export enum LAYER_TYPE {
   HEATMAP = 'HEATMAP',
   BLENDED_VECTOR = 'BLENDED_VECTOR',
   TILED_VECTOR = 'TILED_VECTOR', // similar to a regular vector-layer, but it consumes the data as .mvt tilea iso GeoJson. It supports similar ad-hoc configurations like a regular vector layer (E.g. using IVectorStyle), although there is some loss of functionality  e.g. does not support term joining
+  DATASHADER = 'DATASHADER',
 }
 
 export enum SORT_ORDER {
@@ -78,6 +79,7 @@ export enum SOURCE_TYPES {
   REGIONMAP_FILE = 'REGIONMAP_FILE',
   GEOJSON_FILE = 'GEOJSON_FILE',
   MVT_SINGLE_LAYER = 'MVT_SINGLE_LAYER',
+  DATASHADER = 'DATASHADER'
 }
 
 export enum FIELD_ORIGIN {

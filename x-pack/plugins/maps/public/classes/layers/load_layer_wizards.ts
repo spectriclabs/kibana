@@ -27,6 +27,7 @@ import { mvtVectorSourceWizardConfig } from '../sources/mvt_single_layer_vector_
 import { ObservabilityLayerWizardConfig } from './solution_layers/observability';
 import { SecurityLayerWizardConfig } from './solution_layers/security';
 import { choroplethLayerWizardConfig } from './choropleth_layer_wizard';
+import { datashaderWizardConfig } from '../../../../datashader_layer/public/layers/layer_wizard';
 
 let registered = false;
 export function registerLayerWizards() {
@@ -35,6 +36,8 @@ export function registerLayerWizards() {
   }
 
   // Registration order determines display order
+  registerLayerWizard(datashaderWizardConfig);
+
   registerLayerWizard(uploadLayerWizardConfig);
   registerLayerWizard(ObservabilityLayerWizardConfig);
   registerLayerWizard(SecurityLayerWizardConfig);
