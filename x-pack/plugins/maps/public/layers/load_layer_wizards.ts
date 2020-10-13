@@ -25,6 +25,7 @@ import { tmsLayerWizardConfig } from './sources/xyz_tms_source';
 // @ts-ignore
 import { wmsLayerWizardConfig } from './sources/wms_source';
 import { mvtVectorSourceWizardConfig } from './sources/mvt_single_layer_vector_source';
+import { datashaderWizardConfig } from '../../../datashader_layer/public/layers/layer_wizard';
 import { ObservabilityLayerWizardConfig } from './solution_layers/observability';
 import { getInjectedVarFunc } from '../kibana_services';
 
@@ -36,6 +37,7 @@ export function registerLayerWizards() {
 
   // Registration order determines display order
   // @ts-ignore
+  registerLayerWizard(datashaderWizardConfig);
   registerLayerWizard(uploadLayerWizardConfig);
   registerLayerWizard(ObservabilityLayerWizardConfig);
   // @ts-ignore
