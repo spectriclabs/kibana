@@ -251,6 +251,13 @@ export default () =>
         desaturated: 'road_map_desaturated',
         dark: 'dark_map',
       }),
+      datashader: Joi.object({
+        url: Joi.string(),
+        defaultGeospatialField: Joi.string(),
+        defaultEllipseMajor: Joi.string(),
+        defaultEllipseMinor: Joi.string(),
+        defaultEllipseTilt: Joi.string(),
+      }).default(),
     }).default(),
 
     i18n: Joi.object({
