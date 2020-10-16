@@ -168,6 +168,7 @@ export const getProxyElasticMapsServiceInMaps = () =>
   getKibanaCommonConfig().proxyElasticMapsServiceInMaps;
 export const getRegionmapLayers = () => _.get(getKibanaCommonConfig(), 'regionmap.layers', []);
 export const getTilemap = () => _.get(getKibanaCommonConfig(), 'tilemap', []);
+export const getDatashader = () => _.get(getKibanaCommonConfig(), 'datashader', null);
 
 let isGoldPlus = false;
 export const setIsGoldPlus = (igp) => {
