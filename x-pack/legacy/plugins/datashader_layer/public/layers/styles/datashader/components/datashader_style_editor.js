@@ -374,6 +374,7 @@ export class DatashaderStyleEditor extends Component {
     this.onTrackChange = this.onTrackChange.bind(this);
     this.onTrackSearchDistanceChange = this.onTrackSearchDistanceChange.bind(this);
     this.onTrackThicknessChange = this.onTrackThicknessChange.bind(this);
+    this.onDebugChange = this.onDebugChange.bind(this);
   }
 
   componentWillUnmount() {
@@ -452,6 +453,13 @@ export class DatashaderStyleEditor extends Component {
     this.props.handlePropertyChange(
       "trackThickness",
       e.target.value
+    );
+  };
+
+  onDebugChange(e) {
+    this.props.handlePropertyChange(
+      "debug",
+      e.target.checked
     );
   };
 
@@ -865,6 +873,12 @@ export class DatashaderStyleEditor extends Component {
         {this._renderColorStyleConfiguration()}
         <EuiHorizontalRule margin="xs" />
         {this._renderStyleConfiguration()}
+        <EuiHorizontalRule margin="xs" />
+        <EuiSwitch
+            label="Debug Mode"
+            onChange={this.onDebugChange}
+            checked={this.props.properties.debug}
+          />
       </Fragment>
     );
   }

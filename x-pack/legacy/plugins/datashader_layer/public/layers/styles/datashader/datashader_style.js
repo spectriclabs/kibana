@@ -280,6 +280,12 @@ export class DatashaderStyle extends AbstractStyle {
       }
     }
 
+    if (this._descriptor.properties.debug) {
+      urlParams = urlParams.concat(
+        "&force=true&debug=true"
+      );
+    }
+
     return urlParams;
   }
 }

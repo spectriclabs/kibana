@@ -20,6 +20,7 @@ export function getDefaultProperties(mapColors = []) {
       trackThickness: 0,
       trackSearchDistance: "normal",
       manualResolution: false,
-      renderMode: "points"
+      renderMode: "points",
+      debug: false
     };
   }
