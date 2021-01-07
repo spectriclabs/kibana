@@ -136,6 +136,10 @@ export class MBMap extends Component<Props, State> {
       this.state.mbMap.remove();
       this.state.mbMap = undefined;
     }
+    if (this.cacheCheck) {
+      clearInterval(this.cacheCheck);
+      this.cacheCheck = null;
+    }
     this.props.onMapDestroyed();
   }
 
@@ -236,6 +240,39 @@ export class MBMap extends Component<Props, State> {
         emptyImage.crossOrigin = 'anonymous';
         resolve(mbMap);
       });
+
+      
+      // mapbox-gl has bugs #10031 and #10494 that ignore the cache control
+      // headers provided by Datashader; these exist up to at least v2.2.0
+      // for now, datashader will return an 'error' code of 418 TEAPOT
+      mbMap.on('error', (e) => {
+        if (e.tile && e.error && e.error.status === 302 && e.source.type === "raster") {
+         if (e.tile.state === 'errored' && e.tile.expirationTime === null) {
+            // Try any errored tiles again in 5 seconds by setting expiration time
+            e.tile.expirationTime = Date.now() + 5000;
+          }
+        }
+      });
+
+      if (!this.cacheCheck) {
+        this.cacheCheck = setInterval(() => {
+          if (mbMap.style && mbMap.style.sourceCaches) {
+            for (const sourceId in mbMap.style.sourceCaches) {
+              const sourceCache = mbMap.style.sourceCaches[sourceId];
+              if (sourceCache && sourceCache._tiles) {
+                for (const id in sourceCache._tiles) {
+                  const tile = sourceCache._tiles[id];
+                  if (tile && tile.state === 'errored' && tile.expirationTime !== null && tile.expirationTime < Date.now()) {
+                    sourceCache._tiles[id].state = "expired";
+                    sourceCache._tiles[id].expirationTime = null;
+                    sourceCache._reloadTile(id, 'reloading');
+                  }
+                }
+              }
+            }
+          }
+        }, 1000);
+      }
     });
   }
 

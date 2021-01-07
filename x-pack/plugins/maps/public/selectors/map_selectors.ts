@@ -22,6 +22,7 @@ import {
   getInspectorAdapters,
 } from '../reducers/non_serializable_instances';
 import { TiledVectorLayer } from '../classes/layers/tiled_vector_layer/tiled_vector_layer';
+import { DatashaderLayer } from '../datashader/datashader_layer';
 import { copyPersistentState, TRACKED_LAYER_DESCRIPTOR } from '../reducers/copy_persistent_state';
 import { InnerJoin } from '../classes/joins/inner_join';
 import { getSourceByType } from '../classes/sources/source_registry';
@@ -100,6 +101,8 @@ export function createLayerInstance(
         layerDescriptor: layerDescriptor as VectorLayerDescriptor,
         source: source as IVectorSource,
       });
+    case DatashaderLayer.type:
+      return new DatashaderLayer({ layerDescriptor, source });
     default:
       throw new Error(`Unrecognized layerType ${layerDescriptor.type}`);
   }
