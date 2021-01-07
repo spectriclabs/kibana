@@ -5,19 +5,18 @@
  */
 
 import React from 'react';
-import { GRID_RESOLUTION } from '../../../../../maps/common/constants';
+import { GRID_RESOLUTION } from '../../../../common/constants';
 import { DatashaderStyleEditor } from './components/datashader_style_editor';
 import { DatashaderLegend } from './components/legend/datashader_legend';
 import {
     getDefaultProperties,
 } from './datashader_style_defaults';
 import { DEFAULT_DATASHADER_COLOR_RAMP_NAME } from './components/datashader_constants';
-import { LAYER_STYLE_TYPE } from '../../../../../maps/common/constants';
+import { LAYER_STYLE_TYPE } from '../../../../common/constants';
 import { i18n } from '@kbn/i18n';
-import { getInjectedVarFunc } from '../../../../../maps/public/kibana_services';
 import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
-import { VectorIcon } from '../../../../../maps/public/classes/styles/vector/components/legend/vector_icon';
-import { getDatashader } from '../../../../../maps/public/kibana_services';
+import { VectorIcon } from '../../../classes/styles/vector/components/legend/vector_icon';
+import { getDatashader } from '../../../kibana_services';
 
 
 export class DatashaderStyle {

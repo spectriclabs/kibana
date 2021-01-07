@@ -7,9 +7,9 @@
 import { i18n } from '@kbn/i18n';
 import React from 'react';
 import { DatashaderSource, DatashaderEditor, DatashaderSourceConfig } from './sources/datashader_source';
-import { LayerWizard, RenderWizardArguments } from '../../../maps/public/layers/layer_wizard_registry';
+import { LayerWizard, RenderWizardArguments } from '../layers/layer_wizard_registry';
 import { DatashaderLayer } from './datashader_layer';
-import { getDatashader } from '../../../maps/public/kibana_services';
+import { getDatashader } from '../kibana_services';
 
 export const datashaderWizardConfig: LayerWizard = {
   categories: [],

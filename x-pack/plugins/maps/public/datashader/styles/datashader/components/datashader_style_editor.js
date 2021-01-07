@@ -19,10 +19,10 @@ import {
 
 import {
   ES_GEO_FIELD_TYPE
-} from '../../../../../../maps/common/constants';
+} from '../../../../../common/constants';
 
-import { SingleFieldSelect } from '../../../../../../maps/public/components/single_field_select';
-import {  getIndexPatternService } from '../../../../../../maps/public/kibana_services';
+import { SingleFieldSelect } from '../../../../components/single_field_select';
+import {  getIndexPatternService } from '../../../../kibana_services';
 
 function filterColorByField(field) {
   return ! [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
@@ -30,9 +30,9 @@ function filterColorByField(field) {
 
 const colorRampOptions = [
   {
-    value: DEFAULT_DATASHADER_COLOR_RAMP_NAME,
-    text: DEFAULT_DATASHADER_COLOR_RAMP_NAME,
-    inputDisplay: DEFAULT_DATASHADER_COLOR_RAMP_NAME,
+    value: "bmy",
+    text: "bmy",
+    inputDisplay: "bmy",
   },
   {
     value: "fire",
@@ -148,9 +148,9 @@ const colorRampOptions = [
 
 const colorKeyOptions = [
   {
-    value: DEFAULT_DATASHADER_COLOR_KEY_NAME,
-    text: DEFAULT_DATASHADER_COLOR_KEY_NAME,
-    inputDisplay: DEFAULT_DATASHADER_COLOR_KEY_NAME,
+    value: 'glasbey_light',
+    text: 'glasbey_light',
+    inputDisplay: 'glasbey_light',
   },
   {
     value: "glasbey_bw",
@@ -186,6 +186,21 @@ const colorKeyOptions = [
     value: "glasbey_hv",
     text: "glasbey_hv",
     inputDisplay: "glasbey_hv",
+  },
+  {
+    value: "hv",
+    text: "hv",
+    inputDisplay: "hv",
+  },
+  {
+    value: "category10",
+    text: "category10",
+    inputDisplay: "category10",
+  },
+  {
+    value: "kibana5",
+    text: "kibana5",
+    inputDisplay: "kibana5",
   },
 ];
 
@@ -573,7 +588,7 @@ export class DatashaderStyleEditor extends Component {
         >
            <SingleFieldSelect
             fields={this.state.numberFields}
-            selectedFieldName={this.props.properties.ellipseMajorField}
+            value={this.props.properties.ellipseMajorField}
             onChange={this.onEllipseMajorChange}
             compressed
           />
@@ -584,7 +599,7 @@ export class DatashaderStyleEditor extends Component {
         >
           <SingleFieldSelect
             fields={this.state.numberFields}
-            selectedFieldName={this.props.properties.ellipseMinorField}
+            value={this.props.properties.ellipseMinorField}
             onChange={this.onEllipseMinorChange}
             compressed
           />
@@ -595,7 +610,7 @@ export class DatashaderStyleEditor extends Component {
         >
           <SingleFieldSelect
             fields={this.state.numberFields}
-            selectedFieldName={this.props.properties.ellipseTiltField}
+            value={this.props.properties.ellipseTiltField}
             onChange={this.onEllipseTiltChange}
             compressed
           />
@@ -656,11 +671,13 @@ export class DatashaderStyleEditor extends Component {
   }
 
   _renderCategoricalColorStyleConfiguration() {
-    const histogramDisabled = (this.props.properties.categoryFieldType !== "number");
-    let histogramChecked = (!histogramDisabled && this.props.properties.useHistogram);
+    const isNumeric = (this.props.properties.categoryFieldType === "number");
+    let histogramChecked = (isNumeric && this.props.properties.useHistogram);
 
     let histogramSwitch = "";
-    if (!histogramDisabled) {
+    let colorOptions;
+
+    if (isNumeric) {
       // migrate legacy configurations
       if (this.props.properties.useHistogram === undefined) {
         this.props.handlePropertyChange(
@@ -669,6 +686,8 @@ export class DatashaderStyleEditor extends Component {
         );
         histogramChecked = true;
       }
+
+      colorOptions = _.concat(colorKeyOptions, colorRampOptions)
 
       histogramSwitch = (
         <Fragment>
@@ -680,12 +699,14 @@ export class DatashaderStyleEditor extends Component {
               label={'Histogram Numeric Values'}
               checked={histogramChecked}
               onChange={this.onUseHistogramChanged}
-              disabled={histogramDisabled}
+              disabled={!isNumeric}
               compressed
             />
           </EuiFormRow>
         </Fragment>
       );
+    } else {
+      colorOptions = colorKeyOptions;
     }
 
     return (
@@ -693,14 +714,14 @@ export class DatashaderStyleEditor extends Component {
         <EuiFormRow label="Value" display="rowCompressed">
           <SingleFieldSelect
               fields={this.state.categoryFields}
-              selectedFieldName={this.props.properties.categoryField}
+              value={this.props.properties.categoryField}
               onChange={this.onCategoryFieldChange}
               compressed
           />
         </EuiFormRow>
         <EuiFormRow label={DATASHADER_COLOR_KEY_LABEL} display="rowCompressed">
           <EuiSuperSelect
-            options={colorKeyOptions}
+            options={colorOptions}
             onChange={this.onColorKeyChange}
             valueOfSelected={this.props.properties.colorKeyName}
             hasDividers={true}

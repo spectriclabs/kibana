@@ -4,9 +4,9 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { AbstractLayer } from '../../../maps/public/classes/layers/layer';
+import { AbstractLayer } from '../../public/classes/layers/layer';
 import _ from 'lodash';
-import { SOURCE_DATA_REQUEST_ID, LAYER_TYPE } from '../../../maps/common/constants';
+import { SOURCE_DATA_REQUEST_ID, LAYER_TYPE } from '../../common/constants';
 import { DatashaderStyle } from './styles/datashader/datashader_style';
 import { esKuery, esQuery } from '../../../../../src/plugins/data/public';
 

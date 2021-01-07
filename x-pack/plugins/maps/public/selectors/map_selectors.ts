@@ -19,7 +19,7 @@ import { BlendedVectorLayer } from '../classes/layers/blended_vector_layer/blend
 import { getTimeFilter } from '../kibana_services';
 import { getInspectorAdapters } from '../reducers/non_serializable_instances';
 import { TiledVectorLayer } from '../classes/layers/tiled_vector_layer/tiled_vector_layer';
-import { DatashaderLayer } from '../../../datashader_layer/public/layers/datashader_layer';
+import { DatashaderLayer } from '../datashader/datashader_layer';
 import { copyPersistentState, TRACKED_LAYER_DESCRIPTOR } from '../reducers/util';
 import { IJoin } from '../classes/joins/join';
 import { InnerJoin } from '../classes/joins/inner_join';
