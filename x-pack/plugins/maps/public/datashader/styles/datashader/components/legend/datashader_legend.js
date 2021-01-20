@@ -85,16 +85,16 @@ export class DatashaderLegend extends React.Component {
       currentParamsObj.filters = [...dataMeta.filters];
       if (dataMeta.query && dataMeta.query.language === "kuery") {
         const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
-        const esQuery = esKuery.toElasticsearchQuery(kueryNode);
+        const esQueryDSL = esKuery.toElasticsearchQuery(kueryNode);
         currentParamsObj.query = {
           language: "dsl",
-          query: esQuery,
+          query: esQueryDSL,
         };
       } else if (dataMeta.query && dataMeta.query.language === "lucene") {
-        const esQuery = esQuery.luceneStringToDsl(dataMeta.query.query);
+        const esQueryDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
         currentParamsObj.query = {
           language: "dsl",
-          query: esQuery,
+          query: esQueryDSL,
         };
       } else {
         currentParamsObj.query = dataMeta.query;
@@ -104,20 +104,20 @@ export class DatashaderLegend extends React.Component {
     currentParamsObj.zoom = dataMeta.zoom;
     if (this.props.query && this.props.query.language === "kuery") {
       const kueryNode = esKuery.fromKueryExpression(this.props.query.query);
-      const esQuery = esKuery.toElasticsearchQuery(kueryNode);
+      const esQueryDSL = esKuery.toElasticsearchQuery(kueryNode);
       currentParamsObj.filters.push( {
         "meta": {
           "type" : "bool",
         },
-        "query": esQuery
+        "query": esQueryDSL
        } ); 
       } else if (this.props.query && this.props.query.language === "lucene") {
-      const esQuery = esQuery.luceneStringToDsl(this.props.query.query);
+      const esQueryDSL = esQuery.luceneStringToDsl(this.props.query.query);
       currentParamsObj.filters.push( {
         "meta": {
           "type" : "bool",
         },
-        "query": esQuery
+        "query": esQueryDSL
        } );
     }
     let currentParams = "";
