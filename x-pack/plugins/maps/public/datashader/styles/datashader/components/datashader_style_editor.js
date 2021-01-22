@@ -379,7 +379,7 @@ export class DatashaderStyleEditor extends Component {
       return {
         label: await field.getLabel(),
         type: await field.getDataType(),
-        pattern: field_meta.format ? field_meta.format.param("pattern") : null,
+        pattern: field_meta.spec.format ? field_meta.spec.format.params.pattern : null,
         name: field.getName(),
         origin: field.getOrigin(),
       };
@@ -463,7 +463,7 @@ export class DatashaderStyleEditor extends Component {
       );
       this.props.handlePropertyChange(
         "categoryFieldPattern",
-        field.DEFAULT_DATASHADER_COLOR_KEY_NAMEpattern
+        field.pattern
       );
       if (this.props.properties.useHistogram === undefined) {
         this.props.properties.useHistogram = (field.type === "number");
