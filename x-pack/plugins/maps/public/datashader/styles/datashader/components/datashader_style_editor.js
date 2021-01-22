@@ -125,11 +125,6 @@ const colorRampOptions = [
     inputDisplay: "kr",
   },
   {
-    value: "bwm",
-    text: "bwm",
-    inputDisplay: "bwm",
-  },
-  {
     value: "rainbow",
     text: "rainbow",
     inputDisplay: "rainbow",
