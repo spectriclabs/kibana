@@ -143,16 +143,16 @@ export class DatashaderLayer extends AbstractLayer {
         currentParamsObj.filters = [...dataMeta.filters];
         if (dataMeta.query && dataMeta.query.language === "kuery") {
           const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
-          const esQueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+          const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
           currentParamsObj.query = {
             language: "dsl",
-            query: esQuery,
+            query: kueryDSL,
           };
         } else if (dataMeta.query && dataMeta.query.language === "lucene") {
-          const esQueryDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
+          const luceneDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
           currentParamsObj.query = {
             language: "dsl",
-            query: esQueryDSL,
+            query: luceneDSL,
           };
         } else {
           currentParamsObj.query = dataMeta.query;
@@ -162,20 +162,20 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.zoom = dataMeta.zoom;
       if (this._descriptor.query && this._descriptor.query.language === "kuery") {
         const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
-        const esQueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+        const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
         currentParamsObj.filters.push( {
           "meta": {
             "type" : "bool",
           },
-          "query": esQueryDSL
+          "query": kueryDSL
          } );
       } else if (this._descriptor.query && this._descriptor.query.language === "lucene") {
-        const esQueryDSL = esQuery.luceneStringToDsl(this._descriptor.query.query);
+        const luceneDSL = esQuery.luceneStringToDsl(this._descriptor.query.query);
         currentParamsObj.filters.push( {
           "meta": {
             "type" : "bool",
           },
-          "query": esQueryDSL
+          "query": luceneDSL
          } );
       }
       currentParams = currentParams.concat(
