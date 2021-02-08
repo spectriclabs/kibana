@@ -191,7 +191,7 @@ export class DatashaderStyle {
     return <EuiIcon size="m" type="datashader" />;
   }
 
-  getStyleUrlParams() {
+  getStyleUrlParams(data) {
     let urlParams = "";
 
     // TODO instead of passing numeric values to datashader,
@@ -262,7 +262,15 @@ export class DatashaderStyle {
         );        
       }
 
-      if (this._descriptor.properties.categoryFieldPattern) {
+      if (data) {
+        let pattern = (data.categoryFieldMeta && data.categoryFieldMeta.spec.format) ? data.categoryFieldMeta.spec.format.params.pattern : null;
+        if (!pattern && data.categoryFieldFormatter) {
+          pattern = data.categoryFieldFormatter.getParamDefaults().pattern
+        }
+        urlParams = urlParams.concat(
+          "&category_pattern=", pattern
+        );
+      } else if (this._descriptor.properties.categoryFieldPattern) {
         urlParams = urlParams.concat(
           "&category_pattern=", this._descriptor.properties.categoryFieldPattern
         );

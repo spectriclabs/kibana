@@ -70,12 +70,29 @@ export class DatashaderLayer extends AbstractLayer {
       const timeFieldName = await this._source.getTimeFieldName();
       const geoField = await this._source.getGeoField();
       const applyGlobalQuery = this._source.getApplyGlobalQuery();
+
+      const categoryField = this._style._descriptor.properties.categoryField;
+      let categoryFormatter = null;
+      let categoryFieldMeta = null;
+      if (categoryField) {
+        const indexPattern = await this._source.getIndexPattern();
+        const fieldFromIndexPattern = indexPattern.fields.getByName(categoryField);
+        if (!fieldFromIndexPattern) {
+          return null;
+        }
+
+        categoryFormatter = indexPattern.getFormatterForField(fieldFromIndexPattern);
+        categoryFieldMeta = indexPattern.getFieldByName(categoryField);
+      }
+
       const data = {
         url: url,
         indexTitle: indexTitle,
         timeFieldName: timeFieldName,
         geoField: geoField,
         applyGlobalQuery: applyGlobalQuery,
+        categoryFieldMeta: categoryFieldMeta,
+        categoryFieldFormatter: categoryFormatter
       }
 
       stopLoading(SOURCE_DATA_REQUEST_ID, requestToken, data, {});
@@ -116,6 +133,10 @@ export class DatashaderLayer extends AbstractLayer {
     }
 
     let data = sourceDataRequest.getData()
+
+    if (!data) {
+      return;
+    }
 
     if (!data.indexTitle) {
       return;
@@ -182,7 +203,7 @@ export class DatashaderLayer extends AbstractLayer {
         "params=", JSON.stringify(currentParamsObj),
         "&timestamp_field=", data.timeFieldName,
         "&geopoint_field=", data.geoField,
-        this._style.getStyleUrlParams(),
+        this._style.getStyleUrlParams(data),
       );
     }
 
