@@ -61,6 +61,10 @@ export class DatashaderLegend extends React.Component {
 
     let data = this.props.sourceDataRequest.getData()
    
+    if (!data) {
+      return;
+    }
+
     if (!data.geoField) {
       return;
     }
@@ -125,7 +129,7 @@ export class DatashaderLegend extends React.Component {
       "params=", JSON.stringify(currentParamsObj),
       "&timestamp_field=", data.timeFieldName,
       "&geopoint_field=", data.geoField,
-      this.props.style.getStyleUrlParams(),
+      this.props.style.getStyleUrlParams(data),
     );
 
     url = url.concat(
