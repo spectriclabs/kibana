@@ -130,6 +130,22 @@ export class DatashaderSource extends AbstractTMSSource {
     return this._descriptor.urlTemplate;
   }
 
+  async getFieldFormatter(field) {
+    let indexPattern;
+    try {
+      indexPattern = await this.getIndexPattern();
+    } catch (error) {
+      return null;
+    }
+
+    const fieldFromIndexPattern = indexPattern.fields.getByName(field.getRootName());
+    if (!fieldFromIndexPattern) {
+      return null;
+    }
+
+    return indexPattern.getFormatterForField(fieldFromIndexPattern);
+  }
+
   getAttributions() {
     const { attributionText, attributionUrl } = this._descriptor;
     const attributionComplete = !!attributionText && !!attributionUrl;

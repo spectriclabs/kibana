@@ -18,7 +18,8 @@ import {
 } from './datashader_constants';
 
 import {
-  ES_GEO_FIELD_TYPE
+  ES_GEO_FIELD_TYPE,
+  FieldFormatter,
 } from '../../../../../common/constants';
 
 import { SingleFieldSelect } from '../../../../components/single_field_select';
@@ -368,13 +369,19 @@ export class DatashaderStyleEditor extends Component {
 
   async _loadFields() {
     const getFieldMeta = async field => {
+      const formatter = await this.props.layer.getSource().getFieldFormatter(field);
       const indexPattern = await getIndexPatternService().get(this.props.layer.getIndexPatternIds()[0]);
       const field_meta = indexPattern.getFieldByName(field.getName());
+
+      let pattern = field_meta.spec.format ? field_meta.spec.format.params.pattern : null;
+      if (!pattern && formatter) {
+        pattern = formatter.getParamDefaults().pattern
+      }
 
       return {
         label: await field.getLabel(),
         type: await field.getDataType(),
-        pattern: field_meta.spec.format ? field_meta.spec.format.params.pattern : null,
+        pattern: pattern,
         name: field.getName(),
         origin: field.getOrigin(),
       };
