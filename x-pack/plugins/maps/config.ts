@@ -7,11 +7,20 @@
 
 import { schema, TypeOf } from '@kbn/config-schema';
 
+export interface DatashaderConfigType {
+  url: string;
+  defaultGeospatialField: string;
+  defaultEllipseMajor: string;
+  defaultEllipseMinor: string;
+  defaultEllipseTilt: string;
+}
+
 export interface MapsConfigType {
   enabled: boolean;
   showMapVisualizationTypes: boolean;
   showMapsInspectorAdapter: boolean;
   preserveDrawingBuffer: boolean;
+  datashader: DatashaderConfigType;
 }
 
 export const configSchema = schema.object({
@@ -21,6 +30,13 @@ export const configSchema = schema.object({
   showMapsInspectorAdapter: schema.boolean({ defaultValue: false }),
   // flag used in functional testing
   preserveDrawingBuffer: schema.boolean({ defaultValue: false }),
+  datashader: schema.object({
+    url: schema.string(),
+    defaultGeospatialField: schema.string({ defaultValue: null }),
+    defaultEllipseMajor: schema.string({ defaultValue: null }),
+    defaultEllipseMinor: schema.string({ defaultValue: null }),
+    defaultEllipseTilt: schema.string({ defaultValue: null })
+  }),
 });
 
 export type MapsXPackConfig = TypeOf<typeof configSchema>;

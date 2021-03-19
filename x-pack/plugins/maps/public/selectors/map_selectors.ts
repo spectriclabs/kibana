@@ -91,6 +91,8 @@ export function createLayerInstance(
         layerDescriptor: layerDescriptor as VectorLayerDescriptor,
         source: source as IVectorSource,
       });
+    case DatashaderLayer.type:
+      return new DatashaderLayer({ layerDescriptor, source });
     default:
       throw new Error(`Unrecognized layerType ${layerDescriptor.type}`);
   }

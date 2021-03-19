@@ -37,6 +37,8 @@ export function registerLayerWizards() {
     return;
   }
 
+  registerLayerWizard(datashaderWizardConfig);
+
   // Registration order determines display order
   registerLayerWizard(uploadLayerWizardConfig);
   registerLayerWizard(ObservabilityLayerWizardConfig);

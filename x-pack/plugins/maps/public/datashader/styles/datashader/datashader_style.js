@@ -22,8 +22,10 @@ import { getDatashader } from '../../../kibana_services';
 export class DatashaderStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
 
-  constructor(descriptor = {}) {
+  constructor(descriptor = {}, source, layer) {
     this._descriptor = DatashaderStyle.createDescriptor(descriptor.properties);
+    this._layer = layer;
+    this._source = source;
   }
 
   static createDescriptor(properties = {}, isTimeAware = true) {
@@ -51,7 +53,7 @@ export class DatashaderStyle {
     return LAYER_STYLE_TYPE.DATASHADER;
   }
 
-  renderEditor({ layer, onStyleDescriptorChange }) {
+  renderEditor(onStyleDescriptorChange) {
     const rawProperties = this.getRawProperties();
     const handlePropertyChange = (propertyName, settings) => {
       rawProperties[propertyName] = settings; //override single property, but preserve the rest
@@ -76,7 +78,7 @@ export class DatashaderStyle {
         settings={config}
         properties={this._descriptor.properties}
         handlePropertyChange={handlePropertyChange}
-        layer={layer}
+        layer={this._layer}
       />
     );
   }
