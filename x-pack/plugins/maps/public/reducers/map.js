@@ -50,6 +50,7 @@ import {
   ROLLBACK_MAP_SETTINGS,
   TRACK_MAP_SETTINGS,
   UPDATE_MAP_SETTING,
+  SET_MAP_TIME_BOUNDS,
 } from '../actions';
 
 import { getDefaultMapSettings } from './default_map_settings';
@@ -164,6 +165,9 @@ export function map(state = DEFAULT_MAP_STATE, action) {
           },
         },
       };
+    case SET_MAP_TIME_BOUNDS:
+      console.log("SET MAP TIME BOUNDS");
+      return { ...state, timeBounds: action.timeBounds };
     case CLEAR_MOUSE_COORDINATES:
       return {
         ...state,

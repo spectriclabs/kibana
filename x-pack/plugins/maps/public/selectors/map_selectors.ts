@@ -154,6 +154,8 @@ export const getWaitingForMapReadyLayerListRaw = ({ map }: MapStoreState): Layer
 
 export const getScrollZoom = ({ map }: MapStoreState): boolean => map.mapState.scrollZoom;
 
+export const getTimeBounds = ({ map }: MapStoreState) => map.timeBounds;
+
 export const isInteractiveDisabled = ({ map }: MapStoreState): boolean =>
   map.mapState.disableInteractive;
 

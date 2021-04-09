@@ -48,6 +48,7 @@ export const DEFAULT_MAP_UI_STATE = {
   // storing TOC detail visibility outside of map.layerList because its UI state and not map rendering state.
   // This also makes for easy read/write access for embeddables.
   openTOCDetails: [],
+  timeBounds: [],
 };
 
 // Reducer

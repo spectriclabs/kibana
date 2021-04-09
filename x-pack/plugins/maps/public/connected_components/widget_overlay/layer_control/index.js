@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { LayerControl } from './view';
 
 import { FLYOUT_STATE } from '../../../reducers/ui';
-import { setSelectedLayer, updateFlyout, setIsLayerTOCOpen } from '../../../actions';
+import { setSelectedLayer, updateFlyout, setIsLayerTOCOpen, setMapTimeBounds } from '../../../actions';
 import {
   getIsReadOnly,
   getIsLayerTOCOpen,
@@ -37,6 +37,9 @@ function mapDispatchToProps(dispatch) {
     },
     openLayerTOC: () => {
       dispatch(setIsLayerTOCOpen(true));
+    },
+    applyTimeFilter: (timeBounds) => {
+      dispatch(setMapTimeBounds(timeBounds));
     },
   };
 }

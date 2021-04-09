@@ -91,7 +91,7 @@ export class MBMap extends React.Component {
       this.props.spatialFiltersLayer.syncLayerWithMB(this.state.mbMap);
       this._syncSettings();
     }
-  }, 256);
+  }, 10);
 
   _getMapState() {
     const zoom = this.state.mbMap.getZoom();
@@ -235,35 +235,43 @@ export class MBMap extends React.Component {
   }
 
   _syncMbMapWithMapState = () => {
-    const { isMapReady, goto, clearGoto } = this.props;
+    const { isMapReady, goto, clearGoto, timeBounds } = this.props;
+    console.log("Sync MP Map States", timeBounds, !isMapReady, !goto, !timeBounds);
 
-    if (!isMapReady || !goto) {
+    if (!isMapReady) {
       return;
     }
 
-    clearGoto();
+    if (timeBounds != this.state.mbMap.timeBounds) {
+        this.state.mbMap.timeBounds = timeBounds;
+        this.state.hasSyncedLayerList = false;
+    }
 
-    if (goto.bounds) {
-      //clamping ot -89/89 latitudes since Mapboxgl does not seem to handle bounds that contain the poles (logs errors to the console when using -90/90)
-      const lnLatBounds = new mapboxgl.LngLatBounds(
-        new mapboxgl.LngLat(
-          clampToLonBounds(goto.bounds.minLon),
-          clampToLatBounds(goto.bounds.minLat)
-        ),
-        new mapboxgl.LngLat(
-          clampToLonBounds(goto.bounds.maxLon),
-          clampToLatBounds(goto.bounds.maxLat)
-        )
-      );
-      //maxZoom ensure we're not zooming in too far on single points or small shapes
-      //the padding is to avoid too tight of a fit around edges
-      this.state.mbMap.fitBounds(lnLatBounds, { maxZoom: 17, padding: 16 });
-    } else if (goto.center) {
-      this.state.mbMap.setZoom(goto.center.zoom);
-      this.state.mbMap.setCenter({
-        lng: goto.center.lon,
-        lat: goto.center.lat,
-      });
+    if (goto) {
+      clearGoto();
+
+      if (goto.bounds) {
+        //clamping ot -89/89 latitudes since Mapboxgl does not seem to handle bounds that contain the poles (logs errors to the console when using -90/90)
+        const lnLatBounds = new mapboxgl.LngLatBounds(
+          new mapboxgl.LngLat(
+            clampToLonBounds(goto.bounds.minLon),
+            clampToLatBounds(goto.bounds.minLat)
+          ),
+          new mapboxgl.LngLat(
+            clampToLonBounds(goto.bounds.maxLon),
+            clampToLatBounds(goto.bounds.maxLat)
+          )
+        );
+        //maxZoom ensure we're not zooming in too far on single points or small shapes
+        //the padding is to avoid too tight of a fit around edges
+        this.state.mbMap.fitBounds(lnLatBounds, { maxZoom: 17, padding: 16 });
+      } else if (goto.center) {
+        this.state.mbMap.setZoom(goto.center.zoom);
+        this.state.mbMap.setCenter({
+          lng: goto.center.lon,
+          lat: goto.center.lat,
+        });
+      }
     }
   };
 

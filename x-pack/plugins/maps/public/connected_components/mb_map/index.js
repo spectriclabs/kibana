@@ -26,6 +26,7 @@ import {
   isViewControlHidden,
   getSpatialFiltersLayer,
   getMapSettings,
+  getTimeBounds,
 } from '../../selectors/map_selectors';
 
 import { getInspectorAdapters } from '../../reducers/non_serializable_instances';
@@ -42,6 +43,7 @@ function mapStateToProps(state = {}) {
     disableInteractive: isInteractiveDisabled(state),
     disableTooltipControl: isTooltipControlDisabled(state),
     hideViewControl: isViewControlHidden(state),
+    timeBounds: getTimeBounds(state),
   };
 }
 

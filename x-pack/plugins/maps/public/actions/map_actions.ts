@@ -47,6 +47,7 @@ import {
   TRIGGER_REFRESH_TIMER,
   UPDATE_DRAW_STATE,
   UPDATE_MAP_SETTING,
+  SET_MAP_TIME_BOUNDS,
 } from './map_action_constants';
 import { autoFitToBounds, syncDataForAllLayers } from './data_request_actions';
 import { addLayer, addLayerWithoutDataSync } from './layer_actions';
@@ -177,6 +178,13 @@ export function mapExtentChanged(newMapConstants: { zoom: number; extent: MapExt
     }
 
     await dispatch(syncDataForAllLayers());
+  };
+}
+
+export function setMapTimeBounds(timeBounds) {
+  return {
+    type: SET_MAP_TIME_BOUNDS,
+    timeBounds,
   };
 }
 

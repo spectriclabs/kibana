@@ -60,5 +60,6 @@ export function getLineFilterExpression(hasJoins: boolean): unknown[] {
 }
 
 export function getPointFilterExpression(hasJoins: boolean): unknown[] {
-  return hasJoins ? VISIBLE_POINT_MB_FILTER : POINT_MB_FILTER;
+  let filterExpr = hasJoins ? VISIBLE_POINT_MB_FILTER : POINT_MB_FILTER;
+  return [...filterExpr];
 }

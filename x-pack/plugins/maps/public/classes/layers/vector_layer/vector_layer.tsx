@@ -237,6 +237,7 @@ export class VectorLayer extends AbstractLayer {
     dataFilters,
   }: DataRequestContext) {
     const isStaticLayer = !this.getSource().isBoundsAware();
+    const featureCollection = this._getSourceFeatureCollection();
     if (isStaticLayer || this.hasJoins()) {
       return getFeatureCollectionBounds(this._getSourceFeatureCollection(), this.hasJoins());
     }
@@ -861,7 +862,12 @@ export class VectorLayer extends AbstractLayer {
       mbMap.addLayer(mbLayer);
     }
 
-    const filterExpr = getPointFilterExpression(this.hasJoins());
+    const features = mbMap.querySourceFeatures(sourceId);
+    let filterExpr = getPointFilterExpression(this.hasJoins());
+    if (this.getCurrentStyle().arePointsFilteredByTime() && this._source.indexPattern && mbMap.timeBounds !== undefined) {
+      filterExpr.push(['>=', ['get', this._source.indexPattern.timeFieldName], parseFloat(mbMap.timeBounds[0]) ]);
+      filterExpr.push(['<=', ['get', this._source.indexPattern.timeFieldName], parseFloat(mbMap.timeBounds[1]) ]);
+    }
     if (filterExpr !== mbMap.getFilter(pointLayerId)) {
       mbMap.setFilter(pointLayerId, filterExpr);
       mbMap.setFilter(textLayerId, filterExpr);

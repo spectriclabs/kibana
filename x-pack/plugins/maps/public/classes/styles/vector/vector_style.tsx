@@ -100,6 +100,7 @@ export interface IVectorStyle extends IStyle {
     mbSourceId: string
   ) => boolean;
   arePointsSymbolizedAsCircles: () => boolean;
+  arePointsFilteredByTime: () => boolean;
   setMBPaintProperties: ({
     alpha,
     mbMap,
@@ -756,6 +757,10 @@ export class VectorStyle implements IVectorStyle {
 
   arePointsSymbolizedAsCircles() {
     return !this._symbolizeAsStyleProperty.isSymbolizedAsIcon();
+  }
+
+  arePointsFilteredByTime() {
+    return true;
   }
 
   setMBPaintProperties({

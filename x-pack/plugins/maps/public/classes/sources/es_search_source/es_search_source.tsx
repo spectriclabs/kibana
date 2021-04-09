@@ -200,7 +200,7 @@ export class ESSearchSource extends AbstractESSource implements ITiledSingleLaye
   }
 
   getFieldNames(): string[] {
-    return [this._descriptor.geoField];
+    return [this._descriptor.geoField, this.indexPattern.timeFieldName];
   }
 
   async getImmutableProperties(): Promise<ImmutableSourceProperty[]> {

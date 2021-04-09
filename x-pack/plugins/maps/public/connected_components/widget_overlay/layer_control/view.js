@@ -20,6 +20,13 @@ import {
 import { LayerTOC } from './layer_toc';
 import { FormattedMessage } from '@kbn/i18n/react';
 import { i18n } from '@kbn/i18n';
+import {
+  getTimeFilter
+} from '../../../kibana_services';
+import Nouislider from 'nouislider-react'; // eslint-disable-line import/no-extraneous-dependencies
+import 'nouislider/distribute/nouislider.css'; // eslint-disable-line import/no-extraneous-dependencies
+import '../_nouislider.scss';
+import dateMath from '@elastic/datemath';
 
 function renderExpandButton({ hasErrors, isLoading, onClick }) {
   const expandLabel = i18n.translate('xpack.maps.layerControl.openLayerTOCButtonAriaLabel', {
@@ -59,6 +66,7 @@ export function LayerControl({
   openLayerTOC,
   layerList,
   isFlyoutOpen,
+  applyTimeFilter,
 }) {
   if (!isLayerTOCOpen) {
     const hasErrors = layerList.some((layer) => {
@@ -102,6 +110,12 @@ export function LayerControl({
       </Fragment>
     );
   }
+
+  const timeRange = getTimeFilter().getTime();
+  let range = {
+    min: dateMath.parse(timeRange.from).valueOf(),
+    max: dateMath.parse(timeRange.to).valueOf()
+  };
 
   return (
     <Fragment>
@@ -151,7 +165,15 @@ export function LayerControl({
             </EuiFlexItem>
           </EuiFlexGroup>
         </EuiFlexItem>
-
+        <EuiFlexItem grow={false}>
+          <Nouislider
+              range={{ min: range.min, max: range.max }}
+              behaviour="drag"
+              start={[range.min, range.max]}
+              connect
+              onUpdate={applyTimeFilter}
+          />
+        </EuiFlexItem>
         <EuiFlexItem className="mapLayerControl">
           <LayerTOC />
         </EuiFlexItem>
