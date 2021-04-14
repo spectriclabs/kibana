@@ -238,7 +238,25 @@ export class DatashaderLayer extends AbstractLayer {
         maxzoom: this._descriptor.maxZoom,
       });
 
-      mbMap._render();
+      // mapbox-gl has bugs #10031 and #10494 that ignore the cache control
+      // headers provided by Datashader; these exist up to at least v2.2.0
+      // for now, datashader will return an 'error' code of 503
+      if (!this.cacheCheck) {
+        this.cacheCheck = setInterval(() => {
+          const sourceCache = mbMap.style.sourceCaches[sourceId];
+          for (const id in sourceCache._tiles) {
+            const tile = sourceCache._tiles[id];
+            if (tile.state === 'errored' && tile.expirationTime === null) {
+              // Try any errored tiles again in 5 seconds by setting expiration time
+              sourceCache._tiles[id].expirationTime = Date.now() + 5;
+            } else if (tile.state === 'errored' && tile.expirationTime < Date.now()) {
+              // If an errored tile has expired reload it
+              sourceCache._tiles[id].expirationTime = Date.now() - 1;
+              sourceCache._reloadTile(id, 'reloading');
+            }
+          }
+        }, 5000);
+      }
     }
 
     this._setTileLayerProperties(mbMap, mbLayerId);
