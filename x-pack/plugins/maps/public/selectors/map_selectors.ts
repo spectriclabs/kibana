@@ -23,6 +23,7 @@ import { TiledVectorLayer } from '../classes/layers/tiled_vector_layer/tiled_vec
 import { DatashaderLayer } from '../datashader/datashader_layer';
 import { copyPersistentState, TRACKED_LAYER_DESCRIPTOR } from '../reducers/util';
 import { InnerJoin } from '../classes/joins/inner_join';
+import { IESSource } from '../classes/sources/es_source';
 import { getSourceByType } from '../classes/sources/source_registry';
 import { GeojsonFileSource } from '../classes/sources/geojson_file_source';
 import {
@@ -392,6 +393,39 @@ export const getQueryableUniqueIndexPatternIds = createSelector(
       });
     }
     return _.uniq(indexPatternIds);
+  }
+);
+
+// Get list of unique index patterns, excluding index patterns from layers that disable applyGlobalQuery
+export const getQueryableUniqueIndexPatternIdsAndFieldNames = createSelector(
+  getLayerList,
+  getWaitingForMapReadyLayerListRaw,
+  (layerList, waitingForMapReadyLayerList) => {
+    const indexPatternIdsAndFieldNames: Array<{ indexPatternId: string; fieldName: string }> = [];
+
+    if (waitingForMapReadyLayerList.length) {
+      waitingForMapReadyLayerList.forEach((layerDescriptor) => {
+        const layer = createLayerInstance(layerDescriptor);
+        const indexPatternIds = layer.getQueryableIndexPatternIds();
+        if (layer.getSource().isESSource()) {
+          const fieldName = (layer.getSource() as IESSource).getGeoFieldName();
+          indexPatternIds.forEach((indexPatternId) => {
+            indexPatternIdsAndFieldNames.push({ indexPatternId, fieldName });
+          });
+        }
+      });
+    } else {
+      layerList.forEach((layer) => {
+        const indexPatternIds = layer.getQueryableIndexPatternIds();
+        if (layer.getSource().isESSource()) {
+          const fieldName = (layer.getSource() as IESSource).getGeoFieldName();
+          indexPatternIds.forEach((indexPatternId) => {
+            indexPatternIdsAndFieldNames.push({ indexPatternId, fieldName });
+          });
+        }
+      });
+    }
+    return _.uniq(indexPatternIdsAndFieldNames);
   }
 );
 

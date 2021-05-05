@@ -23,7 +23,7 @@ import { ToolbarOverlay } from '../toolbar_overlay';
 import { LayerPanel } from '../layer_panel';
 import { AddLayerPanel } from '../add_layer_panel';
 import { ExitFullScreenButton } from '../../../../../../src/plugins/kibana_react/public';
-import { getIndexPatternsFromIds } from '../../index_pattern_util';
+import { getIndexPatternsFromIds, getFieldsFromIds } from '../../index_pattern_util';
 import { ES_GEO_FIELD_TYPE, RawValue } from '../../../common/constants';
 import { indexPatterns as indexPatternsUtils } from '../../../../../../src/plugins/data/public';
 import { FLYOUT_STATE } from '../../reducers/ui';
@@ -48,7 +48,7 @@ interface Props {
   flyoutDisplay: FLYOUT_STATE;
   hideToolbarOverlay: boolean;
   isFullScreen: boolean;
-  indexPatternIds: string[];
+  indexPatternIdsAndFieldNames: Array<{ indexPatternId: string; fieldName: string }>;
   mapInitError: string | null | undefined;
   refreshConfig: MapRefreshConfig;
   renderTooltipContent?: RenderToolTipContent;
@@ -66,7 +66,10 @@ interface State {
 export class MapContainer extends Component<Props, State> {
   private _isMounted: boolean = false;
   private _isInitalLoadRenderTimerStarted: boolean = false;
-  private _prevIndexPatternIds: string[] = [];
+  private _prevIndexPatternIdsAndFieldNames: Array<{
+    indexPatternId: string;
+    fieldName: string;
+  }> = [];
   private _refreshTimerId: number | null = null;
   private _prevIsPaused: boolean | null = null;
   private _prevInterval: number | null = null;
@@ -91,7 +94,7 @@ export class MapContainer extends Component<Props, State> {
     }
 
     if (!!this.props.addFilters) {
-      this._loadGeoFields(this.props.indexPatternIds);
+      this._loadGeoFields(this.props.indexPatternIdsAndFieldNames);
     }
   }
 
@@ -116,37 +119,44 @@ export class MapContainer extends Component<Props, State> {
     }
   };
 
-  _loadGeoFields = async (nextIndexPatternIds: string[]) => {
-    if (_.isEqual(nextIndexPatternIds, this._prevIndexPatternIds)) {
+  _loadGeoFields = async (
+    nextIndexPatternIdsAndFieldNames: Array<{ indexPatternId: string; fieldName: string }>
+  ) => {
+    if (_.isEqual(nextIndexPatternIdsAndFieldNames, this._prevIndexPatternIdsAndFieldNames)) {
       // all ready loaded index pattern ids
       return;
     }
 
-    this._prevIndexPatternIds = nextIndexPatternIds;
+    this._prevIndexPatternIdsAndFieldNames = nextIndexPatternIdsAndFieldNames;
 
-    const geoFields: GeoFieldWithIndex[] = [];
-    const indexPatterns = await getIndexPatternsFromIds(nextIndexPatternIds);
-    indexPatterns.forEach((indexPattern) => {
-      indexPattern.fields.forEach((field) => {
-        if (
-          indexPattern.id &&
-          !indexPatternsUtils.isNestedField(field) &&
-          (field.type === ES_GEO_FIELD_TYPE.GEO_POINT || field.type === ES_GEO_FIELD_TYPE.GEO_SHAPE)
-        ) {
-          geoFields.push({
-            geoFieldName: field.name,
-            geoFieldType: field.type,
-            indexPatternTitle: indexPattern.title,
-            indexPatternId: indexPattern.id,
-          });
-        }
-      });
+    let geoFields: GeoFieldWithIndex[] = [];
+    const queryableFields = await getFieldsFromIds(nextIndexPatternIdsAndFieldNames);
+    queryableFields.forEach(({ indexPattern, field }) => {
+      if (
+        indexPattern.id &&
+        !indexPatternsUtils.isNestedField(field) &&
+        (field.type === ES_GEO_FIELD_TYPE.GEO_POINT || field.type === ES_GEO_FIELD_TYPE.GEO_SHAPE)
+      ) {
+        // TODO - the indexPatterns are somewhat silly to include in the various
+        // filter tools because ultimately the filter that is created simply uses
+        // the field name and applies to all indexes.  Furthermore, it clutters
+        // the user interface because the same name is repeated mutliple times if
+        // but the final effect is the same regardless of what you pick.  To keep the
+        // changes small, no refactoring has been done to the GeoFieldWithIndex type
+        // we simply set the indexPattern fields to null
+        geoFields.push({
+          geoFieldName: field.name,
+          geoFieldType: field.type,
+          indexPatternTitle: null,
+          indexPatternId: null,
+        });
+      }
     });
 
+    geoFields = _.uniqWith(geoFields, _.isEqual);
     if (!this._isMounted) {
       return;
     }
-
     this.setState({ geoFields });
   };
 

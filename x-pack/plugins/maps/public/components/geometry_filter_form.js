@@ -20,7 +20,7 @@ import {
 import { i18n } from '@kbn/i18n';
 import { ES_GEO_FIELD_TYPE, ES_SPATIAL_RELATIONS } from '../../common/constants';
 import { getEsSpatialRelationLabel } from '../../common/i18n_getters';
-import { MultiIndexGeoFieldSelect } from './multi_index_geo_field_select';
+import { GeoFieldSelect } from './geo_field_select';
 import { ActionSelect } from './action_select';
 import { ACTION_GLOBAL_APPLY_FILTER } from '../../../../../src/plugins/data/public';
 
@@ -137,7 +137,7 @@ export class GeometryFilterForm extends Component {
           />
         </EuiFormRow>
 
-        <MultiIndexGeoFieldSelect
+        <GeoFieldSelect
           selectedField={this.state.selectedField}
           fields={this.props.geoFields}
           onChange={this._onGeoFieldChange}
