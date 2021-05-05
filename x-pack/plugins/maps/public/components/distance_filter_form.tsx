@@ -16,7 +16,7 @@ import {
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { ActionExecutionContext, Action } from 'src/plugins/ui_actions/public';
-import { MultiIndexGeoFieldSelect } from './multi_index_geo_field_select';
+import { GeoFieldWithTypeSelect } from './geo_field_with_type_select';
 import { GeoFieldWithIndex } from './geo_field_with_index';
 import { ActionSelect } from './action_select';
 import { ACTION_GLOBAL_APPLY_FILTER } from '../../../../../src/plugins/data/public';
@@ -95,7 +95,7 @@ export class DistanceFilterForm extends Component<Props, State> {
           />
         </EuiFormRow>
 
-        <MultiIndexGeoFieldSelect
+        <GeoFieldWithTypeSelect
           selectedField={this.state.selectedField}
           fields={this.props.geoFields}
           onChange={this._onGeoFieldChange}

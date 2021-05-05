@@ -36,8 +36,7 @@ export class DrawFilterControl extends Component<Props, {}> {
     if (
       !e.features.length ||
       !this.props.drawState ||
-      !this.props.drawState.geoFieldName ||
-      !this.props.drawState.indexPatternId
+      !this.props.drawState.geoFieldName
     ) {
       return;
     }
@@ -62,7 +61,6 @@ export class DrawFilterControl extends Component<Props, {}> {
         alias: this.props.drawState.filterLabel ? this.props.drawState.filterLabel : '',
         distanceKm,
         geoFieldName: this.props.drawState.geoFieldName,
-        indexPatternId: this.props.drawState.indexPatternId,
         point: [
           _.round(circle.properties.center[0], precision),
           _.round(circle.properties.center[1], precision),
@@ -78,7 +76,6 @@ export class DrawFilterControl extends Component<Props, {}> {
           this.props.drawState.drawType === DRAW_TYPE.BOUNDS
             ? getBoundingBoxGeometry(geometry)
             : geometry,
-        indexPatternId: this.props.drawState.indexPatternId,
         geoFieldName: this.props.drawState.geoFieldName,
         geometryLabel: this.props.drawState.geometryLabel ? this.props.drawState.geometryLabel : '',
         relation: this.props.drawState.relation

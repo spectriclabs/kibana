@@ -374,14 +374,12 @@ export function createSpatialFilterWithGeometry({
   preIndexedShape?: PreIndexedShape;
   geometry: Polygon;
   geometryLabel: string;
-  indexPatternId: string;
   geoFieldName: string;
   relation: ES_SPATIAL_RELATIONS;
 }): GeoFilter {
   const meta: FilterMeta = {
     type: SPATIAL_FILTER_TYPE,
     negate: false,
-    index: indexPatternId,
     key: geoFieldName,
     alias: `${geoFieldName} ${getEsSpatialRelationLabel(relation)} ${geometryLabel}`,
     disabled: false,
@@ -412,19 +410,16 @@ export function createDistanceFilterWithMeta({
   alias,
   distanceKm,
   geoFieldName,
-  indexPatternId,
   point,
 }: {
   alias: string;
   distanceKm: number;
   geoFieldName: string;
-  indexPatternId: string;
   point: Position;
 }): GeoFilter {
   const meta: FilterMeta = {
     type: SPATIAL_FILTER_TYPE,
     negate: false,
-    index: indexPatternId,
     key: geoFieldName,
     alias: alias
       ? alias
