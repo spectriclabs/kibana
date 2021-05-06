@@ -174,6 +174,10 @@ export class DatashaderSource extends AbstractTMSSource {
     return this._descriptor.timeFieldName;
   }
 
+  getGeoFieldName() {
+    return this._descriptor.geoField;
+  }
+
   getGeoField() {
     return this._descriptor.geoField;
   }
