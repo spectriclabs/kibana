@@ -200,7 +200,7 @@ export class DatashaderLayer extends AbstractLayer {
          } );
       }
       currentParams = currentParams.concat(
-        "params=", JSON.stringify(currentParamsObj),
+        "params=", encodeURIComponent(JSON.stringify(currentParamsObj)),
         "&timestamp_field=", data.timeFieldName,
         "&geopoint_field=", data.geoField,
         this._style.getStyleUrlParams(data),
