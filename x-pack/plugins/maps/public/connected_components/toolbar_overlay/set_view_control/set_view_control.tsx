@@ -5,22 +5,49 @@
  * 2.0.
  */
 
-import React, { ChangeEvent, Component } from 'react';
+import React, { ChangeEvent, Component, Fragment } from 'react';
 import {
   EuiForm,
   EuiFormRow,
   EuiButton,
   EuiFieldNumber,
+  EuiFieldText,
   EuiButtonIcon,
   EuiPopover,
   EuiTextAlign,
   EuiSpacer,
   EuiPanel,
 } from '@elastic/eui';
+import { EuiButtonEmpty } from '@elastic/eui';
+import { EuiRadioGroup } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n/react';
 import { MapCenter } from '../../../../common/descriptor_types';
 import { MapSettings } from '../../../reducers/map';
+
+import mgrs from 'mgrs';
+import * as utm from 'utm';
+
+export const COORDINATE_SYSTEM_DEGREES_DECIMAL = "dd";
+export const COORDINATE_SYSTEM_MGRS = "mgrs";
+export const COORDINATE_SYSTEM_UTM = "utm";
+
+export const DEFAULT_SET_VIEW_COORDINATE_SYSTEM = COORDINATE_SYSTEM_DEGREES_DECIMAL;
+
+const COORDINATE_SYSTEMS = [
+  {
+    id: COORDINATE_SYSTEM_DEGREES_DECIMAL,
+    label: 'Degrees Decimal'
+  },
+  {
+    id: COORDINATE_SYSTEM_UTM,
+    label: 'UTM'
+  },
+  {
+    id: COORDINATE_SYSTEM_MGRS,
+    label: 'MGRS'
+  }
+];
 
 export interface Props {
   settings: MapSettings;
@@ -34,6 +61,9 @@ interface State {
   lat: number | string;
   lon: number | string;
   zoom: number | string;
+  coord: string;
+  mgrs: string;
+  utm: object
 }
 
 export class SetViewControl extends Component<Props, State> {
@@ -42,7 +72,67 @@ export class SetViewControl extends Component<Props, State> {
     lat: 0,
     lon: 0,
     zoom: 0,
+    coord: DEFAULT_SET_VIEW_COORDINATE_SYSTEM,
+    mgrs: "",
+    utm: {}
   };
+
+  static convertLatLonToUTM(lat, lon) {
+    const utmCoord = utm.fromLatLon(
+      lat,
+      lon
+    );
+
+    let eastwest = 'E';
+    if (utmCoord.easting < 0) {
+      eastwest = 'W';
+    }
+    let norwest = 'N';
+    if (utmCoord.northing < 0) {
+      norwest = 'S';
+    }
+
+    utmCoord.zone = `${utmCoord.zoneNum}${utmCoord.zoneLetter}`
+    utmCoord.easting = Math.round(utmCoord.easting);
+    utmCoord.northing = Math.round(utmCoord.northing);
+    utmCoord.str = `${utmCoord.zoneNum}${utmCoord.zoneLetter} ${utmCoord.easting}${eastwest} ${utmCoord.northing}${norwest}`
+    
+    return utmCoord;
+  }
+
+  static convertLatLonToMGRS(lat, lon) {
+
+    const mgrsCoord = mgrs.forward([
+      lon,
+      lat
+    ]);
+
+    return mgrsCoord;
+  }
+
+  static getViewString(lat, lon, zoom) {
+    return `${lat},${lon},${zoom}`;
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    const nextView = SetViewControl.getViewString(nextProps.center.lat, nextProps.center.lon, nextProps.zoom);
+    
+    const utm = SetViewControl.convertLatLonToUTM(nextProps.center.lat, nextProps.center.lon);
+    const mgrs = SetViewControl.convertLatLonToMGRS(nextProps.center.lat, nextProps.center.lon);
+
+    if (nextView !== prevState.prevView) {
+      return {
+        lat: nextProps.center.lat,
+        lon: nextProps.center.lon,
+        zoom: nextProps.zoom,
+        utm: utm,
+        mgrs: mgrs,
+        prevView: nextView,
+      };
+    }
+
+    return null;
+  }
 
   _togglePopover = () => {
     if (this.state.isPopoverOpen) {
@@ -64,6 +154,12 @@ export class SetViewControl extends Component<Props, State> {
     });
   };
 
+  _onCoordinateSystemChange = coordId => {
+    this.setState({
+      coord: coordId,
+    }); 
+  };
+
   _onLatChange = (evt: ChangeEvent<HTMLInputElement>) => {
     this._onChange('lat', evt);
   };
@@ -81,8 +177,89 @@ export class SetViewControl extends Component<Props, State> {
     // @ts-expect-error
     this.setState({
       [name]: isNaN(sanitizedValue) ? '' : sanitizedValue,
-    });
+    }, this._syncToLatLon);
   };
+
+  /**
+   * Sync all coordinates to the lat/lon that is set
+   */
+  _syncToLatLon = () => {
+    if (this.state.lat !== '' && this.state.lon !== '') {
+
+      const utm = SetViewControl.convertLatLonToUTM(this.state.lat, this.state.lon);
+      const mgrs = SetViewControl.convertLatLonToMGRS(this.state.lat, this.state.lon);
+
+      this.setState({mgrs: mgrs, utm: utm});
+    } else {
+      this.setState({mgrs: '', utm: ''});
+    }
+  }
+
+  /**
+   * Sync the current lat/lon to MGRS that is set
+   */
+   _syncToMGRS = () => {
+    if (this.state.mgrs !== '') {
+      let lon, lat;
+
+      try {
+          [ lon, lat ] = mgrs.toPoint(this.state.mgrs);
+      } catch(err) {
+        console.log("error convering MGRS:" + this.state.mgrs, err);
+        return;
+      }
+
+      const utm = SetViewControl.convertLatLonToUTM(lat, lon);
+
+      this.setState({
+        lat: isNaN(lat) ? '' : lat,
+        lon: isNaN(lon) ? '' : lon,
+        utm: utm
+      });
+
+    } else {
+      this.setState({
+        lat: '',
+        lon: '',
+        utm: {}
+      });
+    }
+  }
+
+  /**
+   * Sync the current lat/lon to MGRS that is set
+   */
+  _syncToUTM = () => {
+    if (this.state.utm) {
+      let latitude, longitude;
+      try {
+        ( { latitude, longitude } = utm.toLatLon(
+          this.state.utm.easting,
+          this.state.utm.northing,
+          this.state.utm.zoneNum,
+          this.state.utm.zoneLetter
+        ));
+      } catch(err) {
+        console.log("error converting UTM");
+        return;
+      }
+
+      const mgrs = SetViewControl.convertLatLonToMGRS(latitude, longitude);
+
+      this.setState({
+        lat: isNaN(latitude) ? '' : latitude,
+        lon: isNaN(longitude) ? '' : longitude,
+        mgrs: mgrs
+      });
+
+    } else {
+      this.setState({
+        lat: '',
+        lon: '',
+        mgrs: ''
+      });
+    }
+  }
 
   _renderNumberFormRow = ({
     value,
@@ -101,6 +278,128 @@ export class SetViewControl extends Component<Props, State> {
   }) => {
     const isInvalid = value === '' || value > max || value < min;
     const error = isInvalid ? `Must be between ${min} and ${max}` : null;
+    return {
+      isInvalid,
+      component: (
+        <EuiFormRow label={label} isInvalid={isInvalid} error={error} display="columnCompressed">
+          <EuiFieldNumber
+            compressed
+            value={value}
+            onChange={onChange}
+            isInvalid={isInvalid}
+            data-test-subj={dataTestSubj}
+          />
+        </EuiFormRow>
+      ),
+    };
+  };
+
+  _renderMGRSFormRow = ({ value, onChange, label, dataTestSubj }) => {
+    let point;
+    try {
+      point = mgrs.toPoint(value);
+    } catch(err) {
+      point = undefined;
+      console.log("error convering MGRS", err);
+    }
+
+    const isInvalid = value === '' || point === undefined;
+    const error = isInvalid ? `MGRS is invalid` : null;
+    return {
+      isInvalid,
+      component: (
+        <EuiFormRow label={label} isInvalid={isInvalid} error={error} display="columnCompressed">
+          <EuiFieldText
+            compressed
+            value={value}
+            onChange={onChange}
+            isInvalid={isInvalid}
+            data-test-subj={dataTestSubj}
+          />
+        </EuiFormRow>
+      ),
+    };
+  };
+
+  _renderUTMZoneRow = ({ value, onChange, label, dataTestSubj }) => {
+    const zoneNum = ( value ) ? parseInt(value.substring(0, value.length - 1)) : '';
+    const zoneLetter = ( value ) ? value.substring(value.length - 1, value.length) : '';
+
+    let point;
+    try {
+      point = utm.toLatLon(
+        this.state.utm.easting,
+        this.state.utm.northing,
+        zoneNum,
+        zoneLetter
+      );
+    } catch {
+      point = undefined;
+    }
+
+    const isInvalid = value === '' || point === undefined;
+    const error = isInvalid ? `UTM Zone is invalid` : null;
+    return {
+      isInvalid,
+      component: (
+        <EuiFormRow label={label} isInvalid={isInvalid} error={error} display="columnCompressed">
+          <EuiFieldText
+            compressed
+            value={value}
+            onChange={onChange}
+            isInvalid={isInvalid}
+            data-test-subj={dataTestSubj}
+          />
+        </EuiFormRow>
+      ),
+    };
+  };
+
+  _renderUTMEastingRow = ({ value, onChange, label, dataTestSubj }) => {
+    let point;
+    try {
+      point = utm.toLatLon(
+        parseFloat(value),
+        this.state.utm.northing,
+        this.state.utm.zoneNum,
+        this.state.utm.zoneLetter
+      );
+    } catch {
+      point = undefined;
+    }
+    const isInvalid = value === '' || point === undefined;
+    const error = isInvalid ? `UTM Easting is invalid` : null;
+    return {
+      isInvalid,
+      component: (
+        <EuiFormRow label={label} isInvalid={isInvalid} error={error} display="columnCompressed">
+          <EuiFieldNumber
+            compressed
+            value={value}
+            onChange={onChange}
+            isInvalid={isInvalid}
+            data-test-subj={dataTestSubj}
+          />
+        </EuiFormRow>
+      ),
+    };
+  };
+
+
+  _renderUTMNorthingRow = ({ value, onChange, label, dataTestSubj }) => {
+    let point;
+    try {
+      point = utm.toLatLon(
+        this.state.utm.easting,
+        parseFloat(value),
+        this.state.utm.zoneNum,
+        this.state.utm.zoneLetter
+      );
+    } catch {
+      point = undefined;
+    }
+    const isInvalid = value === '' || point === undefined;
+    const error = isInvalid ? `UTM Northing is invalid` : null;
     return {
       isInvalid,
       component: (
@@ -146,6 +445,41 @@ export class SetViewControl extends Component<Props, State> {
       dataTestSubj: 'longitudeInput',
     });
 
+    const { isInvalid: isMGRSInvalid, component: mgrsFormRow } = this._renderMGRSFormRow({
+      value: this.state.mgrs,
+      onChange: this._onMGRSChange,
+      label: i18n.translate('xpack.maps.setViewControl.mgrsLabel', {
+        defaultMessage: 'MGRS',
+      }),
+      dataTestSubj: 'mgrsInput',
+    });
+
+    const { isInvalid: isUTMZoneInvalid, component: utmZoneRow } = this._renderUTMZoneRow({
+      value: (this.state.utm !== undefined) ? this.state.utm.zone : '',
+      onChange: this._onUTMZoneChange,
+      label: i18n.translate('xpack.maps.setViewControl.utmZoneLabel', {
+        defaultMessage: 'UTM Zone',
+      }),
+      dataTestSubj: 'utmZoneInput',
+    });
+
+    const { isInvalid: isUTMEastingInvalid, component: utmEastingRow } = this._renderUTMEastingRow({
+      value: (this.state.utm !== undefined) ? this.state.utm.easting : '',
+      onChange: this._onUTMEastingChange,
+      label: i18n.translate('xpack.maps.setViewControl.utmEastingLabel', {
+        defaultMessage: 'UTM Easting',
+      }),
+      dataTestSubj: 'utmEastingInput',
+    });
+
+    const { isInvalid: isUTMNorthingInvalid, component: utmNorthingRow } = this._renderUTMNorthingRow({
+      value: (this.state.utm !== undefined) ? this.state.utm.northing : '',
+      onChange: this._onUTMNorthingChange,
+      label: i18n.translate('xpack.maps.setViewControl.utmNorthingLabel', {
+        defaultMessage: 'UTM Northing',
+      }),
+    });
+
     const { isInvalid: isZoomInvalid, component: zoomFormRow } = this._renderNumberFormRow({
       value: this.state.zoom,
       min: this.props.settings.minZoom,
@@ -157,13 +491,68 @@ export class SetViewControl extends Component<Props, State> {
       dataTestSubj: 'zoomInput',
     });
 
+    let coordinateInputs;
+    if (this.state.coord === "dd") {
+      coordinateInputs = (
+        <Fragment>
+          {latFormRow}
+          {lonFormRow}
+          {zoomFormRow}
+        </Fragment>
+      );
+    } else if (this.state.coord === "dms") {
+      coordinateInputs = (
+        <Fragment>
+          {latFormRow}
+          {lonFormRow}
+          {zoomFormRow}
+        </Fragment>
+      );
+    } else if (this.state.coord === "utm") {
+      coordinateInputs = (
+        <Fragment>
+          {utmZoneRow}
+          {utmEastingRow}
+          {utmNorthingRow}
+          {zoomFormRow}
+        </Fragment>
+      );
+    } else if (this.state.coord === "mgrs") {
+      coordinateInputs = (
+        <Fragment>
+          {mgrsFormRow}
+          {zoomFormRow}
+        </Fragment>
+      );
+    }
+
     return (
       <EuiForm data-test-subj="mapSetViewForm" style={{ width: 240 }}>
-        {latFormRow}
+        <EuiPopover
+          panelPaddingSize="s"
+          isOpen={this.state.isCoordPopoverOpen}
+          closePopover={() => {
+            this.setState({ isCoordPopoverOpen: false });
+          }}
+          button={
+            <EuiButtonEmpty
+              iconType="controlsHorizontal"
+              size="xs"
+              onClick={() => {
+                this.setState({ isCoordPopoverOpen: !this.state.isCoordPopoverOpen });
+              }}>
+              Coordinate System
+            </EuiButtonEmpty>
+          }
+        >
+          <EuiRadioGroup
+            options={COORDINATE_SYSTEMS}
+            idSelected={this.state.coord}
+            onChange={this._onCoordinateSystemChange}
+          />
+        </EuiPopover>
 
-        {lonFormRow}
-
-        {zoomFormRow}
+        {coordinateInputs}
 
         <EuiSpacer size="s" />
 
