@@ -18,9 +18,9 @@ export class DatashaderLayer extends AbstractLayer {
     super({ layerDescriptor, source, style });
     if (!layerDescriptor.style) {
       const defaultStyle = DatashaderStyle.createDescriptor();
-      this._style = new DatashaderStyle(defaultStyle);
+      this._style = new DatashaderStyle(defaultStyle, this);
     } else {
-      this._style = new DatashaderStyle(layerDescriptor.style);
+      this._style = new DatashaderStyle(layerDescriptor.style, this);
     }
     this._mbMap = null;
   }
