@@ -5,29 +5,34 @@
  */
 
 import React from 'react';
-import { GRID_RESOLUTION } from '../../../../common/constants';
+import { DatashaderLayer } from '../../layers/datashader_layer/datashader_layer';
 import { DatashaderStyleEditor } from './components/datashader_style_editor';
 import { DatashaderLegend } from './components/legend/datashader_legend';
 import {
     getDefaultProperties,
+    DatashaderStyleDescriptorProperties,
 } from './datashader_style_defaults';
-import { DEFAULT_DATASHADER_COLOR_RAMP_NAME } from './components/datashader_constants';
 import { LAYER_STYLE_TYPE } from '../../../../common/constants';
 import { i18n } from '@kbn/i18n';
 import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
-import { VectorIcon } from '../../../classes/styles/vector/components/legend/vector_icon';
+import { VectorIcon } from '../vector/components/legend/vector_icon';
 import { getDatashader } from '../../../kibana_services';
 
+interface DatashaderStyleDescriptor {
+  type: LAYER_STYLE_TYPE,
+  properties: DatashaderStyleDescriptorProperties,
+}
 
 export class DatashaderStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
+  _descriptor = {} as DatashaderStyleDescriptorProperties;
 
-  constructor(descriptor = {}, layer = undefined) {
+  constructor(descriptor = {}, layer: DatashaderLayer) {
     this._descriptor = DatashaderStyle.createDescriptor(descriptor.properties);
     this._layer = layer;
   }
 
-  static createDescriptor(properties = {}, isTimeAware = true) {
+  static createDescriptor(properties = {} as DatashaderStyleDescriptorProperties, isTimeAware = true): DatashaderStyleDescriptor {
     return {
       type: DatashaderStyle.type,
       properties: { ...getDefaultProperties(), ...properties },

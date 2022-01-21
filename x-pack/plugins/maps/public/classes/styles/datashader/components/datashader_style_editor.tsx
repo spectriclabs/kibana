@@ -6,20 +6,14 @@
 
 import React, { Component, Fragment } from 'react';
 
-import { EuiFormRow, EuiSuperSelect, EuiRange, EuiSelect, EuiFieldText, EuiSwitch, EuiHorizontalRule } from '@elastic/eui';
-import { i18n } from '@kbn/i18n';
+import { EuiFormRow, EuiSuperSelect, EuiSelect, EuiSwitch, EuiHorizontalRule } from '@elastic/eui';
 
 import {
-  DEFAULT_RGB_DATASHADER_COLOR_RAMP,
-  DEFAULT_DATASHADER_COLOR_RAMP_NAME,
   DATASHADER_COLOR_RAMP_LABEL,
-  DEFAULT_DATASHADER_COLOR_KEY_NAME,
-  DATASHADER_COLOR_KEY_LABEL,
 } from './datashader_constants';
 
 import {
   ES_GEO_FIELD_TYPE,
-  FieldFormatter,
 } from '../../../../../common/constants';
 
 import { SingleFieldSelect } from '../../../../components/single_field_select';
@@ -330,6 +324,8 @@ const ellipseSearchDistance = [
 ];
 
 export class DatashaderStyleEditor extends Component {
+  _isMounted = false;
+  
   state = {
     categoryFields: [],
     numberFields: [],

@@ -1,0 +1,43 @@
+export interface DatashaderStyleDescriptorProperties {
+  colorRampName: string,
+  colorKeyName: string,
+  spread: string,
+  spanRange: string,
+  gridResolution: string,
+  mode: string,
+  categoryField: string,
+  categoryFieldType: string | null,
+  categoryFieldPattern: string | null,
+  showEllipses: boolean,
+  useHistogram: boolean | undefined,
+  ellipseMajorField: string,
+  ellipseMinorField: string,
+  ellipseTiltField: string,
+  ellipseUnits: string,
+  ellipseSearchDistance: string,
+  ellipseThickness: number,
+  manualResolution: boolean,
+}
+
+export function getDefaultProperties(mapColors = []): DatashaderStyleDescriptorProperties {
+    return {
+      colorRampName: "bmy",
+      colorKeyName: "glasbey_light",
+      spread: "auto",
+      spanRange: "normal",
+      gridResolution: "finest",
+      mode: "heat",
+      categoryField: "",
+      categoryFieldType: null,
+      categoryFieldPattern: null,
+      showEllipses: false,
+      useHistogram: undefined,
+      ellipseMajorField: "",
+      ellipseMinorField: "",
+      ellipseTiltField: "",
+      ellipseUnits: "semi_majmin_nm",
+      ellipseSearchDistance: "normal",
+      ellipseThickness: 0,
+      manualResolution: false,
+    };
+  }

@@ -79,3 +79,8 @@ export type HeatmapLayerDescriptor = LayerDescriptor & {
   type: LAYER_TYPE.HEATMAP;
   style: HeatmapStyleDescriptor;
 };
+
+export type DatashaderLayerDescriptor = LayerDescriptor & {
+  type: LAYER_TYPE.DATASHADER;
+  style: HeatmapStyleDescriptor;
+};

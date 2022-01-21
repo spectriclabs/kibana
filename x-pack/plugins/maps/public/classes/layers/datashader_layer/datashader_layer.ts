@@ -4,18 +4,31 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { AbstractLayer } from '../../public/classes/layers/layer';
+import { AbstractLayer } from '../../../../public/classes/layers/layer';
+import type { Map as MbMap } from '@kbn/mapbox-gl';
 import _ from 'lodash';
-import { SOURCE_DATA_REQUEST_ID, LAYER_TYPE } from '../../common/constants';
-import { DatashaderStyle } from './styles/datashader/datashader_style';
-import { esKuery, esQuery } from '../../../../../src/plugins/data/public';
+import { SOURCE_DATA_REQUEST_ID, LAYER_TYPE } from '../../../../common/constants';
+import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../../common/descriptor_types';
+import { DatashaderStyle } from '../../styles/datashader/datashader_style';
+import { esKuery, esQuery } from '../../../../../../../src/plugins/data/public';
+import { ESGeoGridSource } from '../../sources/es_geo_grid_source';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
   appliedUrl = '';
+  _style: DatashaderStyle;
+  _mbMap: MbMap | null;
 
-  constructor({ layerDescriptor, source, style }) {
-    super({ layerDescriptor, source, style });
+  constructor({
+    layerDescriptor,
+    source,
+    style
+  }: {
+    layerDescriptor: DatashaderLayerDescriptor;
+    source: ESGeoGridSource;
+    style: DatashaderStyle;
+  }) {
+    super({ layerDescriptor, source });
     if (!layerDescriptor.style) {
       const defaultStyle = DatashaderStyle.createDescriptor();
       this._style = new DatashaderStyle(defaultStyle, this);
@@ -38,11 +51,11 @@ export class DatashaderLayer extends AbstractLayer {
     return this._style;
   }
 
-  static createDescriptor(options) {
+  static createDescriptor(options: Partial<LayerDescriptor>): LayerDescriptor {
     const tileLayerDescriptor = super.createDescriptor(options);
     tileLayerDescriptor.type = DatashaderLayer.type;
     tileLayerDescriptor.alpha = _.get(options, 'alpha', 1);
-    tileLayerDescriptor.query = null;
+    tileLayerDescriptor.query = undefined;
     return tileLayerDescriptor;
   }
 
@@ -109,15 +122,15 @@ export class DatashaderLayer extends AbstractLayer {
     return [this._getMbLayerId()];
   }
 
-  ownsMbLayerId(mbLayerId) {
+  ownsMbLayerId(mbLayerId: string) {
     return this._getMbLayerId() === mbLayerId;
   }
 
-  ownsMbSourceId(mbSourceId) {
+  ownsMbSourceId(mbSourceId: string) {
     return this.getId() === mbSourceId;
   }
 
-  syncLayerWithMB(mbMap) {
+  syncLayerWithMB(mbMap: MbMap) {
     this._mbMap = mbMap;
 
     const source = mbMap.getSource(this.getId());
