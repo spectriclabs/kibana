@@ -50,6 +50,12 @@ type AbstractAggDescriptor = {
   label?: string;
 };
 
+export type DatashaderSourceDescriptor = AbstractESSourceDescriptor & {
+  urlTemplate: string,
+  indexTitle: string,
+  timeFieldName: string,
+};
+
 export type CountAggDescriptor = AbstractAggDescriptor & {
   type: AGG_TYPE.COUNT;
 };

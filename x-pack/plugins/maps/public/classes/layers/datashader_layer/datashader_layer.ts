@@ -12,6 +12,7 @@ import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../../common/d
 import { DatashaderStyle } from '../../styles/datashader/datashader_style';
 import { esKuery, esQuery } from '../../../../../../../src/plugins/data/public';
 import { ESGeoGridSource } from '../../sources/es_geo_grid_source';
+import { DataRequestContext } from '../../../actions';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
@@ -67,8 +68,9 @@ export class DatashaderLayer extends AbstractLayer {
     return await this._source.getNumberFields();
   }
 
-  async syncData({ startLoading, stopLoading, onLoadError, dataFilters }) {
-    if (!this.isVisible() || !this.showAtZoomLevel(dataFilters.zoom)) {
+  //async syncData({ startLoading, stopLoading, onLoadError, dataFilters }) {
+  async syncData(syncContext: DataRequestContext) {
+    if (!this.isVisible() || !this.showAtZoomLevel(syncContext.dataFilters.zoom)) {
       return;
     }
 
@@ -76,7 +78,7 @@ export class DatashaderLayer extends AbstractLayer {
     // the tile URL
 
     const requestToken = Symbol(`layer-source-refresh:${this.getId()} - source`);
-    startLoading(SOURCE_DATA_REQUEST_ID, requestToken, dataFilters);
+    syncContext.startLoading(SOURCE_DATA_REQUEST_ID, requestToken, syncContext.dataFilters);
     try {
       const url = await this._source.getUrlTemplate();
       const indexTitle = await this._source.getIndexTitle();
@@ -108,9 +110,9 @@ export class DatashaderLayer extends AbstractLayer {
         categoryFieldFormatter: categoryFormatter
       }
 
-      stopLoading(SOURCE_DATA_REQUEST_ID, requestToken, data, {});
+      syncContext.stopLoading(SOURCE_DATA_REQUEST_ID, requestToken, data, {});
     } catch (error) {
-      onLoadError(SOURCE_DATA_REQUEST_ID, requestToken, error.message);
+      syncContext.onLoadError(SOURCE_DATA_REQUEST_ID, requestToken, error.message);
     }
   }
 

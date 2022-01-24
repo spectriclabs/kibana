@@ -5,31 +5,32 @@
  */
 
 import React, { Fragment } from 'react';
-import { EuiFieldText, EuiFormRow, EuiSpacer } from '@elastic/eui';
+import { EuiFieldText, EuiFormRow } from '@elastic/eui';
 
-import { AbstractTMSSource } from '../../../../maps/public/classes/sources/tms_source';
-import { DatashaderLayer } from '../datashader_layer';
+//import { Adapters } from 'src/plugins/inspector/public';
+import { Adapters } from '../../../../../../../src/plugins/inspector/common/adapters';
+import { AbstractTMSSource } from '../../sources/tms_source';
+import { DatashaderSourceDescriptor } from '../../../../common/descriptor_types/source_descriptor_types';
+import { DatashaderLayer } from '../../layers/datashader_layer';
 //import { TileLayer } from '../tile_layer';
 
 import { i18n } from '@kbn/i18n';
-import { getDataSourceLabel, getUrlLabel } from '../../../../maps/common/i18n_getters';
+import { getDataSourceLabel, getUrlLabel } from '../../../../../maps/common/i18n_getters';
 import _ from 'lodash';
 
 import {
   ES_GEO_FIELD_TYPE
-} from '../../../../maps/common/constants';
-import { SingleFieldSelect } from '../../../../maps/public/components/single_field_select';
-import {  getIndexPatternService, getIndexPatternSelectComponent } from '../../../../maps/public/kibana_services';
-import { GeoIndexPatternSelect } from '../../../../maps/public/components/geo_index_pattern_select';
+} from '../../../../../maps/common/constants';
+import { SingleFieldSelect } from '../../../../../maps/public/components/single_field_select';
+import {  getIndexPatternService, getIndexPatternSelectComponent } from '../../../../../maps/public/kibana_services';
+import { GeoIndexPatternSelect } from '../../../../../maps/public/components/geo_index_pattern_select';
 
-import { getInjectedVarFunc } from '../../../../maps/public/kibana_services';
+import { indexPatterns } from '../../../../../../../src/plugins/data/public';
+import { CATEGORICAL_DATA_TYPES, COLOR_MAP_TYPE } from '../../../../../maps/common/constants';
+import { ESDocField } from '../../../../../maps/public/classes/fields/es_doc_field';
 
-import { indexPatterns } from '../../../../../../src/plugins/data/public';
-import { CATEGORICAL_DATA_TYPES, COLOR_MAP_TYPE } from '../../../../maps/common/constants';
-import { ESDocField } from '../../../../maps/public/classes/fields/es_doc_field';
-
-import { registerSource } from '../../../../maps/public/api/register';
-import { getDatashader } from '../../../../maps/public/kibana_services';
+import { registerSource } from '../../../../../maps/public/classes/sources/source_registry';
+import { getDatashader } from '../../../../../maps/public/kibana_services';
 
 const RESET_INDEX_PATTERN_STATE = {
   indexPattern: undefined,
@@ -58,11 +59,11 @@ export class DatashaderSource extends AbstractTMSSource {
   });
   static icon = 'grid';
 
-  static createDescriptor({ urlTemplate, indexTitle, indexPatternId, timeFieldName, geoField, applyGlobalQuery }) {
+  static createDescriptor(descriptor: Partial<DatashaderSourceDescriptor>): DatashaderSourceDescriptor {
     return {
       type: DatashaderSource.type,
-      applyGlobalQuery: applyGlobalQuery,
-      urlTemplate,
+      applyGlobalQuery: descriptor.applyGlobalQuery!,
+      urlTemplate: descriptor.urlTemplate,
       indexTitle,
       indexPatternId,
       timeFieldName,
@@ -70,7 +71,7 @@ export class DatashaderSource extends AbstractTMSSource {
     };
   }
 
-  static renderEditor({ onPreviewSource, inspectorAdapters }) {
+  static renderEditor({ onPreviewSource, inspectorAdapters as Adapters }) {
     const onSourceConfigChange = sourceConfig => {
       const sourceDescriptor = DatashaderSource.createDescriptor(sourceConfig);
       const source = new DatashaderSource(sourceDescriptor, inspectorAdapters);
@@ -82,7 +83,7 @@ export class DatashaderSource extends AbstractTMSSource {
     return <DatashaderEditor settings={settings} onSourceConfigChange={onSourceConfigChange} />;
   }
 
-  constructor(descriptor, inspectorAdapters) {
+  constructor(descriptor, inspectorAdapters: Adapters) {
     super(
       {
         ...descriptor,
@@ -414,7 +415,7 @@ export class DatashaderEditor extends React.Component {
       return;
     }
 
-    let indexPattern;
+    let indexPattern: IndexPattern;
     try {
       indexPattern = await getIndexPatternService().get(indexPatternId);
     } catch (err) {
