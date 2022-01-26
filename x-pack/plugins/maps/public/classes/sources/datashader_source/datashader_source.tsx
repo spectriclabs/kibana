@@ -11,6 +11,7 @@ import { EuiFieldText, EuiFormRow } from '@elastic/eui';
 import { Adapters } from '../../../../../../../src/plugins/inspector/common/adapters';
 import { AbstractTMSSource } from '../../sources/tms_source';
 import { DatashaderSourceDescriptor } from '../../../../common/descriptor_types/source_descriptor_types';
+import { DatashaderLayerDescriptor } from '../../../../common/descriptor_types/layer_descriptor_types';
 import { DatashaderLayer } from '../../layers/datashader_layer';
 //import { TileLayer } from '../tile_layer';
 
@@ -22,7 +23,7 @@ import {
   ES_GEO_FIELD_TYPE
 } from '../../../../../maps/common/constants';
 import { SingleFieldSelect } from '../../../../../maps/public/components/single_field_select';
-import {  getIndexPatternService, getIndexPatternSelectComponent } from '../../../../../maps/public/kibana_services';
+import { getIndexPatternService, getIndexPatternSelectComponent } from '../../../../../maps/public/kibana_services';
 import { GeoIndexPatternSelect } from '../../../../../maps/public/components/geo_index_pattern_select';
 
 import { indexPatterns } from '../../../../../../../src/plugins/data/public';
@@ -31,13 +32,8 @@ import { ESDocField } from '../../../../../maps/public/classes/fields/es_doc_fie
 
 import { registerSource } from '../../../../../maps/public/classes/sources/source_registry';
 import { getDatashader } from '../../../../../maps/public/kibana_services';
-
-const RESET_INDEX_PATTERN_STATE = {
-  indexPattern: undefined,
-  indexTitle: undefined,
-  timeFieldName: undefined,
-  geoField: undefined,
-};
+import { LayerDescriptor } from 'x-pack/plugins/maps/common';
+import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
 
 function filterGeoField(field) {
   return [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
@@ -72,7 +68,7 @@ export class DatashaderSource extends AbstractTMSSource {
   }
 
   static renderEditor({ onPreviewSource, inspectorAdapters as Adapters }) {
-    const onSourceConfigChange = sourceConfig => {
+    const onSourceConfigChange = (sourceConfig: DatashaderSourceDescriptor | null) => {
       const sourceDescriptor = DatashaderSource.createDescriptor(sourceConfig);
       const source = new DatashaderSource(sourceDescriptor, inspectorAdapters);
       onPreviewSource(source);
@@ -83,7 +79,7 @@ export class DatashaderSource extends AbstractTMSSource {
     return <DatashaderEditor settings={settings} onSourceConfigChange={onSourceConfigChange} />;
   }
 
-  constructor(descriptor, inspectorAdapters: Adapters) {
+  constructor(descriptor: DatashaderSourceDescriptor, inspectorAdapters: Adapters) {
     super(
       {
         ...descriptor,
@@ -93,17 +89,8 @@ export class DatashaderSource extends AbstractTMSSource {
     );
   }
 
-  /*
-  renderSourceSettingsEditor({ onChange }) {
-    return (
-      <DatashaderSourceEditor
-        source={this}
-        onChange={onChange}
-      />
-    );
-  }
-  */
 
+  // belongs with source
   async getImmutableProperties() {
     return [
       { label: getDataSourceLabel(), value: DatashaderSource.title },
@@ -113,14 +100,14 @@ export class DatashaderSource extends AbstractTMSSource {
     ];
   }
 
-  _createDefaultLayerDescriptor(options) {
+  _createDefaultLayerDescriptor(options: Partial<LayerDescriptor>) {
     return DatashaderLayer.createDescriptor({
       sourceDescriptor: this._descriptor,
       ...options,
     });
   }
 
-  createDefaultLayer(options) {
+  createDefaultLayer(options: Partial<LayerDescriptor>) {
     return new DatashaderLayer({
       layerDescriptor: this._createDefaultLayerDescriptor(options),
       source: this,
@@ -193,7 +180,9 @@ export class DatashaderSource extends AbstractTMSSource {
     return true;
   }
 
-  isTimeAware() {
+  // Have to make this async to satisfy
+  // the ISource interface.
+  async isTimeAware(): Promise<boolean> {
     return true;
   }
   
@@ -221,7 +210,7 @@ export class DatashaderSource extends AbstractTMSSource {
     return [];
   }
 
-  async getIndexPattern() {
+  async getIndexPattern(): Promise<IndexPattern> {
     if (this.indexPattern) {
       return this.indexPattern;
     }
@@ -246,6 +235,7 @@ export class DatashaderSource extends AbstractTMSSource {
     });
   }
 
+  // belongs with source
   async getCategoricalFields() {
     try {
       const indexPattern = await this.getIndexPattern();

@@ -7,36 +7,43 @@
 import { AbstractLayer } from '../../../../public/classes/layers/layer';
 import type { Map as MbMap } from '@kbn/mapbox-gl';
 import _ from 'lodash';
-import { SOURCE_DATA_REQUEST_ID, LAYER_TYPE } from '../../../../common/constants';
 import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../../common/descriptor_types';
 import { DatashaderStyle } from '../../styles/datashader/datashader_style';
 import { esKuery, esQuery } from '../../../../../../../src/plugins/data/public';
-import { ESGeoGridSource } from '../../sources/es_geo_grid_source';
+import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
 import { DataRequestContext } from '../../../actions';
+import {
+  SOURCE_DATA_REQUEST_ID,
+  LAYER_TYPE,
+  MIN_ZOOM,
+  MAX_ZOOM,
+} from '../../../../common/constants';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
   appliedUrl = '';
+  _source: DatashaderSource;
   _style: DatashaderStyle;
   _mbMap: MbMap | null;
 
   constructor({
     layerDescriptor,
     source,
-    style
   }: {
     layerDescriptor: DatashaderLayerDescriptor;
-    source: ESGeoGridSource;
-    style: DatashaderStyle;
+    source: DatashaderSource;
   }) {
     super({ layerDescriptor, source });
+    
     if (!layerDescriptor.style) {
       const defaultStyle = DatashaderStyle.createDescriptor();
       this._style = new DatashaderStyle(defaultStyle, this);
     } else {
       this._style = new DatashaderStyle(layerDescriptor.style, this);
     }
+    
     this._mbMap = null;
+    this._source = source;
   }
 
   
@@ -52,12 +59,12 @@ export class DatashaderLayer extends AbstractLayer {
     return this._style;
   }
 
-  static createDescriptor(options: Partial<LayerDescriptor>): LayerDescriptor {
+  static createDescriptor(options: Partial<LayerDescriptor>): DatashaderLayerDescriptor {
     const tileLayerDescriptor = super.createDescriptor(options);
     tileLayerDescriptor.type = DatashaderLayer.type;
     tileLayerDescriptor.alpha = _.get(options, 'alpha', 1);
     tileLayerDescriptor.query = undefined;
-    return tileLayerDescriptor;
+    return tileLayerDescriptor as DatashaderLayerDescriptor;
   }
 
   async getCategoricalFields() {
@@ -69,7 +76,7 @@ export class DatashaderLayer extends AbstractLayer {
   }
 
   //async syncData({ startLoading, stopLoading, onLoadError, dataFilters }) {
-  async syncData(syncContext: DataRequestContext) {
+  async syncData(syncContext: DataRequestContext): Promise<void> {
     if (!this.isVisible() || !this.showAtZoomLevel(syncContext.dataFilters.zoom)) {
       return;
     }
@@ -89,11 +96,13 @@ export class DatashaderLayer extends AbstractLayer {
       const categoryField = this._style._descriptor.properties.categoryField;
       let categoryFormatter = null;
       let categoryFieldMeta = null;
+     
       if (categoryField) {
         const indexPattern = await this._source.getIndexPattern();
         const fieldFromIndexPattern = indexPattern.fields.getByName(categoryField);
+        
         if (!fieldFromIndexPattern) {
-          return null;
+          return;
         }
 
         categoryFormatter = indexPattern.getFormatterForField(fieldFromIndexPattern);
@@ -111,6 +120,7 @@ export class DatashaderLayer extends AbstractLayer {
       }
 
       syncContext.stopLoading(SOURCE_DATA_REQUEST_ID, requestToken, data, {});
+    
     } catch (error) {
       syncContext.onLoadError(SOURCE_DATA_REQUEST_ID, requestToken, error.message);
     }
@@ -153,30 +163,42 @@ export class DatashaderLayer extends AbstractLayer {
       return;
     }
 
-    if (!data.indexTitle) {
+    // Typescript thinks `data` might still be undefined here
+    // so we have to get the properties we want like this.
+    const indexTitle: string = _.get(data, 'indexTitle', '');
+    const geoField: string = _.get(data, 'geoField', '');
+    const timeFieldName: string = _.get(data, 'timeFieldName', '');
+    const dataUrl: string = _.get(data, 'url', '');
+    const applyGlobalQuery: string = _.get(data, 'applyGlobalQuery', false);
+
+    if (indexTitle.length === 0) {
       return;
     }
 
-    if (!data.geoField) {
+    if (geoField.length === 0) {
       return;
     }
 
-    if (!data.timeFieldName) {
+    if (timeFieldName.length === 0) {
       return;
     }
 
-    if (!data.url) {
+    if (dataUrl.length === 0) {
       return;
     }
 
     let currentParams = "";
-    let dataMeta = sourceDataRequest.getMeta();
+    const dataMeta = sourceDataRequest.getMeta();
+    
     if (dataMeta) {
-      const currentParamsObj = {};
+      const currentParamsObj: any = {};
       currentParamsObj.timeFilters = dataMeta.timeFilters;
       currentParamsObj.filters = []
-      if (data.applyGlobalQuery) {
-        currentParamsObj.filters = [...dataMeta.filters];
+
+      if (applyGlobalQuery) {
+        const dataMetaFilters = dataMeta.filters || [];
+        currentParamsObj.filters = [...dataMetaFilters];
+        
         if (dataMeta.query && dataMeta.query.language === "kuery") {
           const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
           const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
@@ -194,8 +216,10 @@ export class DatashaderLayer extends AbstractLayer {
           currentParamsObj.query = dataMeta.query;
         }
       }
+      
       currentParamsObj.extent = dataMeta.extent; // .buffer has been expanded to align with tile boundaries
       currentParamsObj.zoom = dataMeta.zoom;
+      
       if (this._descriptor.query && this._descriptor.query.language === "kuery") {
         const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
         const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
@@ -214,26 +238,31 @@ export class DatashaderLayer extends AbstractLayer {
           "query": luceneDSL
          } );
       }
+
       currentParams = currentParams.concat(
         "params=", encodeURIComponent(JSON.stringify(currentParamsObj)),
-        "&timestamp_field=", data.timeFieldName,
-        "&geopoint_field=", data.geoField,
+        "&timestamp_field=", timeFieldName,
+        "&geopoint_field=", geoField,
         this._style.getStyleUrlParams(data),
       );
     }
 
-    let url = data.url.concat(
+    const url = dataUrl.concat(
       "/tms/",
-      data.indexTitle,
+      indexTitle,
       "/{z}/{x}/{y}.png?",
       currentParams
     );
+
+    const sourceTiles = _.get(source, 'tiles', []);
+    const sourceTilesUrl = sourceTiles.length === 0 ? '' : sourceTiles[0];
     
-    if ((!source) || (source.tiles[0] != url)) {
+    if (!source || sourceTilesUrl != url) {
       
       if (mbMap.getLayer(mbLayerId)) {
         mbMap.removeLayer(mbLayerId);  
       }
+
       if (mbMap.getSource(sourceId)) {
         mbMap.removeSource(sourceId)
       }
@@ -257,12 +286,12 @@ export class DatashaderLayer extends AbstractLayer {
     this._setTileLayerProperties(mbMap, mbLayerId);
   }
 
-  _setTileLayerProperties(mbMap, mbLayerId) {
+  _setTileLayerProperties(mbMap: MbMap, mbLayerId: string) {
     if (mbMap.getLayer(mbLayerId)) {
       this.syncVisibilityWithMb(mbMap, mbLayerId);
     }
     if (mbMap.getLayer(mbLayerId)) {
-      mbMap.setLayerZoomRange(mbLayerId, this._descriptor.minZoom, this._descriptor.maxZoom);
+      mbMap.setLayerZoomRange(mbLayerId, this._descriptor.minZoom || MIN_ZOOM, this._descriptor.maxZoom || MAX_ZOOM);
     }
     if (mbMap.getLayer(mbLayerId)) {
       mbMap.setPaintProperty(mbLayerId, 'raster-opacity', this.getAlpha());

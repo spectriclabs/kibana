@@ -12,6 +12,7 @@ import { Feature } from 'geojson';
 import {
   FieldMeta,
   HeatmapStyleDescriptor,
+  DatashaderStyleDescriptor,
   StyleDescriptor,
   VectorStyleDescriptor,
 } from './style_property_descriptor_types';
@@ -82,5 +83,5 @@ export type HeatmapLayerDescriptor = LayerDescriptor & {
 
 export type DatashaderLayerDescriptor = LayerDescriptor & {
   type: LAYER_TYPE.DATASHADER;
-  style: HeatmapStyleDescriptor;
+  style: DatashaderStyleDescriptor;
 };

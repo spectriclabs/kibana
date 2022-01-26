@@ -9,104 +9,86 @@
 
 import React, { Component, ChangeEvent } from 'react';
 import _ from 'lodash';
-import { EuiFormRow, EuiFieldText, EuiPanel } from '@elastic/eui';
+import { EuiPanel } from '@elastic/eui';
+import { DatashaderSourceDescriptor } from '../../../../common/descriptor_types/source_descriptor_types';
+import { DatashaderUrlEditorField } from './datashader_url_editor_field';
+import { DatashaderGeoIndexEditorField } from './datashader_geo_index_editor_field';
+import { DatashaderGeoFieldEditorField } from './datashader_geo_field_editor_field';
 import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
-import { GeoIndexPatternSelect } from '../../../../../maps/public/components/geo_index_pattern_select';
+import { DataViewField } from '../../../../../../../src/plugins/data_views/common/fields/data_view_field';
 import { loadIndexDocCount } from './util/load_index_doc_count';
-import {  getIndexPatternService, getIndexPatternSelectComponent } from '../../../../../maps/public/kibana_services';
+import {  getIndexPatternService } from '../../../../../maps/public/kibana_services';
+import { indexPatterns } from '../../../../../../../src/plugins/data/public';
+import { DatashaderConfigType } from '../../../../config';
+import { getDatashader } from '../../../../../maps/public/kibana_services';
 import {
   DEFAULT_MAX_RESULT_WINDOW,
   ES_GEO_FIELD_TYPE,
 } from '../../../../../maps/common/constants';
 
-export type DatashaderSourceConfig = {
-  type: string;
-  applyGlobalQuery: boolean;
-  urlTemplate: string;
-  indexTitle: string;
-  indexPatternId: string;
-  timeFieldName : string;
-  geoField: string;
-};
+function filterGeoField(field: DataViewField) {
+  return [ES_GEO_FIELD_TYPE.GEO_POINT.valueOf(), ES_GEO_FIELD_TYPE.GEO_SHAPE.valueOf()].includes(field.type);
+}
 
-function filterGeoField(field) {
-  return [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
+function getDatashaderLayerSettings(): DatashaderConfigType {
+  return getDatashader();
 }
 
 interface Props {
-  onSourceConfigChange: (sourceConfig: DatashaderSourceConfig | null) => void;
+  settings: DatashaderConfigType,
+  onSourceConfigChange: (sourceConfig: DatashaderSourceDescriptor | null) => void;
 }
 
 interface State {
   isLoadingIndexPattern: boolean;
   noGeoIndexPatternsExist: boolean;
+  filterByMapBounds: boolean;
+  showFilterByBoundsSwitch: boolean;
   datashaderUrl: string;
   canPreview: boolean;
   indexPattern: IndexPattern | undefined;
   indexPatternId: string;
-  indexTitle: string | undefined;
-  timeFieldName: string | undefined;
-  geoField: string | undefined;
-  applyGlobalQuery: boolean | undefined;
-}
-
-const DEFAULT_INDEX_PATTERN_STATE = {
-  indexPattern: undefined,
-  indexPatternId: '',
-  indexTitle: undefined,
-  timeFieldName: undefined,
-  geoField: undefined,
+  indexTitle: string;
+  timeFieldName: string;
+  geoField: string;
+  geoFields: DataViewField[];
+  applyGlobalQuery: boolean;
 }
 
 export class DatashaderSourceEditor extends Component<Props, State> {
   private _isMounted = false;
   
-  state = {
+  state: State = {
     isLoadingIndexPattern: false,
     noGeoIndexPatternsExist: false,
+    filterByMapBounds: true,
+    showFilterByBoundsSwitch: true,
     datashaderUrl: '',
     canPreview: false,
     applyGlobalQuery: false,
-    ...DEFAULT_INDEX_PATTERN_STATE,
+    indexPattern: undefined,
+    indexPatternId: '',
+    indexTitle: '',
+    timeFieldName: '',
+    geoField: '',
+    geoFields: [],
   };
 
-  _sourceConfigChange = _.debounce(updatedSourceConfig => {
-    if (this.state.canPreview) {
-      this.props.onSourceConfigChange(updatedSourceConfig);
-    }
-  }, 2000);
-
-  _previewLayer = _.debounce(() => {
-    const datashaderUrl = this.state.datashaderUrl || '';
-    const indexTitle = this.state.indexTitle || '';
-    const timeFieldName = this.state.timeFieldName || '';
-    const geoField = this.state.geoField || '';
-    const applyGlobalQuery = this.state.applyGlobalQuery || false;
-    const indexPatternId = _.get(this.state.indexPattern, 'id', '');
-
-    const canPreview = this.state.canPreview;
-    const urlIsValid = datashaderUrl.length > 0;
-    const indexTitleIsValid = indexTitle.length > 0;
-    const timeFieldNameIsValid = timeFieldName.length > 0;
-    const geoFieldIsValid = geoField.length > 0;
-    const indexPatternIdIsValid = indexPatternId.length > 0;
-    
-    if (urlIsValid && canPreview &&
-        indexTitleIsValid && timeFieldNameIsValid &&
-        geoFieldIsValid && indexPatternIdIsValid) {
+  _debounceSourceConfigChange = _.debounce((canPreview: boolean) => {
+    if (canPreview) {
       this.props.onSourceConfigChange({
+        urlTemplate: this.state.datashaderUrl,
+        indexTitle: this.state.indexTitle,
+        timeFieldName: this.state.timeFieldName,
         type: 'Datashader',
-        applyGlobalQuery: applyGlobalQuery,
-        urlTemplate: datashaderUrl,
-        indexTitle: indexTitle,
-        indexPatternId: 'bar',
-        timeFieldName: timeFieldName,
-        geoField: geoField,
-      });
+        indexPatternId: this.state.indexPatternId,
+        geoField: this.state.geoField,
+        applyGlobalQuery: this.state.applyGlobalQuery,
+      } as DatashaderSourceDescriptor);
     } else {
       this.props.onSourceConfigChange(null);
     }
-  }, 500);
+  }, 2000);
 
   _onUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
     const url = event.target.value;
@@ -114,16 +96,58 @@ export class DatashaderSourceEditor extends Component<Props, State> {
 
     // determine if we can preview
     if (!this.state.indexPattern) { canPreview = false; }
-    if (!this.state.geoField) { canPreview = false; }
-    if (!url) { canPreview = false; }
+    if (this.state.geoField.length === 0) { canPreview = false; }
+    if (url.length === 0) { canPreview = false; }
 
-    this.setState({
-      datashaderUrl: event.target.value,
-      canPreview: canPreview,
-    },
-    this._previewLayer
+    this.setState(
+      { datashaderUrl: event.target.value },
+      // We have no way to give params to the setState
+      // callback so we pass a closure with the params
+      // we want instead.
+      () => this._debounceSourceConfigChange(canPreview)
     );
   };
+
+  onGeoFieldSelect = (geoField: string | undefined) => {
+    this.setState(
+      {
+        geoField: geoField || '',
+      },
+      () => this.props.onSourceConfigChange({
+        urlTemplate: this.state.datashaderUrl,
+        indexTitle: _.get(this.state.indexPattern, 'title', ''),
+        timeFieldName: _.get(this.state.indexPattern, 'timeFieldName', ''),
+        type: 'Datashader',
+        indexPatternId: _.get(this.state.indexPattern, 'id', ''),
+        geoField: geoField,
+      } as DatashaderSourceDescriptor)
+    );
+  };
+
+  _setIndexPatternGeoField = (geoFields: DataViewField[]) => {
+    this.props.onSourceConfigChange({
+      urlTemplate: this.state.datashaderUrl,
+      indexTitle: _.get(this.state.indexPattern, 'title', ''),
+      timeFieldName: _.get(this.state.indexPattern, 'timeFieldName', ''),
+      type: 'Datashader',
+      indexPatternId: _.get(this.state.indexPattern, 'id', ''),
+      geoField: this.state.geoField
+    } as DatashaderSourceDescriptor);
+    
+    if (this.state.geoField.length === 0) {
+      const defaultGeospatialField = this.props.settings.defaultGeospatialField;
+      
+      if (defaultGeospatialField &&
+          _.find(this.state.geoFields, {name: defaultGeospatialField})) {
+        this.onGeoFieldSelect(defaultGeospatialField);
+      } else {
+        // if a geoField isn't already selected use the first in the list
+        if (geoFields[0]) {
+          this.onGeoFieldSelect(geoFields[0].name);
+        }
+      }
+    }
+  }
 
   _loadIndexPattern = _.debounce(async () => {
     const indexPatternId = this.state.indexPatternId;
@@ -132,8 +156,6 @@ export class DatashaderSourceEditor extends Component<Props, State> {
       return;
     }
     
-    const datashaderUrl = this.state.datashaderUrl;
-    const geoField = this.state.geoField;
     let indexPattern: IndexPattern;
     
     try {
@@ -173,11 +195,6 @@ export class DatashaderSourceEditor extends Component<Props, State> {
       return;
     }
 
-    let canPreview = true;
-    if (!indexPattern) { canPreview = false; }
-    if (!datashaderUrl) { canPreview = false; }
-    if (!geoField) { canPreview = false; }
-
     // make default selection
     const geoFields = indexPattern.fields
       .filter(field => !indexPatterns.isNestedField(field))
@@ -188,38 +205,20 @@ export class DatashaderSourceEditor extends Component<Props, State> {
       isLoadingIndexPattern: false,
       filterByMapBounds: !indexHasSmallDocCount, // Turn off filterByMapBounds when index contains a limited number of documents
       showFilterByBoundsSwitch: indexHasSmallDocCount,
-      canPreview: canPreview,
-      geoFields: geoFields
-    });
+      geoFields: geoFields,
+    }, () => this._setIndexPatternGeoField(geoFields));
+  }, 300);
 
-    () => this._sourceConfigChange({
-      urlTemplate: this.state.datashaderUrl,
-      indexTitle: indexPattern.title,
-      indexPatternId: indexPattern.id,
-      timeFieldName: indexPattern.timeFieldName,
-      geoField: this.state.geoField
-    })
-
-    const defaultGeospatialField = this.props.settings ? this.props.settings.defaultGeospatialField : null;
-    if (!this.state.geoField) {
-      if (defaultGeospatialField && _.find(geoFields, {name: defaultGeospatialField})) {
-        this.onGeoFieldSelect(defaultGeospatialField);
-      } else {
-        // if a geoField isn't already selected use the first in the list
-        if (geoFields[0]) {
-          this.onGeoFieldSelect(geoFields[0].name);
-        }
-      }
-    }
-
-    }, 300);
-
-  _onIndexPatternSelect = (indexPattern: IndexPattern) => {
+  _onGeoIndexPatternSelect = (indexPattern: IndexPattern) => {
     this.setState(
       {
         isLoadingIndexPattern: true,
-        indexPatternId: indexPattern.id,
-        ...DEFAULT_INDEX_PATTERN_STATE,
+        indexPatternId: _.get(indexPattern, 'id', ''),
+        indexPattern: undefined,
+        indexTitle: '',
+        timeFieldName: '',
+        geoField: '',
+        geoFields: [],
       },
       this._loadIndexPattern
     );
@@ -228,18 +227,20 @@ export class DatashaderSourceEditor extends Component<Props, State> {
   render() {
     return (
       <EuiPanel>
-        <EuiFormRow label="Url">
-          <EuiFieldText
-            placeholder={'https://a.datashader.com'}
-            value={this.state.datashaderUrl}
-            onChange={this._onUrlChange}
-          />
-        </EuiFormRow>
-        <GeoIndexPatternSelect
-          value={_.get(this.state.indexPattern, 'id', '')}
-          onChange={this._onIndexPatternSelect}
+        <DatashaderUrlEditorField
+          value={this.state.datashaderUrl}
+          onChange={this._onUrlChange}
         />
-        {this._renderGeoSelect()}
+        <DatashaderGeoIndexEditorField
+          value={_.get(this.state.indexPattern, 'id', '')}
+          onChange={this._onGeoIndexPatternSelect}
+        />
+        <DatashaderGeoFieldEditorField
+          value={this.state.geoField}
+          fields={this.state.geoFields}
+          indexPatternDefined={this.state.indexPattern !== undefined}
+          onChange={(name: string | undefined) => this.onGeoFieldSelect(name)}
+        />
       </EuiPanel>
     );
   }

@@ -54,6 +54,8 @@ export type DatashaderSourceDescriptor = AbstractESSourceDescriptor & {
   urlTemplate: string,
   indexTitle: string,
   timeFieldName: string,
+  attributionText: string,
+  attributionUrl: string,
 };
 
 export type CountAggDescriptor = AbstractAggDescriptor & {

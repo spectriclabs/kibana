@@ -4,26 +4,37 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React, { Fragment } from 'react';
-
-import { i18n } from '@kbn/i18n';
-import { EuiText } from '@elastic/eui';
+import React from 'react';
 import fetch from 'node-fetch';
-import { esKuery, esQuery } from '../../../../../../../../../src/plugins/data/public';
+import _ from 'lodash';
+import { Query } from 'src/plugins/data/public';
+import { esKuery, esQuery } from 'src/plugins/data/public';
+import { DatashaderStyle } from 'x-pack/plugins/maps/public/classes/styles/datashader/datashader_style';
+import { DataRequest } from 'x-pack/plugins/maps/public/classes/util/data_request';
 
-import {
-  DEFAULT_RGB_DATASHADER_COLOR_RAMP,
-  DEFAULT_DATASHADER_COLOR_RAMP_NAME,
-  DATASHADER_COLOR_RAMP_LABEL,
-} from '../datashader_constants';
+interface Props {
+  query?: Query;
+  sourceDataRequest?: DataRequest;
+  sourceDescriptorUrlTemplate: string;
+  sourceDescriptorIndexTitle: string;
+  styleDescriptorCategoryField: string;
+  style: DatashaderStyle;
+}
 
-export class DatashaderLegend extends React.Component {
-  constructor() {
-    super();
-    this.state = { url: '', legend: null };
+interface State {
+  legend: any;
+  url: string;
+}
+
+export class DatashaderLegend extends React.Component<Props, State> {
+  private _isMounted: boolean = false;
+
+  state: State = {
+    legend: undefined,
+    url: '',
   }
 
-  async _fetch(url) {
+  async _fetch(url: string) {
     return fetch(url);
   }
 
@@ -40,11 +51,11 @@ export class DatashaderLegend extends React.Component {
   }
 
   async _loadLegendInfo() {
-    let url = await this.props.sourceDescriptor.getUrlTemplate();
+    let url = this.props.sourceDescriptorUrlTemplate;
 
     // only category maps have a legend, but in the future
     // TODO have a heat map legend that shows the colormap 
-    if (!this.props.styleDescriptor.properties.categoryField) {
+    if (!this.props.styleDescriptorCategoryField) {
       if (this.state.legend !== null) {
         this.setState({ legend: null });
       }
@@ -59,21 +70,26 @@ export class DatashaderLegend extends React.Component {
       return;
     }
 
-    let data = this.props.sourceDataRequest.getData()
+    let data = this.props.sourceDataRequest?.getData();
    
     if (!data) {
       return;
     }
 
-    if (!data.geoField) {
+    const geoField: string = _.get(data, 'geoField', '');
+    const timeFieldName: string = _.get(data, 'timeFieldName', '');
+    const applyGlobalQuery: boolean = _.get(data, 'applyGlobalQuery', false);
+
+    if (geoField.length === 0) {
       return;
     }
 
-    if (!data.timeFieldName) {
+    if (timeFieldName.length === 0) {
       return;
     }
     
     let dataMeta = this.props.sourceDataRequest.getMeta();
+    
     // if we don't have dataMeta we cannot request a legend
     if (!dataMeta) {
       if (this.state.legend !== null) {
@@ -82,11 +98,14 @@ export class DatashaderLegend extends React.Component {
       return;
     }
 
-    const currentParamsObj = {};
+    const currentParamsObj: any = {};
     currentParamsObj.timeFilters = dataMeta.timeFilters;
     currentParamsObj.filters = []
-    if (data.applyGlobalQuery) {
-      currentParamsObj.filters = [...dataMeta.filters];
+    
+    if (applyGlobalQuery) {
+      const dataMetaFilters = dataMeta.filters || [];
+      currentParamsObj.filters = [...dataMetaFilters];
+      
       if (dataMeta.query && dataMeta.query.language === "kuery") {
         const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
         const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
@@ -104,8 +123,10 @@ export class DatashaderLegend extends React.Component {
         currentParamsObj.query = dataMeta.query;
       }
     }
+    
     currentParamsObj.extent = dataMeta.extent;
     currentParamsObj.zoom = dataMeta.zoom;
+    
     if (this.props.query && this.props.query.language === "kuery") {
       const kueryNode = esKuery.fromKueryExpression(this.props.query.query);
       const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
@@ -115,7 +136,7 @@ export class DatashaderLegend extends React.Component {
         },
         "query": kueryDSL
        } ); 
-      } else if (this.props.query && this.props.query.language === "lucene") {
+    } else if (this.props.query && this.props.query.language === "lucene") {
       const luceneDSL = esQuery.luceneStringToDsl(this.props.query.query);
       currentParamsObj.filters.push( {
         "meta": {
@@ -124,19 +145,20 @@ export class DatashaderLegend extends React.Component {
         "query": luceneDSL
        } );
     }
+    
     let currentParams = "";
     currentParams = currentParams.concat(
       "params=", encodeURIComponent(JSON.stringify(currentParamsObj)),
-      "&timestamp_field=", data.timeFieldName,
-      "&geopoint_field=", data.geoField,
+      "&timestamp_field=", timeFieldName,
+      "&geopoint_field=", geoField,
       this.props.style.getStyleUrlParams(data),
     );
 
     url = url.concat(
       "/",
-      this.props.sourceDescriptor.getIndexTitle(),
+      this.props.sourceDescriptorIndexTitle,
       "/",
-      this.props.styleDescriptor.properties.categoryField,
+      this.props.styleDescriptorCategoryField,
       "/legend.json?",
       currentParams
     );
@@ -148,7 +170,7 @@ export class DatashaderLegend extends React.Component {
         if (this.state.legend !== null) {
           this.setState({ legend: null });
         }
-        throw new Error(`Unable to access ${this.state.serviceUrl}`);
+        throw new Error(`Unable to access ${this.state.url}`);
       }
       const body = await resp.text();
       const legend = JSON.parse(body)
@@ -162,7 +184,7 @@ export class DatashaderLegend extends React.Component {
     }
 
     return this.props.style.renderBreakedLegend({
-      fieldLabel: this.props.styleDescriptor.properties.categoryField,
+      fieldLabel: this.props.styleDescriptorCategoryField,
       isLinesOnly: false,
       isPointsOnly: true,
       symbolId: null,

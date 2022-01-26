@@ -264,6 +264,27 @@ export enum VECTOR_STYLES {
   LABEL_BORDER_SIZE = 'labelBorderSize',
 }
 
+export enum DATASHADER_STYLES {
+  COLOR_RAMP_NAME = 'colorRampName',
+  COLOR_KEY_NAME = 'colorKeyName',
+  SPREAD = 'spread',
+  SPAN_RANGE = 'spanRange',
+  GRID_RESOLUTION = 'gridResolution',
+  MODE = 'mode',
+  CATEGORY_FIELD = 'categoryField',
+  CATEGORY_FIELD_TYPE = 'categoryFieldType',
+  CATEGORY_FIELD_PATTERN = 'categoryFieldPattern',
+  SHOW_ELLIPSES = 'showEllipses',
+  USE_HISTOGRAM = 'useHistogram',
+  ELLIPSE_MAJOR_FIELD = 'ellipseMajorField',
+  ELLIPSE_MINOR_FIELD = 'ellipseMinorField',
+  ELLIPSE_TILT_FIELD = 'ellipseTiltField',
+  ELLIPSE_UNITS = 'ellipseUnits',
+  ELLIPSE_SEARCH_DISTANCE = 'ellipseSearchDistance',
+  ELLIPSE_THICKNESS = 'ellipseThickness',
+  MANUAL_RESOLUTION = 'manualResolution',
+}
+
 export enum SCALING_TYPES {
   LIMIT = 'LIMIT',
   CLUSTERS = 'CLUSTERS',

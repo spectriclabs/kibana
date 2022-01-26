@@ -13,6 +13,7 @@ import {
   LABEL_BORDER_SIZES,
   SYMBOLIZE_AS_TYPES,
   VECTOR_STYLES,
+  DATASHADER_STYLES,
   DATA_MAPPING_FUNCTION,
   STYLE_TYPE,
 } from '../constants';
@@ -242,6 +243,31 @@ export type VectorStyleDescriptor = StyleDescriptor & {
   isTimeAware: boolean;
   __styleMeta?: StyleMetaDescriptor;
 };
+
+export type DatashaderStylePropertiesDescriptor = {
+  [DATASHADER_STYLES.COLOR_RAMP_NAME]: string;
+  [DATASHADER_STYLES.COLOR_KEY_NAME]: string;
+  [DATASHADER_STYLES.SPREAD]: string;
+  [DATASHADER_STYLES.SPAN_RANGE]: string;
+  [DATASHADER_STYLES.GRID_RESOLUTION]: string;
+  [DATASHADER_STYLES.MODE]: string;
+  [DATASHADER_STYLES.CATEGORY_FIELD]: string;
+  [DATASHADER_STYLES.CATEGORY_FIELD_TYPE]: string | null;
+  [DATASHADER_STYLES.CATEGORY_FIELD_PATTERN]: string | null;
+  [DATASHADER_STYLES.SHOW_ELLIPSES]: boolean;
+  [DATASHADER_STYLES.USE_HISTOGRAM]: boolean | undefined;
+  [DATASHADER_STYLES.ELLIPSE_MAJOR_FIELD]: string;
+  [DATASHADER_STYLES.ELLIPSE_MINOR_FIELD]: string;
+  [DATASHADER_STYLES.ELLIPSE_TILT_FIELD]: string;
+  [DATASHADER_STYLES.ELLIPSE_UNITS]: string;
+  [DATASHADER_STYLES.ELLIPSE_SEARCH_DISTANCE]: string;
+  [DATASHADER_STYLES.ELLIPSE_THICKNESS]: number;
+  [DATASHADER_STYLES.MANUAL_RESOLUTION]: boolean;
+}
+
+export type DatashaderStyleDescriptor = StyleDescriptor & {
+  properties: DatashaderStylePropertiesDescriptor;
+}
 
 export type HeatmapStyleDescriptor = StyleDescriptor & {
   colorRampName: string;

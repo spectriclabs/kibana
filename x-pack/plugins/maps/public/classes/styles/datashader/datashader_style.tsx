@@ -5,34 +5,35 @@
  */
 
 import React from 'react';
+import { Query } from 'src/plugins/data/public';
 import { DatashaderLayer } from '../../layers/datashader_layer/datashader_layer';
 import { DatashaderStyleEditor } from './components/datashader_style_editor';
 import { DatashaderLegend } from './components/legend/datashader_legend';
+import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
+import { getDefaultProperties } from './datashader_style_defaults';
 import {
-    getDefaultProperties,
-    DatashaderStyleDescriptorProperties,
-} from './datashader_style_defaults';
+  DatashaderStyleDescriptor,
+  DatashaderStylePropertiesDescriptor
+} from '../../../../common/descriptor_types/style_property_descriptor_types';
 import { LAYER_STYLE_TYPE } from '../../../../common/constants';
 import { i18n } from '@kbn/i18n';
 import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
 import { VectorIcon } from '../vector/components/legend/vector_icon';
 import { getDatashader } from '../../../kibana_services';
-
-interface DatashaderStyleDescriptor {
-  type: LAYER_STYLE_TYPE,
-  properties: DatashaderStyleDescriptorProperties,
-}
+import { DataRequest } from '../../util/data_request';
+import { DatashaderSourceDescriptor } from 'x-pack/plugins/maps/common/descriptor_types';
 
 export class DatashaderStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
-  _descriptor = {} as DatashaderStyleDescriptorProperties;
+  _descriptor: DatashaderStyleDescriptor;
+  _layer: DatashaderLayer;
 
-  constructor(descriptor = {}, layer: DatashaderLayer) {
+  constructor(descriptor = {} as DatashaderStyleDescriptor, layer: DatashaderLayer) {
     this._descriptor = DatashaderStyle.createDescriptor(descriptor.properties);
     this._layer = layer;
   }
 
-  static createDescriptor(properties = {} as DatashaderStyleDescriptorProperties, isTimeAware = true): DatashaderStyleDescriptor {
+  static createDescriptor(properties = {} as DatashaderStylePropertiesDescriptor, isTimeAware = true): DatashaderStyleDescriptor {
     return {
       type: DatashaderStyle.type,
       properties: { ...getDefaultProperties(), ...properties },
@@ -75,7 +76,6 @@ export class DatashaderStyle {
     if (!this._descriptor.properties.ellipseTiltField && config && config.defaultEllipseTilt) {
       handlePropertyChange("ellipseTiltField", config.defaultEllipseTilt);
     }
-    
 
     return (
       <DatashaderStyleEditor
@@ -181,11 +181,12 @@ export class DatashaderStyle {
     );
   }
   
-  renderLegendDetails(sourceDescriptor, sourceDataRequest, query) {
+  renderLegendDetails(source: DatashaderSource, sourceDataRequest: DataRequest | undefined, query: Query | undefined) {
     return (
       <DatashaderLegend
-        styleDescriptor={this._descriptor}
-        sourceDescriptor={sourceDescriptor}
+        sourceDescriptorUrlTemplate={source.getUrlTemplate()}
+        sourceDescriptorIndexTitle={source.getIndexTitle()}
+        styleDescriptorCategoryField={this._descriptor.properties.categoryField}
         style={this}
         sourceDataRequest={sourceDataRequest}
         query={query}
@@ -197,7 +198,7 @@ export class DatashaderStyle {
     return <EuiIcon size="m" type="datashader" />;
   }
 
-  getStyleUrlParams(data) {
+  getStyleUrlParams(data: any) {
     let urlParams = "";
 
     // TODO instead of passing numeric values to datashader,
@@ -229,13 +230,13 @@ export class DatashaderStyle {
         this._descriptor.properties.ellipseMinorField &&
         this._descriptor.properties.ellipseTiltField) {
       urlParams = urlParams.concat(
-        "&ellipses=", this._descriptor.properties.showEllipses,
+        "&ellipses=", this._descriptor.properties.showEllipses.toString(),
         "&ellipse_major=", this._descriptor.properties.ellipseMajorField,
         "&ellipse_minor=", this._descriptor.properties.ellipseMinorField,
         "&ellipse_tilt=", this._descriptor.properties.ellipseTiltField,
         "&ellipse_units=", this._descriptor.properties.ellipseUnits,
         "&ellipse_search=", this._descriptor.properties.ellipseSearchDistance,
-        "&spread=", this._descriptor.properties.ellipseThickness,
+        "&spread=", this._descriptor.properties.ellipseThickness.toString(),
       );
     } else {
       urlParams = urlParams.concat(
