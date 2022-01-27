@@ -187,7 +187,7 @@ export class DatashaderLegend extends React.Component<Props, State> {
       fieldLabel: this.props.styleDescriptorCategoryField,
       isLinesOnly: false,
       isPointsOnly: true,
-      symbolId: null,
+      symbolId: undefined,
       legend: this.state.legend
     });
   }

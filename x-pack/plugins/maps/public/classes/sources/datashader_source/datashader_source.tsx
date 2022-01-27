@@ -7,33 +7,36 @@
 import React, { Fragment } from 'react';
 import { EuiFieldText, EuiFormRow } from '@elastic/eui';
 
-//import { Adapters } from 'src/plugins/inspector/public';
 import { Adapters } from '../../../../../../../src/plugins/inspector/common/adapters';
-import { AbstractTMSSource } from '../../sources/tms_source';
+import { IField } from '../../fields/field';
+import { AbstractESSource } from '../../sources/es_source';
+import { ImmutableSourceProperty } from '../../sources/source';
 import { DatashaderSourceDescriptor } from '../../../../common/descriptor_types/source_descriptor_types';
 import { DatashaderLayerDescriptor } from '../../../../common/descriptor_types/layer_descriptor_types';
 import { DatashaderLayer } from '../../layers/datashader_layer';
-//import { TileLayer } from '../tile_layer';
 
 import { i18n } from '@kbn/i18n';
 import { getDataSourceLabel, getUrlLabel } from '../../../../../maps/common/i18n_getters';
 import _ from 'lodash';
 
 import {
-  ES_GEO_FIELD_TYPE
+  ES_GEO_FIELD_TYPE,
+  FIELD_ORIGIN,
 } from '../../../../../maps/common/constants';
-import { SingleFieldSelect } from '../../../../../maps/public/components/single_field_select';
-import { getIndexPatternService, getIndexPatternSelectComponent } from '../../../../../maps/public/kibana_services';
-import { GeoIndexPatternSelect } from '../../../../../maps/public/components/geo_index_pattern_select';
+import { SingleFieldSelect } from 'x-pack/plugins/maps/public/components/single_field_select';
+import { getIndexPatternService, getIndexPatternSelectComponent } from 'x-pack/plugins/maps/public/kibana_services';
+import { GeoIndexPatternSelect } from 'x-pack/plugins/maps/public/components/geo_index_pattern_select';
 
-import { indexPatterns } from '../../../../../../../src/plugins/data/public';
+import { indexPatterns } from 'src/plugins/data/public';
 import { CATEGORICAL_DATA_TYPES, COLOR_MAP_TYPE } from '../../../../../maps/common/constants';
-import { ESDocField } from '../../../../../maps/public/classes/fields/es_doc_field';
+import { ESDocField } from 'x-pack/plugins/maps/public/classes/fields/es_doc_field';
 
-import { registerSource } from '../../../../../maps/public/classes/sources/source_registry';
-import { getDatashader } from '../../../../../maps/public/kibana_services';
+import { FieldFormat } from 'src/plugins/field_formats/common/field_format';
+
+import { registerSource } from 'x-pack/plugins/maps/public/classes/sources/source_registry';
+import { getDatashader } from 'x-pack/plugins/maps/public/kibana_services';
 import { LayerDescriptor } from 'x-pack/plugins/maps/common';
-import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
+import { IndexPattern } from 'src/plugins/data_views/common/data_views';
 
 function filterGeoField(field) {
   return [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
@@ -45,7 +48,7 @@ function getDatashaderLayerSettings() {
 
 const NUMBER_DATA_TYPES = [ "number" ]
 
-export class DatashaderSource extends AbstractTMSSource {
+export class DatashaderSource extends AbstractESSource {
   static type = 'Datashader';
   static title = i18n.translate('xpack.maps.source.ems_xyzTitle', {
     defaultMessage: 'Datashader Map Service',
@@ -54,17 +57,18 @@ export class DatashaderSource extends AbstractTMSSource {
     defaultMessage: 'Datashader map service with custom configuration',
   });
   static icon = 'grid';
+  _descriptor: DatashaderSourceDescriptor;
 
   static createDescriptor(descriptor: Partial<DatashaderSourceDescriptor>): DatashaderSourceDescriptor {
     return {
+      urlTemplate: descriptor.urlTemplate || '',
+      indexTitle: descriptor.indexTitle || '',
+      timeFieldName: descriptor.timeFieldName || '',
       type: DatashaderSource.type,
-      applyGlobalQuery: descriptor.applyGlobalQuery!,
-      urlTemplate: descriptor.urlTemplate,
-      indexTitle,
-      indexPatternId,
-      timeFieldName,
-      geoField,
-    };
+      indexPatternId: descriptor.indexPatternId || '',
+      geoField: descriptor.geoField || '',
+      applyGlobalQuery: descriptor.applyGlobalQuery || true,
+    } as DatashaderSourceDescriptor;
   }
 
   static renderEditor({ onPreviewSource, inspectorAdapters as Adapters }) {
@@ -87,11 +91,11 @@ export class DatashaderSource extends AbstractTMSSource {
       },
       inspectorAdapters
     );
+
+    this._descriptor = descriptor;
   }
 
-
-  // belongs with source
-  async getImmutableProperties() {
+  async getImmutableProperties(): Promise<ImmutableSourceProperty[]> {
     return [
       { label: getDataSourceLabel(), value: DatashaderSource.title },
       { label: getUrlLabel(), value: this._descriptor.urlTemplate },
@@ -118,8 +122,9 @@ export class DatashaderSource extends AbstractTMSSource {
     return this._descriptor.urlTemplate;
   }
 
-  async getFieldFormatter(field) {
+  async getFieldFormatter(field: IField): Promise<FieldFormat | null> {
     let indexPattern;
+
     try {
       indexPattern = await this.getIndexPattern();
     } catch (error) {
@@ -127,6 +132,7 @@ export class DatashaderSource extends AbstractTMSSource {
     }
 
     const fieldFromIndexPattern = indexPattern.fields.getByName(field.getRootName());
+    
     if (!fieldFromIndexPattern) {
       return null;
     }
@@ -160,8 +166,8 @@ export class DatashaderSource extends AbstractTMSSource {
     return this._descriptor.timeFieldName;
   }
 
-  getGeoFieldName() {
-    return this._descriptor.geoField;
+  getGeoFieldName(): string {
+    return this._descriptor.geoField || '';
   }
 
   getGeoField() {
@@ -173,10 +179,6 @@ export class DatashaderSource extends AbstractTMSSource {
   }
 
   isRefreshTimerAware() {
-    return true;
-  }
-
-  isESSource() {
     return true;
   }
 
@@ -198,7 +200,7 @@ export class DatashaderSource extends AbstractTMSSource {
     return false;
   }
 
-  getIndexPatternIds() {
+  getIndexPatternIds(): string[] {
     return [this._descriptor.indexPatternId];
   }
 
@@ -228,18 +230,26 @@ export class DatashaderSource extends AbstractTMSSource {
     }
   }
 
-  createField({ fieldName }) {
+  getId(): string {
+    return this._descriptor.id;
+  }
+
+  getIndexPatternId(): string {
+    return this._descriptor.indexPatternId;
+  }
+
+  createField({ fieldName }: { fieldName: string}): ESDocField {
     return new ESDocField({
       fieldName,
       source: this,
+      origin: FIELD_ORIGIN.SOURCE,
     });
   }
 
-  // belongs with source
-  async getCategoricalFields() {
+  async getCategoricalFields(): Promise<IField[]> {
     try {
       const indexPattern = await this.getIndexPattern();
-      const aggFields = [];
+      const aggFields: IField[] = [];
       CATEGORICAL_DATA_TYPES.forEach(dataType => {
         indexPattern.fields.getByType(dataType).forEach(field => {
           if (field.aggregatable) {
@@ -252,8 +262,9 @@ export class DatashaderSource extends AbstractTMSSource {
           aggFields.push(field);
         });
       });
-      return aggFields.map(field => {
-        return this.createField({ fieldName: field.name });
+
+      return aggFields.map((field: IField) => {
+        return this.createField({ fieldName: field.getName() });
       });
     } catch (error) {
       return [];

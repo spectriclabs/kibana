@@ -46,6 +46,9 @@ export class DatashaderLayer extends AbstractLayer {
     this._source = source;
   }
 
+  getSource(): DatashaderSource {
+    return this._source;
+  }
   
   getStyleForEditing() {
     return this._style;
@@ -169,7 +172,7 @@ export class DatashaderLayer extends AbstractLayer {
     const geoField: string = _.get(data, 'geoField', '');
     const timeFieldName: string = _.get(data, 'timeFieldName', '');
     const dataUrl: string = _.get(data, 'url', '');
-    const applyGlobalQuery: string = _.get(data, 'applyGlobalQuery', false);
+    const applyGlobalQuery: string = _.get(data, 'applyGlobalQuery', true);
 
     if (indexTitle.length === 0) {
       return;
@@ -316,7 +319,7 @@ export class DatashaderLayer extends AbstractLayer {
     return this._style.renderLegendDetails(this._source, sourceDataRequest, query);
   }
 
-  getIndexPatternIds() {
+  getIndexPatternIds(): string[] {
     const indexPatternIds = this._source.getIndexPatternIds();
     return indexPatternIds;
   }

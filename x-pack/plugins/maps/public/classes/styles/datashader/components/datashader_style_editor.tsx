@@ -4,24 +4,26 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React, { Component, Fragment } from 'react';
+import _ from 'lodash';
+import React, { ChangeEvent, Component, Fragment } from 'react';
+import { EuiFormRow, EuiSuperSelect, EuiSelect, EuiSwitch, EuiSwitchEvent, EuiHorizontalRule } from '@elastic/eui';
 
-import { EuiFormRow, EuiSuperSelect, EuiSelect, EuiSwitch, EuiHorizontalRule } from '@elastic/eui';
+import {  getIndexPatternService } from '../../../../kibana_services';
+import { SingleFieldSelect } from '../../../../components/single_field_select';
+import { IField } from '../../../fields/field';
 
 import {
+  DATASHADER_STYLES,
+  FIELD_ORIGIN,
+} from '../../../../../common/constants';
+
+import {
+  DATASHADER_COLOR_KEY_LABEL,
   DATASHADER_COLOR_RAMP_LABEL,
 } from './datashader_constants';
 
-import {
-  ES_GEO_FIELD_TYPE,
-} from '../../../../../common/constants';
-
-import { SingleFieldSelect } from '../../../../components/single_field_select';
-import {  getIndexPatternService } from '../../../../kibana_services';
-
-function filterColorByField(field) {
-  return ! [ES_GEO_FIELD_TYPE.GEO_POINT, ES_GEO_FIELD_TYPE.GEO_SHAPE].includes(field.type);
-}
+import { DatashaderLayer } from '../../../layers/datashader_layer/datashader_layer';
+import { DatashaderStylePropertiesDescriptor } from '../../../../../common/descriptor_types/style_property_descriptor_types';
 
 const colorRampOptions = [
   {
@@ -323,7 +325,26 @@ const ellipseSearchDistance = [
   },
 ];
 
-export class DatashaderStyleEditor extends Component {
+interface FieldMeta {
+  label: string;
+  type: string;
+  pattern: any;
+  name: string;
+  origin: FIELD_ORIGIN;
+}
+
+interface Props {
+  handlePropertyChange: (settings: Partial<DatashaderStylePropertiesDescriptor>) => void;
+  layer: DatashaderLayer;
+  properties: DatashaderStylePropertiesDescriptor;
+}
+
+interface State {
+  categoryFields: FieldMeta[];
+  numberFields: FieldMeta[];
+}
+
+export class DatashaderStyleEditor extends Component<Props, State> {
   _isMounted = false;
   
   state = {
@@ -331,7 +352,7 @@ export class DatashaderStyleEditor extends Component {
     numberFields: [],
   }
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.onColorRampChange = this.onColorRampChange.bind(this);
     this.onColorKeyChange = this.onColorKeyChange.bind(this);
@@ -364,12 +385,12 @@ export class DatashaderStyleEditor extends Component {
   }
 
   async _loadFields() {
-    const getFieldMeta = async field => {
+    const getFieldMeta = async (field: IField): Promise<FieldMeta> => {
       const formatter = await this.props.layer.getSource().getFieldFormatter(field);
       const indexPattern = await getIndexPatternService().get(this.props.layer.getIndexPatternIds()[0]);
-      const field_meta = indexPattern.getFieldByName(field.getName());
+      const fieldMeta = indexPattern.getFieldByName(field.getName());
+      let pattern = fieldMeta?.spec.format ? fieldMeta?.spec.format.params?.pattern : null;
 
-      let pattern = field_meta.spec.format ? field_meta.spec.format.params.pattern : null;
       if (!pattern && formatter) {
         pattern = formatter.getParamDefaults().pattern
       }
@@ -398,125 +419,124 @@ export class DatashaderStyleEditor extends Component {
     }
   }
 
-  onColorRampChange(selectedColorRampName) {
+  onColorRampChange(selectedColorRampName: string) {
     this.props.handlePropertyChange(
-      "colorRampName",
-      selectedColorRampName
+      { [DATASHADER_STYLES.COLOR_RAMP_NAME]: selectedColorRampName }
     );
-  };
+  }
 
-  onColorKeyChange(selectedColorKeyName) {
+  onColorKeyChange(selectedColorKeyName: string) {
     this.props.handlePropertyChange(
-      "colorKeyName",
-      selectedColorKeyName
+      { [DATASHADER_STYLES.COLOR_KEY_NAME]: selectedColorKeyName }
     );
-  };
+  }
 
-  onSpreadChange(e) {
+  onSpreadChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "spread",
-      e.target.value
+      { [DATASHADER_STYLES.SPREAD]: event.target.value }
     );
-  };
+  }
 
-  onThicknessChange(e) {
+  onThicknessChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "ellipseThickness",
-      e.target.value
+      { [DATASHADER_STYLES.ELLIPSE_THICKNESS]: Number(event.target.value) }
     );
-  };
+  }
 
-  onResolutionChange(e) {
+  onResolutionChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "gridResolution",
-      e.target.value
+      { [DATASHADER_STYLES.GRID_RESOLUTION]: event.target.value }
     );
-  };
+  }
 
-  onSpanChange(e) {
+  onSpanChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "spanRange",
-      e.target.value
+      { [DATASHADER_STYLES.SPAN_RANGE]: event.target.value }
     );
-  };
+  }
 
-  onModeChange(e) {
+  onModeChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "mode",
-      e.target.value
+      { [DATASHADER_STYLES.MODE]: event.target.value }
     );
-  };
+  }
 
-  onCategoryFieldChange(e) {
+  onCategoryFieldChange(fieldName?: string) {
+    if (!fieldName) {
+      return;
+    }
+
     this.props.handlePropertyChange(
-      "categoryField",
-      e
+      { [DATASHADER_STYLES.CATEGORY_FIELD]: fieldName }
     );
 
-    const field = _.find(this.state.categoryFields, (o) => (o.name === e));
+    const field = _.find(this.state.categoryFields, (o: FieldMeta) => (o.name === fieldName));
+    
     if (field) {
       this.props.handlePropertyChange(
-        "categoryFieldType",
-        field.type
+        { [DATASHADER_STYLES.CATEGORY_FIELD_TYPE]: field.type }
       );
       this.props.handlePropertyChange(
-        "categoryFieldPattern",
-        field.pattern
+        { [DATASHADER_STYLES.CATEGORY_FIELD_PATTERN]: field.pattern }
       );
+
+      let useHistogram: boolean = false;
+
       if (this.props.properties.useHistogram === undefined) {
-        this.props.properties.useHistogram = (field.type === "number");
-      } else {
-        this.props.properties.useHistogram = false;
+        useHistogram = (field.type === "number");
       }
+
+      this.props.handlePropertyChange(
+        { [DATASHADER_STYLES.USE_HISTOGRAM]: useHistogram }
+      );
     }
   };
 
-  onShowEllipsesChanged(e) {
+  onShowEllipsesChanged(event: EuiSwitchEvent) {
     this.props.handlePropertyChange(
-      "showEllipses",
-      e.target.checked
+      { [DATASHADER_STYLES.SHOW_ELLIPSES]: event.target.checked }
     );
   };
 
-  onUseHistogramChanged(e) {
+  onUseHistogramChanged(event: EuiSwitchEvent) {
     this.props.handlePropertyChange(
-      "useHistogram",
-      e.target.checked
+      { [DATASHADER_STYLES.USE_HISTOGRAM]: event.target.checked }
     );
   };
 
-  onEllipseMajorChange(e) {
+  onEllipseMajorChange(fieldName?: string) {
+    if (fieldName) {
+      this.props.handlePropertyChange(
+        { [DATASHADER_STYLES.ELLIPSE_MAJOR_FIELD]: fieldName }
+      );
+    }
+  };
+
+  onEllipseMinorChange(fieldName?: string) {
+    if (fieldName) {
+      this.props.handlePropertyChange(
+        { [DATASHADER_STYLES.ELLIPSE_MINOR_FIELD]: fieldName }
+      );
+    }
+  };
+
+  onEllipseTiltChange(fieldName?: string) {
+    if (fieldName) {
+      this.props.handlePropertyChange(
+        { [DATASHADER_STYLES.ELLIPSE_TILT_FIELD]: fieldName }
+      );
+    }
+  };
+
+  onEllipseUnitsChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "ellipseMajorField",
-      e
+      { [DATASHADER_STYLES.ELLIPSE_UNITS]: event?.target.value }
     );
   };
 
-  onEllipseMinorChange(e) {
+  onEllipseSearchDistanceChange(event: ChangeEvent<HTMLSelectElement>) {
     this.props.handlePropertyChange(
-      "ellipseMinorField",
-      e
-    );
-  };
-
-  onEllipseTiltChange(e) {
-    this.props.handlePropertyChange(
-      "ellipseTiltField",
-      e
-    );
-  };
-
-  onEllipseUnitsChange(e) {
-    this.props.handlePropertyChange(
-      "ellipseUnits",
-      e.target.value
-    );
-  };
-
-  onEllipseSearchDistanceChange(e) {
-    this.props.handlePropertyChange(
-      "ellipseSearchDistance",
-      e.target.value
+      { [DATASHADER_STYLES.ELLIPSE_SEARCH_DISTANCE]: event.target.value }
     );
   };
 
@@ -538,21 +558,21 @@ export class DatashaderStyleEditor extends Component {
     const pointStyleConfiguration = (
       <Fragment>
         <EuiFormRow label="Dynamic Range" display="rowCompressed">
-        <EuiSelect label="Span Range"
+        <EuiSelect
             options={spanRangeOptions}
             value={this.props.properties.spanRange}
             onChange={this.onSpanChange}
         />
         </EuiFormRow>
         <EuiFormRow label="Point Size" display="rowCompressed">
-          <EuiSelect label="Point Size"
+          <EuiSelect
               options={spreadRangeOptions}
               value={this.props.properties.spread}
               onChange={this.onSpreadChange}
           />
         </EuiFormRow>
         <EuiFormRow label="Grid resolution" display="rowCompressed">
-        <EuiSelect label="Grid resolution"
+        <EuiSelect
             options={gridResolutionOptions}
             value={this.props.properties.gridResolution}
             onChange={this.onResolutionChange}
@@ -564,7 +584,7 @@ export class DatashaderStyleEditor extends Component {
     const ellipseStyleConfiguration = (
       <Fragment>
         <EuiFormRow label="Dynamic Range" display="rowCompressed">
-        <EuiSelect label="Span Range"
+        <EuiSelect
             options={spanRangeOptions}
             value={this.props.properties.spanRange}
             onChange={this.onSpanChange}
@@ -574,7 +594,7 @@ export class DatashaderStyleEditor extends Component {
           label={"Ellipse Thickness"}
           display="rowCompressed"
         >
-          <EuiSelect label="Ellipse Thickness"
+          <EuiSelect
               options={thicknessRangeOptions}
               value={this.props.properties.ellipseThickness}
               onChange={this.onThicknessChange}
@@ -617,7 +637,7 @@ export class DatashaderStyleEditor extends Component {
           label={"Ellipse Units"}
           display="columnCompressed"
         >
-          <EuiSelect label="Ellipse Units"
+          <EuiSelect
               options={ellipseUnitsOptions}
               value={this.props.properties.ellipseUnits}
               onChange={this.onEllipseUnitsChange}
@@ -627,7 +647,7 @@ export class DatashaderStyleEditor extends Component {
           label={"Ellipse Search Distance"}
           display="columnCompressed"
         >
-          <EuiSelect label="Ellipse Search Distance"
+          <EuiSelect
               options={ellipseSearchDistance}
               value={this.props.properties.ellipseSearchDistance}
               onChange={this.onEllipseSearchDistanceChange}
@@ -670,18 +690,16 @@ export class DatashaderStyleEditor extends Component {
 
   _renderCategoricalColorStyleConfiguration() {
     const isNumeric = (this.props.properties.categoryFieldType === "number");
-    let histogramChecked = (isNumeric && this.props.properties.useHistogram);
+    const useHistogram = this.props.properties.useHistogram !== undefined ? this.props.properties.useHistogram : false;
+    let histogramChecked = (isNumeric && useHistogram);
 
-    let histogramSwitch = "";
+    let histogramSwitch = (<Fragment></Fragment>);
     let colorOptions;
 
     if (isNumeric) {
       // migrate legacy configurations
       if (this.props.properties.useHistogram === undefined) {
-        this.props.handlePropertyChange(
-          "useHistogram",
-          true
-        );
+        this.props.handlePropertyChange({ [DATASHADER_STYLES.USE_HISTOGRAM]: true });
         histogramChecked = true;
       }
 
@@ -740,7 +758,7 @@ export class DatashaderStyleEditor extends Component {
     }
 
     const modeSwitch = (
-      <EuiSelect label="Color Mode"
+      <EuiSelect
         options={colorModeOptions}
         value={this.props.properties.mode}
         onChange={this.onModeChange}

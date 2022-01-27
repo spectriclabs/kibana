@@ -15,15 +15,16 @@ import {
   DatashaderStyleDescriptor,
   DatashaderStylePropertiesDescriptor
 } from '../../../../common/descriptor_types/style_property_descriptor_types';
-import { LAYER_STYLE_TYPE } from '../../../../common/constants';
+import { LAYER_STYLE_TYPE, DATASHADER_STYLES } from '../../../../common/constants';
+import { IStyle } from '../../styles/style';
+import { StyleDescriptor } from '../../../../common/descriptor_types';
 import { i18n } from '@kbn/i18n';
 import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
 import { VectorIcon } from '../vector/components/legend/vector_icon';
 import { getDatashader } from '../../../kibana_services';
 import { DataRequest } from '../../util/data_request';
-import { DatashaderSourceDescriptor } from 'x-pack/plugins/maps/common/descriptor_types';
 
-export class DatashaderStyle {
+export class DatashaderStyle implements IStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
   _descriptor: DatashaderStyleDescriptor;
   _layer: DatashaderLayer;
@@ -58,28 +59,28 @@ export class DatashaderStyle {
     return LAYER_STYLE_TYPE.DATASHADER;
   }
 
-  renderEditor(onStyleDescriptorChange) {
+  renderEditor(onStyleDescriptorChange: (styleDescriptor: StyleDescriptor) => void) {
     const rawProperties = this.getRawProperties();
-    const handlePropertyChange = (propertyName, settings) => {
-      rawProperties[propertyName] = settings; //override single property, but preserve the rest
-      const datashaderStyleDescriptor = DatashaderStyle.createDescriptor(rawProperties);
+    
+    const handlePropertyChange = (settings: Partial<DatashaderStylePropertiesDescriptor>) => {
+      const datashaderStyleDescriptor = DatashaderStyle.createDescriptor({ ...rawProperties, ...settings });
       onStyleDescriptorChange(datashaderStyleDescriptor);
     };
+    
     const config = this.getDatashaderLayerSettings();
 
     if (!this._descriptor.properties.ellipseMajorField && config && config.defaultEllipseMajor) {
-      handlePropertyChange("ellipseMajorField", config.defaultEllipseMajor);
+      handlePropertyChange({ [DATASHADER_STYLES.ELLIPSE_MAJOR_FIELD]: config.defaultEllipseMajor});
     }
     if (!this._descriptor.properties.ellipseMinorField && config && config.defaultEllipseMinor) {
-      handlePropertyChange("ellipseMinorField", config.defaultEllipseMinor);
+      handlePropertyChange({ [DATASHADER_STYLES.ELLIPSE_MINOR_FIELD]: config.defaultEllipseMinor });
     }
     if (!this._descriptor.properties.ellipseTiltField && config && config.defaultEllipseTilt) {
-      handlePropertyChange("ellipseTiltField", config.defaultEllipseTilt);
+      handlePropertyChange({ [DATASHADER_STYLES.ELLIPSE_TILT_FIELD]: config.defaultEllipseTilt });
     }
 
     return (
       <DatashaderStyleEditor
-        settings={config}
         properties={this._descriptor.properties}
         handlePropertyChange={handlePropertyChange}
         layer={this._layer}
@@ -87,7 +88,7 @@ export class DatashaderStyle {
     );
   }
 
-  _renderStopIcon(color, isLinesOnly, isPointsOnly, symbolId) {
+  _renderStopIcon(color: string | undefined, isLinesOnly: boolean, isPointsOnly: boolean, symbolId: string | undefined) {
     const fillColor = color || 'none';
     return (
       <VectorIcon
@@ -100,7 +101,9 @@ export class DatashaderStyle {
     );
   }
 
-  _renderColorbreaks({ isLinesOnly, isPointsOnly, symbolId, legend }) {
+  _renderColorbreaks(
+    { isLinesOnly, isPointsOnly, symbolId, legend }:
+    { isLinesOnly: boolean, isPointsOnly: boolean, symbolId: string | undefined, legend: any }) {
     if (!legend || legend.length === 0) {
       return <EuiText size={'xs'}></EuiText>
     }
@@ -114,20 +117,12 @@ export class DatashaderStyle {
         });
     }
 
-    const defaultColor = null;
-    if (defaultColor) {
-      colorAndLabels.push({
-        label: <EuiTextColor color="secondary">OTHER</EuiTextColor>,
-        color: defaultColor,
-      });
-    }
-
     return colorAndLabels.map((config, index) => {
-      let label = "";
+      let label = (<div></div>);
       if (config.label && config.label.trim() !== "") {
         label = config.label;
       } else {
-        label = <em>empty</em>;
+        label = (<em>empty</em>);
       }
 
       let count = "";
@@ -154,7 +149,9 @@ export class DatashaderStyle {
     return "Category Field";
   }
 
-  renderBreakedLegend({ fieldLabel, isPointsOnly, isLinesOnly, symbolId, legend }) {
+  renderBreakedLegend(
+    { fieldLabel, isPointsOnly, isLinesOnly, symbolId, legend }:
+    { fieldLabel: string, isPointsOnly: boolean, isLinesOnly: boolean, symbolId: string | undefined, legend: any }) {
     return (
       <div>
         <EuiSpacer size="s" />
