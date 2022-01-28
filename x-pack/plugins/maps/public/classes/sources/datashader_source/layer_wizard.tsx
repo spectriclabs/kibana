@@ -6,10 +6,11 @@
 
 import { i18n } from '@kbn/i18n';
 import React from 'react';
-import { DatashaderSource, DatashaderEditor, DatashaderSourceConfig } from './sources/datashader_source';
-import { LayerWizard, RenderWizardArguments } from '../layers/layer_wizard_registry';
-import { DatashaderLayer } from './datashader_layer';
-import { getDatashader } from '../kibana_services';
+import { DatashaderSource } from './datashader_source';
+import { DatashaderSourceEditor, DatashaderSourceConfig } from './datashader_source_editor';
+import { LayerWizard, RenderWizardArguments } from '../../layers/layer_wizard_registry';
+import { DatashaderLayer } from '../../layers/datashader_layer';
+import { getDatashader } from '../../../kibana_services';
 
 export const datashaderWizardConfig: LayerWizard = {
   categories: [],
@@ -19,20 +20,22 @@ export const datashaderWizardConfig: LayerWizard = {
   icon: 'grid',
   prerequisiteSteps: [],
   renderWizard: ({ previewLayers }: RenderWizardArguments) => {
-    const onSourceConfigChange = (sourceConfig: DatashaderSourceConfig) => {
+    const onSourceConfigChange = (sourceConfig: DatashaderSourceConfig | null) => {
       if (!sourceConfig) {
         previewLayers([]);
         return;
       }
+
       const layerDescriptor = DatashaderLayer.createDescriptor({
         sourceDescriptor: DatashaderSource.createDescriptor(sourceConfig),
       });
+
       previewLayers( [layerDescriptor] );
     };
 
     const settings = getDatashader();
 
-    return <DatashaderEditor settings={settings} onSourceConfigChange={onSourceConfigChange} />;
+    return <DatashaderSourceEditor settings={settings} onSourceConfigChange={onSourceConfigChange} />;
   },
   title: DatashaderSource.title,
 };

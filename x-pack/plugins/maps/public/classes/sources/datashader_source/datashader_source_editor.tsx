@@ -10,33 +10,36 @@
 import React, { Component, ChangeEvent } from 'react';
 import _ from 'lodash';
 import { EuiPanel } from '@elastic/eui';
-import { DatashaderSourceDescriptor } from '../../../../common/descriptor_types/source_descriptor_types';
-import { DatashaderUrlEditorField } from './datashader_url_editor_field';
-import { DatashaderGeoIndexEditorField } from './datashader_geo_index_editor_field';
 import { DatashaderGeoFieldEditorField } from './datashader_geo_field_editor_field';
-import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
-import { DataViewField } from '../../../../../../../src/plugins/data_views/common/fields/data_view_field';
+import { DatashaderGeoIndexEditorField } from './datashader_geo_index_editor_field';
+import { DatashaderUrlEditorField } from './datashader_url_editor_field';
 import { loadIndexDocCount } from './util/load_index_doc_count';
-import {  getIndexPatternService } from '../../../../../maps/public/kibana_services';
-import { indexPatterns } from '../../../../../../../src/plugins/data/public';
-import { DatashaderConfigType } from '../../../../config';
-import { getDatashader } from '../../../../../maps/public/kibana_services';
+import {  getIndexPatternService } from '../../../kibana_services';
 import {
   DEFAULT_MAX_RESULT_WINDOW,
   ES_GEO_FIELD_TYPE,
-} from '../../../../../maps/common/constants';
+} from '../../../../common/constants';
+import { DatashaderConfigType } from '../../../../config';
+import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
+import { indexPatterns } from '../../../../../../../src/plugins/data/public';
+import { DataViewField } from '../../../../../../../src/plugins/data_views/common/fields/data_view_field';
 
 function filterGeoField(field: DataViewField) {
   return [ES_GEO_FIELD_TYPE.GEO_POINT.valueOf(), ES_GEO_FIELD_TYPE.GEO_SHAPE.valueOf()].includes(field.type);
 }
 
-function getDatashaderLayerSettings(): DatashaderConfigType {
-  return getDatashader();
+export type DatashaderSourceConfig = {
+  urlTemplate: string;
+  indexTitle: string;
+  indexPatternId: string;
+  timeFieldName: string;
+  geoField: string;
+  applyGlobalQuery: boolean;
 }
 
 interface Props {
   settings: DatashaderConfigType,
-  onSourceConfigChange: (sourceConfig: DatashaderSourceDescriptor | null) => void;
+  onSourceConfigChange: (sourceConfig: DatashaderSourceConfig | null) => void;
 }
 
 interface State {
@@ -80,11 +83,10 @@ export class DatashaderSourceEditor extends Component<Props, State> {
         urlTemplate: this.state.datashaderUrl,
         indexTitle: this.state.indexTitle,
         timeFieldName: this.state.timeFieldName,
-        type: 'Datashader',
         indexPatternId: this.state.indexPatternId,
         geoField: this.state.geoField,
         applyGlobalQuery: this.state.applyGlobalQuery,
-      } as DatashaderSourceDescriptor);
+      } as DatashaderSourceConfig);
     } else {
       this.props.onSourceConfigChange(null);
     }
@@ -117,10 +119,9 @@ export class DatashaderSourceEditor extends Component<Props, State> {
         urlTemplate: this.state.datashaderUrl,
         indexTitle: _.get(this.state.indexPattern, 'title', ''),
         timeFieldName: _.get(this.state.indexPattern, 'timeFieldName', ''),
-        type: 'Datashader',
         indexPatternId: _.get(this.state.indexPattern, 'id', ''),
         geoField: geoField,
-      } as DatashaderSourceDescriptor)
+      } as DatashaderSourceConfig)
     );
   };
 
@@ -129,10 +130,9 @@ export class DatashaderSourceEditor extends Component<Props, State> {
       urlTemplate: this.state.datashaderUrl,
       indexTitle: _.get(this.state.indexPattern, 'title', ''),
       timeFieldName: _.get(this.state.indexPattern, 'timeFieldName', ''),
-      type: 'Datashader',
       indexPatternId: _.get(this.state.indexPattern, 'id', ''),
       geoField: this.state.geoField
-    } as DatashaderSourceDescriptor);
+    } as DatashaderSourceConfig);
     
     if (this.state.geoField.length === 0) {
       const defaultGeospatialField = this.props.settings.defaultGeospatialField;
@@ -223,6 +223,15 @@ export class DatashaderSourceEditor extends Component<Props, State> {
       this._loadIndexPattern
     );
   };
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  componentDidMount() {
+    this._isMounted = true;
+    this._loadIndexPattern();
+  }
 
   render() {
     return (
