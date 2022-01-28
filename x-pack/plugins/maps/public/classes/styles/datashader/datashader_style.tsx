@@ -5,24 +5,25 @@
  */
 
 import React from 'react';
-import { Query } from 'src/plugins/data/public';
-import { DatashaderLayer } from '../../layers/datashader_layer/datashader_layer';
+import { i18n } from '@kbn/i18n';
+import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip } from '@elastic/eui';
+
 import { DatashaderStyleEditor } from './components/datashader_style_editor';
 import { DatashaderLegend } from './components/legend/datashader_legend';
-import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
 import { getDefaultProperties } from './datashader_style_defaults';
+import { IStyle } from '../style';
+import { VectorIcon } from '../vector/components/legend/vector_icon';
+import { DatashaderLayer } from '../../layers/datashader_layer/datashader_layer';
+import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
+import { DataRequest } from '../../util/data_request';
+import { getDatashader } from '../../../kibana_services';
+import { LAYER_STYLE_TYPE, DATASHADER_STYLES } from '../../../../common/constants';
 import {
   DatashaderStyleDescriptor,
-  DatashaderStylePropertiesDescriptor
+  DatashaderStylePropertiesDescriptor,
+  StyleDescriptor,
 } from '../../../../common/descriptor_types/style_property_descriptor_types';
-import { LAYER_STYLE_TYPE, DATASHADER_STYLES } from '../../../../common/constants';
-import { IStyle } from '../../styles/style';
-import { StyleDescriptor } from '../../../../common/descriptor_types';
-import { i18n } from '@kbn/i18n';
-import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip, EuiTextColor } from '@elastic/eui';
-import { VectorIcon } from '../vector/components/legend/vector_icon';
-import { getDatashader } from '../../../kibana_services';
-import { DataRequest } from '../../util/data_request';
+import { Query } from '../../../../../../../src/plugins/data/public';
 
 export class DatashaderStyle implements IStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
@@ -197,20 +198,6 @@ export class DatashaderStyle implements IStyle {
 
   getStyleUrlParams(data: any) {
     let urlParams = "";
-
-    // TODO instead of passing numeric values to datashader,
-    // pass the string values and let the server side deal with
-    // it more intelligently
-    let spread = -1;
-    if (this._descriptor.properties.spread === "auto") {
-      spread = -1;
-    } else if (this._descriptor.properties.spread === "coarse") {
-      spread = 10;
-    } else if (this._descriptor.properties.spread === "fine") {
-      spread = 3;
-    } else if (this._descriptor.properties.spread === "finest") {
-      spread = 1;
-    }
 
     // the current implementation of auto is too slow, so remove it
     let span = this._descriptor.properties.spanRange;

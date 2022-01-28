@@ -8,11 +8,11 @@
 import { schema, TypeOf } from '@kbn/config-schema';
 
 export interface DatashaderConfigType {
-  url: string;
-  defaultGeospatialField: string;
-  defaultEllipseMajor: string;
-  defaultEllipseMinor: string;
-  defaultEllipseTilt: string;
+  url: string | null;
+  defaultGeospatialField: string | null;
+  defaultEllipseMajor: string | null;
+  defaultEllipseMinor: string | null;
+  defaultEllipseTilt: string | null;
 }
 
 export interface MapsConfigType {

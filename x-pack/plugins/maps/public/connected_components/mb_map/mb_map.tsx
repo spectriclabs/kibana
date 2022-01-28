@@ -95,6 +95,7 @@ export class MbMap extends Component<Props, State> {
   private _prevTimeslice?: Timeslice;
   private _navigationControl = new mapboxgl.NavigationControl({ showCompass: false });
   private _tileStatusTracker?: TileStatusTracker;
+  private _cacheCheck: NodeJS.Timer | null = null;
 
   state: State = {
     mbMap: undefined,
@@ -122,9 +123,9 @@ export class MbMap extends Component<Props, State> {
       this.state.mbMap.remove();
       this.state.mbMap = undefined;
     }
-    if (this.cacheCheck) {
-      clearInterval(this.cacheCheck);
-      this.cacheCheck = null;
+    if (this._cacheCheck) {
+      clearInterval(this._cacheCheck);
+      this._cacheCheck = null;
     }
     this.props.onMapDestroyed();
   }
@@ -241,7 +242,7 @@ export class MbMap extends Component<Props, State> {
       // mapbox-gl has bugs #10031 and #10494 that ignore the cache control
       // headers provided by Datashader; these exist up to at least v2.2.0
       // for now, datashader will return an 'error' code of 418 TEAPOT
-      mbMap.on('error', (e) => {
+      mbMap.on('error', (e: any) => {
         if (e.tile && e.error && e.error.status === 302 && e.source.type === "raster") {
          if (e.tile.state === 'errored' && e.tile.expirationTime === null) {
             // Try any errored tiles again in 5 seconds by setting expiration time
@@ -250,8 +251,8 @@ export class MbMap extends Component<Props, State> {
         }
       });
 
-      if (!this.cacheCheck) {
-        this.cacheCheck = setInterval(() => {
+      if (!this._cacheCheck) {
+        this._cacheCheck = setInterval(() => {
           if (mbMap.style && mbMap.style.sourceCaches) {
             for (const sourceId in mbMap.style.sourceCaches) {
               const sourceCache = mbMap.style.sourceCaches[sourceId];

@@ -4,13 +4,12 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { AbstractLayer } from '../../../../public/classes/layers/layer';
 import type { Map as MbMap } from '@kbn/mapbox-gl';
 import _ from 'lodash';
-import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../../common/descriptor_types';
-import { DatashaderStyle } from '../../styles/datashader/datashader_style';
-import { esKuery, esQuery } from '../../../../../../../src/plugins/data/public';
+
+import { AbstractLayer } from '../layer';
 import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
+import { DatashaderStyle } from '../../styles/datashader/datashader_style';
 import { DataRequestContext } from '../../../actions';
 import {
   SOURCE_DATA_REQUEST_ID,
@@ -18,6 +17,8 @@ import {
   MIN_ZOOM,
   MAX_ZOOM,
 } from '../../../../common/constants';
+import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../../common/descriptor_types';
+import { esKuery, esQuery } from '../../../../../../../src/plugins/data/public';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;

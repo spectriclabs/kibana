@@ -56,7 +56,7 @@ export class DatashaderLegend extends React.Component<Props, State> {
     // only category maps have a legend, but in the future
     // TODO have a heat map legend that shows the colormap 
     if (!this.props.styleDescriptorCategoryField) {
-      if (this.state.legend !== null) {
+      if (this._isMounted && this.state.legend !== null) {
         this.setState({ legend: null });
       }
       return;
