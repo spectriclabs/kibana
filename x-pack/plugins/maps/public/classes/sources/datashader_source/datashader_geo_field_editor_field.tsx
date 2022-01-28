@@ -16,7 +16,7 @@ interface State {};
 export class DatashaderGeoFieldEditorField extends Component<Props, State> {
     render() {
         if (!this.props.indexPatternDefined) {
-            return;
+            return null;
           }
       
           return (
