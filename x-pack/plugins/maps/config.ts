@@ -31,11 +31,11 @@ export const configSchema = schema.object({
   // flag used in functional testing
   preserveDrawingBuffer: schema.boolean({ defaultValue: false }),
   datashader: schema.object({
-    url: schema.nullable(schema.string()),
-    defaultGeospatialField: schema.nullable(schema.string()),
-    defaultEllipseMajor: schema.nullable(schema.string()),
-    defaultEllipseMinor: schema.nullable(schema.string()),
-    defaultEllipseTilt: schema.nullable(schema.string())
+    url: schema.string({ defaultValue: '' }),
+    defaultGeospatialField: schema.string({ defaultValue: 'geo_center' }),
+    defaultEllipseMajor: schema.string({ defaultValue: 'geo_semimajor_nm' }),
+    defaultEllipseMinor: schema.string({ defaultValue: 'geo_semiminor_nm' }),
+    defaultEllipseTilt: schema.string({ defaultValue: 'geo_tilt_deg' }),
   }),
 });
 
