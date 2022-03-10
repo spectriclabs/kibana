@@ -1,5 +1,5 @@
-import { DATASHADER_STYLES } from '../../../../common/constants';
-import { DatashaderStylePropertiesDescriptor } from '../../../../common/descriptor_types/style_property_descriptor_types';
+import { DATASHADER_STYLES } from '../../../common/constants';
+import { DatashaderStylePropertiesDescriptor } from '../../../common/descriptor_types/style_property_descriptor_types';
 
 export function getDefaultProperties(): DatashaderStylePropertiesDescriptor {
   return {

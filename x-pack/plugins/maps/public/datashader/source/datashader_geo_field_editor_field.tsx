@@ -1,8 +1,8 @@
 import { i18n } from '@kbn/i18n';
 import React, { Component } from 'react';
 import { EuiFormRow } from '@elastic/eui';
-import { SingleFieldSelect } from '../../../components/single_field_select';
-import { DataViewField } from '../../../../../../../src/plugins/data_views/common/fields/data_view_field';
+import { SingleFieldSelect } from '../../components/single_field_select';
+import { DataViewField } from '../../../../../../src/plugins/data_views/common/fields/data_view_field';
 
 interface Props {
     indexPatternDefined: boolean;

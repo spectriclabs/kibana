@@ -11,19 +11,19 @@ import { EuiIcon, EuiSpacer, EuiText, EuiFlexItem, EuiFlexGroup, EuiToolTip } fr
 import { DatashaderStyleEditor } from './components/datashader_style_editor';
 import { DatashaderLegend } from './components/legend/datashader_legend';
 import { getDefaultProperties } from './datashader_style_defaults';
-import { IStyle } from '../style';
-import { VectorIcon } from '../vector/components/legend/vector_icon';
-import { DatashaderLayer } from '../../layers/datashader_layer/datashader_layer';
-import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
-import { DataRequest } from '../../util/data_request';
-import { getDatashader } from '../../../kibana_services';
-import { LAYER_STYLE_TYPE, DATASHADER_STYLES } from '../../../../common/constants';
+import { IStyle } from '../../classes/styles/style';
+import { VectorIcon } from '../../classes/styles/vector/components/legend/vector_icon';
+import { DatashaderLayer } from '../layer/datashader_layer';
+import { DatashaderSource } from '../source/datashader_source';
+import { DataRequest } from '../../classes/util/data_request';
+import { getDatashader } from '../../kibana_services';
+import { LAYER_STYLE_TYPE, DATASHADER_STYLES } from '../../../common/constants';
 import {
   DatashaderStyleDescriptor,
   DatashaderStylePropertiesDescriptor,
   StyleDescriptor,
-} from '../../../../common/descriptor_types/style_property_descriptor_types';
-import { Query } from '../../../../../../../src/plugins/data/public';
+} from '../../../common/descriptor_types/style_property_descriptor_types';
+import { Query } from '../../../../../../src/plugins/data/public';
 
 export class DatashaderStyle implements IStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
