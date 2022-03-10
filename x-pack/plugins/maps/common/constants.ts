@@ -79,6 +79,7 @@ export enum LAYER_TYPE {
   HEATMAP = 'HEATMAP',
   BLENDED_VECTOR = 'BLENDED_VECTOR',
   TILED_VECTOR = 'TILED_VECTOR', // similar to a regular vector-layer, but it consumes the data as .mvt tilea iso GeoJson. It supports similar ad-hoc configurations like a regular vector layer (E.g. using IVectorStyle), although there is some loss of functionality  e.g. does not support term joining
+  DATASHADER = 'DATASHADER',
 }
 
 export enum SOURCE_TYPES {
@@ -223,6 +224,7 @@ export enum LAYER_STYLE_TYPE {
   VECTOR = 'VECTOR',
   HEATMAP = 'HEATMAP',
   TILE = 'TILE',
+  DATASHADER = 'DATASHADER',
 }
 
 export enum COLOR_MAP_TYPE {
@@ -260,6 +262,27 @@ export enum VECTOR_STYLES {
   LABEL_SIZE = 'labelSize',
   LABEL_BORDER_COLOR = 'labelBorderColor',
   LABEL_BORDER_SIZE = 'labelBorderSize',
+}
+
+export enum DATASHADER_STYLES {
+  COLOR_RAMP_NAME = 'colorRampName',
+  COLOR_KEY_NAME = 'colorKeyName',
+  SPREAD = 'spread',
+  SPAN_RANGE = 'spanRange',
+  GRID_RESOLUTION = 'gridResolution',
+  MODE = 'mode',
+  CATEGORY_FIELD = 'categoryField',
+  CATEGORY_FIELD_TYPE = 'categoryFieldType',
+  CATEGORY_FIELD_PATTERN = 'categoryFieldPattern',
+  SHOW_ELLIPSES = 'showEllipses',
+  USE_HISTOGRAM = 'useHistogram',
+  ELLIPSE_MAJOR_FIELD = 'ellipseMajorField',
+  ELLIPSE_MINOR_FIELD = 'ellipseMinorField',
+  ELLIPSE_TILT_FIELD = 'ellipseTiltField',
+  ELLIPSE_UNITS = 'ellipseUnits',
+  ELLIPSE_SEARCH_DISTANCE = 'ellipseSearchDistance',
+  ELLIPSE_THICKNESS = 'ellipseThickness',
+  MANUAL_RESOLUTION = 'manualResolution',
 }
 
 export enum SCALING_TYPES {

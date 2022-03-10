@@ -62,6 +62,7 @@ export const getMapAppConfig = () => mapAppConfig;
 
 export const getShowMapsInspectorAdapter = () => getMapAppConfig().showMapsInspectorAdapter;
 export const getPreserveDrawingBuffer = () => getMapAppConfig().preserveDrawingBuffer;
+export const getDatashader = () => getMapAppConfig().datashader;
 
 // map.* kibana.yml settings from maps_ems plugin that are shared between OSS map visualizations and maps app
 let kibanaCommonConfig: MapsEmsConfig;
