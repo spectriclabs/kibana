@@ -16,6 +16,7 @@ export const config: PluginConfigDescriptor<MapsXPackConfig> = {
   exposeToBrowser: {
     showMapsInspectorAdapter: true,
     preserveDrawingBuffer: true,
+    datashader: true
   },
   schema: configSchema,
 };

@@ -25,7 +25,7 @@ import { getTimeFilter } from '../kibana_services';
 import { getChartsPaletteServiceGetColor } from '../reducers/non_serializable_instances';
 import { DatashaderLayer } from '../classes/layers/datashader_layer/datashader_layer';
 import { DatashaderLayerDescriptor } from '../../common/descriptor_types';
-import { DatashaderSource } from '../classes/sources/datashader_source/datashader_source';
+import { DatashaderSource } from '../datashader/source/datashader_source';
 import { copyPersistentState, TRACKED_LAYER_DESCRIPTOR } from '../reducers/copy_persistent_state';
 import { InnerJoin } from '../classes/joins/inner_join';
 import { getSourceByType } from '../classes/sources/source_registry';
