@@ -23,6 +23,9 @@ import { VectorStyle } from '../classes/styles/vector/vector_style';
 import { HeatmapLayer } from '../classes/layers/heatmap_layer';
 import { getTimeFilter } from '../kibana_services';
 import { getChartsPaletteServiceGetColor } from '../reducers/non_serializable_instances';
+import { DatashaderLayer } from '../classes/layers/datashader_layer/datashader_layer';
+import { DatashaderLayerDescriptor } from '../../common/descriptor_types';
+import { DatashaderSource } from '../classes/sources/datashader_source/datashader_source';
 import { copyPersistentState, TRACKED_LAYER_DESCRIPTOR } from '../reducers/copy_persistent_state';
 import { InnerJoin } from '../classes/joins/inner_join';
 import { getSourceByType } from '../classes/sources/source_registry';
@@ -112,6 +115,11 @@ export function createLayerInstance(
           source as IVectorSource
         ),
         customIcons,
+      });
+    case DatashaderLayer.type:
+      return new DatashaderLayer({
+        layerDescriptor: layerDescriptor as DatashaderLayerDescriptor,
+        source: source as DatashaderSource,
       });
     default:
       throw new Error(`Unrecognized layerType ${layerDescriptor.type}`);

@@ -12,6 +12,7 @@ import { Query } from '@kbn/data-plugin/public';
 import { Feature } from 'geojson';
 import {
   HeatmapStyleDescriptor,
+  DatashaderStyleDescriptor,
   StyleDescriptor,
   VectorStyleDescriptor,
 } from './style_property_descriptor_types';
@@ -82,4 +83,9 @@ export type VectorLayerDescriptor = LayerDescriptor & {
 export type HeatmapLayerDescriptor = LayerDescriptor & {
   type: LAYER_TYPE.HEATMAP;
   style: HeatmapStyleDescriptor;
+};
+
+export type DatashaderLayerDescriptor = LayerDescriptor & {
+  type: LAYER_TYPE.DATASHADER;
+  style: DatashaderStyleDescriptor;
 };
