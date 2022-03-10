@@ -8,22 +8,22 @@ import _ from 'lodash';
 import React, { ChangeEvent, Component, Fragment } from 'react';
 import { EuiFormRow, EuiSuperSelect, EuiSelect, EuiSwitch, EuiSwitchEvent, EuiHorizontalRule } from '@elastic/eui';
 
-import {  getIndexPatternService } from '../../../../kibana_services';
-import { SingleFieldSelect } from '../../../../components/single_field_select';
-import { IField } from '../../../fields/field';
+import {  getIndexPatternService } from '../../../kibana_services';
+import { SingleFieldSelect } from '../../../components/single_field_select';
+import { IField } from '../../../classes/fields/field';
 
 import {
   DATASHADER_STYLES,
   FIELD_ORIGIN,
-} from '../../../../../common/constants';
+} from '../../../../common/constants';
 
 import {
   DATASHADER_COLOR_KEY_LABEL,
   DATASHADER_COLOR_RAMP_LABEL,
 } from './datashader_constants';
 
-import { DatashaderLayer } from '../../../layers/datashader_layer/datashader_layer';
-import { DatashaderStylePropertiesDescriptor } from '../../../../../common/descriptor_types/style_property_descriptor_types';
+import { DatashaderLayer } from '../../layer/datashader_layer';
+import { DatashaderStylePropertiesDescriptor } from '../../../../common/descriptor_types/style_property_descriptor_types';
 
 const colorRampOptions = [
   {

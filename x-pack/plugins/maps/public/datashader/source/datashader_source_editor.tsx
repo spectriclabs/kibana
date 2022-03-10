@@ -14,15 +14,15 @@ import { DatashaderGeoFieldEditorField } from './datashader_geo_field_editor_fie
 import { DatashaderGeoIndexEditorField } from './datashader_geo_index_editor_field';
 import { DatashaderUrlEditorField } from './datashader_url_editor_field';
 import { loadIndexDocCount } from './util/load_index_doc_count';
-import {  getIndexPatternService } from '../../../kibana_services';
+import {  getIndexPatternService } from '../../kibana_services';
 import {
   DEFAULT_MAX_RESULT_WINDOW,
   ES_GEO_FIELD_TYPE,
-} from '../../../../common/constants';
-import { DatashaderConfigType } from '../../../../config';
-import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
-import { indexPatterns } from '../../../../../../../src/plugins/data/public';
-import { DataViewField } from '../../../../../../../src/plugins/data_views/common/fields/data_view_field';
+} from '../../../common/constants';
+import { DatashaderConfigType } from '../../../config';
+import { IndexPattern } from '../../../../../../src/plugins/data_views/common/data_views';
+import { indexPatterns } from '../../../../../../src/plugins/data/public';
+import { DataViewField } from '../../../../../../src/plugins/data_views/common/fields/data_view_field';
 
 function filterGeoField(field: DataViewField) {
   return [ES_GEO_FIELD_TYPE.GEO_POINT.valueOf(), ES_GEO_FIELD_TYPE.GEO_SHAPE.valueOf()].includes(field.type);
@@ -135,8 +135,9 @@ export class DatashaderSourceEditor extends Component<Props, State> {
     } as DatashaderSourceConfig);
     
     if (this.state.geoField.length === 0) {
-      const defaultGeospatialField = this.props.settings.defaultGeospatialField;
-      
+      //const defaultGeospatialField = this.props.settings.defaultGeospatialField;
+      const defaultGeospatialField = "geo_center";
+
       if (defaultGeospatialField &&
           _.find(this.state.geoFields, {name: defaultGeospatialField})) {
         this.onGeoFieldSelect(defaultGeospatialField);

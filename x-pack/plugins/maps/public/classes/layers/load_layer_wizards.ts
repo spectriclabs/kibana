@@ -29,6 +29,7 @@ import { ObservabilityLayerWizardConfig } from './solution_layers/observability'
 import { SecurityLayerWizardConfig } from './solution_layers/security';
 import { choroplethLayerWizardConfig } from './choropleth_layer_wizard';
 import { newVectorLayerWizardConfig } from './new_vector_layer_wizard';
+import { datashaderWizardConfig } from '../../datashader/source/layer_wizard';
 
 let registered = false;
 export function registerLayerWizards() {
@@ -37,6 +38,7 @@ export function registerLayerWizards() {
   }
 
   // Registration order determines display order
+  registerLayerWizard(datashaderWizardConfig);
   registerLayerWizard(uploadLayerWizardConfig);
   registerLayerWizard(esDocumentsLayerWizardConfig);
   // @ts-ignore

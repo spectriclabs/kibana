@@ -21,6 +21,7 @@ export const config: PluginConfigDescriptor<MapsXPackConfig> = {
     showMapVisualizationTypes: true,
     showMapsInspectorAdapter: true,
     preserveDrawingBuffer: true,
+    datashader: true
   },
   schema: configSchema,
   deprecations: ({ deprecate }) => [

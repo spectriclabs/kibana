@@ -8,10 +8,10 @@
 import {
     GIS_API_PATH,
     DEFAULT_MAX_RESULT_WINDOW,
-} from '../../../../../common/constants';
+} from '../../../../common/constants';
 
 import { i18n } from '@kbn/i18n';
-import { getHttp, getToasts } from '../../../../kibana_services';
+import { getHttp, getToasts } from '../../../kibana_services';
 
 let toastDisplayed = false;
 

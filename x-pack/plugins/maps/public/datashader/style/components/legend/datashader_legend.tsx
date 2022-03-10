@@ -7,10 +7,10 @@
 import React from 'react';
 import fetch from 'node-fetch';
 import _ from 'lodash';
-import { Query } from '../../../../../../../../../src/plugins/data/public';
-import { esKuery, esQuery } from '../../../../../../../../../src/plugins/data/public';
+import { Query } from '../../../../../../../../src/plugins/data/public';
+import { esKuery, esQuery } from '../../../../../../../../src/plugins/data/public';
 import { DatashaderStyle } from '../../datashader_style';
-import { DataRequest } from '../../../../util/data_request';
+import { DataRequest } from '../../../../classes/util/data_request';
 
 interface Props {
   query?: Query;

@@ -7,18 +7,18 @@
 import type { Map as MbMap } from '@kbn/mapbox-gl';
 import _ from 'lodash';
 
-import { AbstractLayer } from '../layer';
-import { DatashaderSource } from '../../sources/datashader_source/datashader_source';
-import { DatashaderStyle } from '../../styles/datashader/datashader_style';
-import { DataRequestContext } from '../../../actions';
+import { AbstractLayer } from '../../classes/layers/layer';
+import { DatashaderSource } from '../source/datashader_source';
+import { DatashaderStyle } from '../style/datashader_style';
+import { DataRequestContext } from '../../actions';
 import {
   SOURCE_DATA_REQUEST_ID,
   LAYER_TYPE,
   MIN_ZOOM,
   MAX_ZOOM,
-} from '../../../../common/constants';
-import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../../common/descriptor_types';
-import { esKuery, esQuery } from '../../../../../../../src/plugins/data/public';
+} from '../../../common/constants';
+import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../common/descriptor_types';
+import { esQuery } from '../../../../../../src/plugins/data/public';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
@@ -203,14 +203,7 @@ export class DatashaderLayer extends AbstractLayer {
         const dataMetaFilters = dataMeta.filters || [];
         currentParamsObj.filters = [...dataMetaFilters];
         
-        if (dataMeta.query && dataMeta.query.language === "kuery") {
-          const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
-          const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
-          currentParamsObj.query = {
-            language: "dsl",
-            query: kueryDSL,
-          };
-        } else if (dataMeta.query && dataMeta.query.language === "lucene") {
+        if (dataMeta.query && dataMeta.query.language === "lucene") {
           const luceneDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
           currentParamsObj.query = {
             language: "dsl",
@@ -224,16 +217,7 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.extent = dataMeta.extent; // .buffer has been expanded to align with tile boundaries
       currentParamsObj.zoom = dataMeta.zoom;
       
-      if (this._descriptor.query && this._descriptor.query.language === "kuery") {
-        const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
-        const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
-        currentParamsObj.filters.push( {
-          "meta": {
-            "type" : "bool",
-          },
-          "query": kueryDSL
-         } );
-      } else if (this._descriptor.query && this._descriptor.query.language === "lucene") {
+      if (this._descriptor.query && this._descriptor.query.language === "lucene") {
         const luceneDSL = esQuery.luceneStringToDsl(this._descriptor.query.query);
         currentParamsObj.filters.push( {
           "meta": {

@@ -8,23 +8,23 @@ import _ from 'lodash';
 import { i18n } from '@kbn/i18n';
 
 import { DatashaderSourceConfig } from './datashader_source_editor';
-import { AbstractESSource } from '../es_source';
-import { ImmutableSourceProperty } from '../source';
-import { registerSource } from '../source_registry';
-import { ESDocField } from '../../fields/es_doc_field';
-import { IField } from '../../fields/field';
-import { DatashaderLayer } from '../../layers/datashader_layer';
-import { LayerDescriptor } from '../../../../common';
-import { getIndexPatternService } from '../../../kibana_services';
+import { AbstractESSource } from '../../classes/sources/es_source';
+import { ImmutableSourceProperty } from '../../classes/sources/source';
+import { registerSource } from '../../classes/sources/source_registry';
+import { ESDocField } from '../../classes/fields/es_doc_field';
+import { IField } from '../../classes/fields/field';
+import { DatashaderLayer } from '../layer/datashader_layer';
+import { LayerDescriptor } from '../../../common';
+import { getIndexPatternService } from '../../kibana_services';
 import {
   CATEGORICAL_DATA_TYPES,
   FIELD_ORIGIN,
-} from '../../../../common/constants';
-import { DatashaderSourceDescriptor } from '../../../../common/descriptor_types/source_descriptor_types';
-import { getDataSourceLabel, getUrlLabel } from '../../../../common/i18n_getters';
-import { IndexPattern } from '../../../../../../../src/plugins/data_views/common/data_views';
-import { FieldFormat } from '../../../../../../../src/plugins/field_formats/common/field_format';
-import { DataViewField } from '../../../../../../../src/plugins/data/common';
+} from '../../../common/constants';
+import { DatashaderSourceDescriptor } from '../../../common/descriptor_types/source_descriptor_types';
+import { getDataSourceLabel, getUrlLabel } from '../../../common/i18n_getters';
+import { IndexPattern } from '../../../../../../src/plugins/data_views/common/data_views';
+import { FieldFormat } from '../../../../../../src/plugins/field_formats/common/field_format';
+import { DataViewField } from '../../../../../../src/plugins/data/common';
 
 const NUMBER_DATA_TYPES = [ "number" ]
 
