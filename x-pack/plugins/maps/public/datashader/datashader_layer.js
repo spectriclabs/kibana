@@ -70,6 +70,7 @@ export class DatashaderLayer extends AbstractLayer {
       const timeFieldName = await this._source.getTimeFieldName();
       const geoField = await this._source.getGeoField();
       const applyGlobalQuery = this._source.getApplyGlobalQuery();
+      const applyGlobalTime = this._source.getApplyGlobalTime();
 
       const categoryField = this._style._descriptor.properties.categoryField;
       let categoryFormatter = null;
@@ -91,6 +92,7 @@ export class DatashaderLayer extends AbstractLayer {
         timeFieldName: timeFieldName,
         geoField: geoField,
         applyGlobalQuery: applyGlobalQuery,
+        applyGlobalTime: applyGlobalTime,
         categoryFieldMeta: categoryFieldMeta,
         categoryFieldFormatter: categoryFormatter
       }
