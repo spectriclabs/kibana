@@ -160,7 +160,9 @@ export class DatashaderLayer extends AbstractLayer {
     let dataMeta = sourceDataRequest.getMeta();
     if (dataMeta) {
       const currentParamsObj = {};
-      currentParamsObj.timeFilters = dataMeta.timeFilters;
+      if (data.applyGlobalTime) {
+        currentParamsObj.timeFilters = dataMeta.timeFilters;
+      }
       currentParamsObj.filters = []
       if (data.applyGlobalQuery) {
         currentParamsObj.filters = [...dataMeta.filters];

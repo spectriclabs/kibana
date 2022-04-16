@@ -61,8 +61,8 @@ export class DatashaderSource extends AbstractTMSSource {
   static createDescriptor({ urlTemplate, indexTitle, indexPatternId, timeFieldName, geoField, applyGlobalQuery, applyGlobalTime }) {
     return {
       type: DatashaderSource.type,
-      applyGlobalQuery: applyGlobalQuery,
-      applyGlobalTime: applyGlobalTime,
+      applyGlobalQuery: typeof applyGlobalQuery !== 'undefined' ? applyGlobalQuery : true,
+      applyGlobalTime: typeof applyGlobalTime !== 'undefined'  ? applyGlobalTime : true,
       urlTemplate,
       indexTitle,
       indexPatternId,
@@ -180,6 +180,14 @@ export class DatashaderSource extends AbstractTMSSource {
 
   getGeoField() {
     return this._descriptor.geoField;
+  }
+
+  getApplyGlobalQuery() {
+    return this._descriptor.applyGlobalQuery;
+  }
+
+  getApplyGlobalTime() {
+    return this._descriptor.applyGlobalTime;
   }
 
   isFieldAware() {
