@@ -48,6 +48,7 @@ export class DatashaderSource extends AbstractESSource {
       indexPatternId: settings.indexPatternId,
       geoField: settings.geoField,
       applyGlobalQuery: settings.applyGlobalQuery,
+      applyGlobalTime: settings.applyGlobalTime,
     } as DatashaderSourceDescriptor;
   }
 
@@ -135,6 +136,14 @@ export class DatashaderSource extends AbstractESSource {
 
   getGeoField() {
     return this._descriptor.geoField;
+  }
+
+  getApplyGlobalQuery() {
+    return this._descriptor.applyGlobalQuery;
+  }
+
+  getApplyGlobalTime() {
+    return this._descriptor.applyGlobalTime;
   }
 
   isFieldAware() {

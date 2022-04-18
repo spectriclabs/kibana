@@ -35,6 +35,7 @@ export type DatashaderSourceConfig = {
   timeFieldName: string;
   geoField: string;
   applyGlobalQuery: boolean;
+  applyGlobalTime: boolean;
 }
 
 interface Props {
@@ -69,6 +70,7 @@ export class DatashaderSourceEditor extends Component<Props, State> {
     datashaderUrl: '',
     canPreview: false,
     applyGlobalQuery: false,
+    applyGlobalTime: false,
     indexPattern: undefined,
     indexPatternId: '',
     indexTitle: '',
@@ -86,6 +88,7 @@ export class DatashaderSourceEditor extends Component<Props, State> {
         indexPatternId: this.state.indexPatternId,
         geoField: this.state.geoField,
         applyGlobalQuery: this.state.applyGlobalQuery,
+        applyGlobalTime: this.state.applyGlobalTime,
       } as DatashaderSourceConfig);
     } else {
       this.props.onSourceConfigChange(null);
