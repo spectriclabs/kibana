@@ -96,6 +96,7 @@ export class DatashaderLayer extends AbstractLayer {
       const timeFieldName = await this._source.getTimeFieldName();
       const geoField = await this._source.getGeoField();
       const applyGlobalQuery = this._source.getApplyGlobalQuery();
+      const applyGlobalTime = this._source.getApplyGlobalTime();
 
       const categoryField = this._style._descriptor.properties.categoryField;
       let categoryFormatter = null;
@@ -119,6 +120,7 @@ export class DatashaderLayer extends AbstractLayer {
         timeFieldName: timeFieldName,
         geoField: geoField,
         applyGlobalQuery: applyGlobalQuery,
+        applyGlobalTime: applyGlobalTime,
         categoryFieldMeta: categoryFieldMeta,
         categoryFieldFormatter: categoryFormatter
       }
@@ -174,6 +176,7 @@ export class DatashaderLayer extends AbstractLayer {
     const timeFieldName: string = _.get(data, 'timeFieldName', '');
     const dataUrl: string = _.get(data, 'url', '');
     const applyGlobalQuery: string = _.get(data, 'applyGlobalQuery', true);
+    const applyGlobalTime: string = _.get(data, 'applyGlobalTime', true);
 
     if (indexTitle.length === 0) {
       return;
@@ -197,7 +200,7 @@ export class DatashaderLayer extends AbstractLayer {
     if (dataMeta) {
       const currentParamsObj: any = {};
 
-      if (data.applyGlobalTime) {
+      if (applyGlobalTime) {
         currentParamsObj.timeFilters = dataMeta.timeFilters;
       }
 
