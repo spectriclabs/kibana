@@ -79,6 +79,7 @@ export class DatashaderLegend extends React.Component<Props, State> {
     const geoField: string = _.get(data, 'geoField', '');
     const timeFieldName: string = _.get(data, 'timeFieldName', '');
     const applyGlobalQuery: boolean = _.get(data, 'applyGlobalQuery', false);
+    const applyGlobalTime: boolean = _.get(data, 'applyGlobalTime', false);
 
     if (geoField.length === 0) {
       return;
@@ -100,7 +101,7 @@ export class DatashaderLegend extends React.Component<Props, State> {
 
     const currentParamsObj: any = {};
 
-    if (data.applyGlobalTime) {
+    if (applyGlobalTime) {
       currentParamsObj.timeFilters = dataMeta.timeFilters;
     }
 
