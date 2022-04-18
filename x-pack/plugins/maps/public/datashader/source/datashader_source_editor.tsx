@@ -57,6 +57,7 @@ interface State {
   geoField: string;
   geoFields: DataViewField[];
   applyGlobalQuery: boolean;
+  applyGlobalTime: boolean;
 }
 
 export class DatashaderSourceEditor extends Component<Props, State> {
