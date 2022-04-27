@@ -97,7 +97,7 @@ export class DatashaderSourceEditor extends Component<Props, State> {
   }, 2000);
 
   _onUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const url = event.target.value;
+    const url = event.target.value.trim();
     let canPreview = true;
 
     // determine if we can preview
@@ -106,7 +106,7 @@ export class DatashaderSourceEditor extends Component<Props, State> {
     if (url.length === 0) { canPreview = false; }
 
     this.setState(
-      { datashaderUrl: event.target.value },
+      { datashaderUrl: event.target.value.trim() },
       // We have no way to give params to the setState
       // callback so we pass a closure with the params
       // we want instead.
