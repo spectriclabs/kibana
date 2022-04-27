@@ -330,7 +330,7 @@ export class DatashaderEditor extends React.Component {
   }, 2000);
 
   _handleDataShaderURLInputChange(e) {
-    const url = e.target.value;
+    const url = e.target.value.trim();
 
     let canPreview = true;
     if (!this.state.indexPattern) {
