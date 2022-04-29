@@ -5,6 +5,8 @@
  * 2.0.
  */
 
+import _ from 'lodash';
+
 import type { CoreStart } from 'kibana/public';
 import type { MapsEmsConfig } from '../../../../src/plugins/maps_ems/public';
 import type { MapsConfigType } from '../config';
@@ -62,7 +64,7 @@ export const getMapAppConfig = () => mapAppConfig;
 
 export const getShowMapsInspectorAdapter = () => getMapAppConfig().showMapsInspectorAdapter;
 export const getPreserveDrawingBuffer = () => getMapAppConfig().preserveDrawingBuffer;
-export const getDatashader = () => getMapAppConfig().datashader;
+export const getDatashader = () => _.get(getMapAppConfig(), 'datashader', {});
 
 // map.* kibana.yml settings from maps_ems plugin that are shared between OSS map visualizations and maps app
 let kibanaCommonConfig: MapsEmsConfig;
