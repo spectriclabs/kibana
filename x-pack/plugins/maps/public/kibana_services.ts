@@ -78,7 +78,7 @@ export const getMapAppConfig = () => mapAppConfig;
 
 export const getShowMapsInspectorAdapter = () => getMapAppConfig().showMapsInspectorAdapter;
 export const getPreserveDrawingBuffer = () => getMapAppConfig().preserveDrawingBuffer;
-export const getDatashader = () => getMapAppConfig().datashader;
+export const getDatashader = () => _.get(getMapAppConfig(), 'datashader', {});
 
 export const getMapsEmsStart: () => MapsEmsPluginPublicStart = () => {
   return mapsEms;
