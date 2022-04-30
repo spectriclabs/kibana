@@ -9,7 +9,7 @@ import type { CoreStart } from '@kbn/core/public';
 import type { PaletteRegistry } from '@kbn/coloring';
 import type { EMSSettings } from '@kbn/maps-ems-plugin/common/ems_settings';
 import { MapsEmsPluginPublicStart } from '@kbn/maps-ems-plugin/public';
-import type { MapsConfigType } from '../config';
+import type { DatashaderConfigType, MapsConfigType } from '../config';
 import type { MapsPluginStartDependencies } from './plugin';
 
 let coreStart: CoreStart;
@@ -78,7 +78,7 @@ export const getMapAppConfig = () => mapAppConfig;
 
 export const getShowMapsInspectorAdapter = () => getMapAppConfig().showMapsInspectorAdapter;
 export const getPreserveDrawingBuffer = () => getMapAppConfig().preserveDrawingBuffer;
-export const getDatashader = () => _.get(getMapAppConfig(), 'datashader', {});
+export const getDatashader = () => _.get(getMapAppConfig(), 'datashader', {} as DatashaderConfigType);
 
 export const getMapsEmsStart: () => MapsEmsPluginPublicStart = () => {
   return mapsEms;

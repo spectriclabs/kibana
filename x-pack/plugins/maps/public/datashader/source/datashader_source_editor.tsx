@@ -60,6 +60,14 @@ interface State {
   applyGlobalTime: boolean;
 }
 
+function getInitialUrl(editor: DatashaderSourceEditor): string {
+  if (editor.props && editor.props.settings && editor.props.settings.url) {
+    return editor.props.settings.url;
+  }
+
+  return '';
+}
+
 export class DatashaderSourceEditor extends Component<Props, State> {
   private _isMounted = false;
   
@@ -68,7 +76,7 @@ export class DatashaderSourceEditor extends Component<Props, State> {
     noGeoIndexPatternsExist: false,
     filterByMapBounds: true,
     showFilterByBoundsSwitch: true,
-    datashaderUrl: '',
+    datashaderUrl: getInitialUrl(this),
     canPreview: false,
     applyGlobalQuery: false,
     applyGlobalTime: false,
