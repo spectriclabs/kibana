@@ -466,19 +466,14 @@ export class DatashaderStyleEditor extends Component<Props, State> {
       return;
     }
 
-    this.props.handlePropertyChange(
-      { [DATASHADER_STYLES.CATEGORY_FIELD]: fieldName }
-    );
-
     const field = _.find(this.state.categoryFields, (o: FieldMeta) => (o.name === fieldName));
     
     if (field) {
-      this.props.handlePropertyChange(
-        { [DATASHADER_STYLES.CATEGORY_FIELD_TYPE]: field.type }
-      );
-      this.props.handlePropertyChange(
-        { [DATASHADER_STYLES.CATEGORY_FIELD_PATTERN]: field.pattern }
-      );
+      var updates = {
+        [DATASHADER_STYLES.CATEGORY_FIELD]: field.name,
+        [DATASHADER_STYLES.CATEGORY_FIELD_TYPE]: field.type,
+        [DATASHADER_STYLES.CATEGORY_FIELD_PATTERN]: field.pattern,
+      };
 
       let useHistogram: boolean = false;
 
@@ -486,9 +481,14 @@ export class DatashaderStyleEditor extends Component<Props, State> {
         useHistogram = (field.type === "number");
       }
 
-      this.props.handlePropertyChange(
-        { [DATASHADER_STYLES.USE_HISTOGRAM]: useHistogram }
-      );
+      updates = {
+        ...updates,
+        ...{ [DATASHADER_STYLES.USE_HISTOGRAM]: useHistogram }
+      };
+
+      // Make all the updates at once, lest they
+      // be overridden by defaults if updated individually.
+      this.props.handlePropertyChange(updates);
     }
   };
 
