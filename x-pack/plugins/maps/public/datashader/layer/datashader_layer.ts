@@ -18,7 +18,7 @@ import {
   MAX_ZOOM,
 } from '../../../common/constants';
 import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../common/descriptor_types';
-import { esQuery } from '../../../../../../src/plugins/data/public';
+import { esKuery, esQuery } from '../../../../../../src/plugins/data/public';
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
@@ -210,7 +210,14 @@ export class DatashaderLayer extends AbstractLayer {
         const dataMetaFilters = dataMeta.filters || [];
         currentParamsObj.filters = [...dataMetaFilters];
         
-        if (dataMeta.query && dataMeta.query.language === "lucene") {
+        if (dataMeta.query && dataMeta.query.language === "kuery") {
+          const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
+          const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+          currentParamsObj.query = {
+            language: "dsl",
+            query: kueryDSL,
+          };
+        } else if (dataMeta.query && dataMeta.query.language === "lucene") {
           const luceneDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
           currentParamsObj.query = {
             language: "dsl",
@@ -224,14 +231,25 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.extent = dataMeta.extent; // .buffer has been expanded to align with tile boundaries
       currentParamsObj.zoom = dataMeta.zoom;
       
-      if (this._descriptor.query && this._descriptor.query.language === "lucene") {
-        const luceneDSL = esQuery.luceneStringToDsl(this._descriptor.query.query);
-        currentParamsObj.filters.push( {
-          "meta": {
-            "type" : "bool",
-          },
-          "query": luceneDSL
-         } );
+      if (this._descriptor.query) {
+        if (this._descriptor.query.language === "kuery") {
+          const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
+          const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+          currentParamsObj.filters.push({
+            "meta": {
+              "type" : "bool",
+            },
+            "query": kueryDSL
+          });
+        } else if (this._descriptor.query.language === "lucene") {
+          const luceneDSL = esQuery.luceneStringToDsl(this._descriptor.query.query);
+          currentParamsObj.filters.push({
+            "meta": {
+              "type" : "bool",
+            },
+            "query": luceneDSL
+           });
+        }
       }
 
       currentParams = currentParams.concat(
