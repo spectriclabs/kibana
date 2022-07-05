@@ -16,8 +16,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.13.2
-      - run: git pull  # to make HEAD and FETCH_HEAD line up
       - run: npm install -g yarn
+      - run: |
+         git merge-base HEAD FETCH_HEAD
+         git rev-parse HEAD
+         git rev-parse FETCH-HEAD
+         git pull
+         git rev-parse HEAD
+         git rev-parse FETCH-HEAD
+         git merge-base HEAD FETCH_HEAD
       - run: yarn kbn bootstrap
       - run: yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
