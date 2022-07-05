@@ -17,14 +17,6 @@ jobs:
         with:
           node-version: 16.13.2
       - run: npm install -g yarn
-      - run: |
-         git merge-base HEAD FETCH_HEAD
-         git rev-parse HEAD
-         git rev-parse FETCH_HEAD
-         git pull
-         git rev-parse HEAD
-         git rev-parse FETCH_HEAD
-         git merge-base HEAD FETCH_HEAD
       - run: yarn kbn bootstrap
       - run: yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
