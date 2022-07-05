@@ -1,0 +1,23 @@
+name: "Build distributable"
+
+on:
+  push:
+    branches:
+      - feat-datashader-7.17.1
+
+permissions:
+  contents: read
+
+jobs:
+  build_artifact:
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.2
+      - run: npm install -g yarn
+      - run: yarn build --skip-os-packages
+      - uses: actions/upload-artifact@v3
+        with:
+          name: kibana-7.17.1-linux-x86_64.tar.gz
+          path: target/kibana-7.17.1-SNAPSHOT-linux-aarch64.tar.gz
