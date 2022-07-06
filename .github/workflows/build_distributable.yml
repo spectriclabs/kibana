@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 16.13.2
       - run: npm install -g yarn
-      - run: yarn kbn bootstrap
+      - run: yarn kbn bootstrap --no-cache
       - run: yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
         with:
