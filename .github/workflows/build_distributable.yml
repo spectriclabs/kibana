@@ -18,7 +18,9 @@ jobs:
           node-version: 16.13.2
       - run: |
          npm install -g yarn
+         git merge-base HEAD FETCH_HEAD
          git pull
+         git merge-base HEAD FETCH_HEAD
          yarn kbn bootstrap
          yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
