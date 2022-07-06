@@ -16,10 +16,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.13.2
-      - run: npm install -g yarn
-      - run: git pull  # updates FETCH_HEAD
-      - run: yarn kbn bootstrap
-      - run: yarn build --skip-os-packages
+      - run: |
+         npm install -g yarn
+         git pull
+         yarn kbn bootstrap
+         yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
         with:
           name: kibana-7.17.1-linux-x86_64.tar.gz
