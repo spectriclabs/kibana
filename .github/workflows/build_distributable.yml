@@ -18,12 +18,10 @@ jobs:
           node-version: 16.13.2
       - run: |
          npm install -g yarn
-         git merge-base HEAD FETCH_HEAD
-         git pull
-         git merge-base HEAD FETCH_HEAD
+         git config --global url."https://github.com/spectriclabs/kibana.git".insteadOf https://github.com/elastic/kibana.git
          yarn kbn bootstrap
          yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
         with:
           name: kibana-7.17.1-linux-x86_64.tar.gz
-          path: target/kibana-7.17.1-SNAPSHOT-linux-aarch64.tar.gz
+          path: target/kibana-7.17.1-SNAPSHOT-linux-x86_64.tar.gz
