@@ -19,7 +19,7 @@ import { getLine$ } from './helpers';
 import { Pr } from './pr';
 import { GithubApi } from './github_api';
 
-const UPSTREAM_URL = 'git@github.com:elastic/kibana.git';
+const UPSTREAM_URL = 'git@github.com:spectriclabs/kibana.git';
 
 run(
   async ({ flags, log }) => {
