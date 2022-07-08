@@ -88,7 +88,7 @@ export async function runBuildRefsCli() {
           projects,
           repoRoot: REPO_ROOT,
           workingDir: CACHE_WORKING_DIR,
-          upstreamUrl: 'https://github.com/elastic/kibana.git',
+          upstreamUrl: 'https://github.com/spectriclabs/kibana.git',
         });
       }
 

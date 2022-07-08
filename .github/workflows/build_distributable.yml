@@ -18,7 +18,6 @@ jobs:
           node-version: 16.13.2
       - run: |
          npm install -g yarn
-         git config --global url."https://github.com/spectriclabs/kibana.git".insteadOf https://github.com/elastic/kibana.git
          yarn kbn bootstrap
          yarn build --skip-os-packages
       - uses: actions/upload-artifact@v3
