@@ -19,6 +19,28 @@ import {
 } from '../../../common/constants';
 import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../common/descriptor_types';
 import { esKuery, esQuery } from '../../../../../../src/plugins/data/public';
+import { any } from 'joi';
+
+const urlRe = /^(\w+):\/\/([^/?]*)(\/[^?]+)?\??(.+)?/;
+
+function parseUrl(url: string) {
+    const parts = url.match(urlRe);
+    if (!parts) {
+        throw new Error(`Unable to parse URL "${url}"`);
+    }
+    let paramParts =  parts[4] ? parts[4].split('&') : []
+    let params:any = {}
+    paramParts.forEach(p=>{
+      let [key,value] = p.split("=");
+      params[key] = decodeURIComponent(value)
+    })
+    return {
+        protocol: parts[1],
+        authority: parts[2],
+        path: parts[3] || '/',
+        params: params
+    };
+}
 
 export class DatashaderLayer extends AbstractLayer {
   static type = LAYER_TYPE.DATASHADER;
@@ -230,7 +252,6 @@ export class DatashaderLayer extends AbstractLayer {
       
       currentParamsObj.extent = dataMeta.extent; // .buffer has been expanded to align with tile boundaries
       currentParamsObj.zoom = dataMeta.zoom;
-      
       if (this._descriptor.query) {
         if (this._descriptor.query.language === "kuery") {
           const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
@@ -266,12 +287,24 @@ export class DatashaderLayer extends AbstractLayer {
       "/{z}/{x}/{y}.png?",
       currentParams
     );
-
+    const unhashedParams = ['zoom','extent']
     const sourceTiles = _.get(source, 'tiles', []);
     const sourceTilesUrl = sourceTiles.length === 0 ? '' : sourceTiles[0];
-    
-    if (!source || sourceTilesUrl != url) {
-      
+    var refreshLayer = true;
+    if(sourceTilesUrl !== ''){
+      const pastParams = parseUrl(sourceTilesUrl).params
+      pastParams.params = JSON.parse(pastParams.params)
+      const newParams = parseUrl(url).params
+      newParams.params = JSON.parse(newParams.params)
+      unhashedParams.forEach(p=>{
+        delete pastParams.params[p]
+        delete newParams.params[p]
+      })
+      refreshLayer = JSON.stringify(pastParams) !== JSON.stringify(newParams);
+    }
+
+    if (!source || refreshLayer) {
+      //console.log("HERE CHANGING THE LAYER SOURCE Because an unhashed parameter changed")
       if (mbMap.getLayer(mbLayerId)) {
         mbMap.removeLayer(mbLayerId);  
       }
@@ -294,6 +327,12 @@ export class DatashaderLayer extends AbstractLayer {
         minzoom: this._descriptor.minZoom,
         maxzoom: this._descriptor.maxZoom,
       });
+    }
+
+    if(sourceTilesUrl !== '' && sourceTilesUrl != url){
+      //Ok so here we know that we want to update the source url
+      //without removing it from the map because that causes flashing of the layer
+      source.tiles[0] = url;
     }
 
     this._setTileLayerProperties(mbMap, mbLayerId);
