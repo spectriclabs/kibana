@@ -8,9 +8,12 @@ import type { Map as MbMap } from '@kbn/mapbox-gl';
 import _ from 'lodash';
 
 import { AbstractLayer } from '../../classes/layers/layer';
-import { DatashaderSource } from '../source/datashader_source';
+import { DatashaderSource} from '../source/datashader_source';
+import { datashaderWizardConfig } from '../source/layer_wizard';
+import { registerLayerWizardExternal } from '../../classes/layers';
 import { DatashaderStyle } from '../style/datashader_style';
 import { DataRequestContext } from '../../actions';
+
 import {
   SOURCE_DATA_REQUEST_ID,
   LAYER_TYPE,
@@ -19,8 +22,8 @@ import {
 } from '../../../common/constants';
 import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../common/descriptor_types';
 import { esKuery, esQuery } from '../../../../../../src/plugins/data/public';
-import { any } from 'joi';
 
+registerLayerWizardExternal(datashaderWizardConfig)
 const urlRe = /^(\w+):\/\/([^/?]*)(\/[^?]+)?\??(.+)?/;
 
 function parseUrl(url: string) {
@@ -332,7 +335,7 @@ export class DatashaderLayer extends AbstractLayer {
     if(sourceTilesUrl !== '' && sourceTilesUrl != url){
       //Ok so here we know that we want to update the source url
       //without removing it from the map because that causes flashing of the layer
-      source.tiles[0] = url;
+      //source.tiles[0] = url;
     }
 
     this._setTileLayerProperties(mbMap, mbLayerId);
