@@ -23,7 +23,7 @@ import { VectorStyle } from '../classes/styles/vector/vector_style';
 import { HeatmapLayer } from '../classes/layers/heatmap_layer';
 import { getTimeFilter } from '../kibana_services';
 import { getChartsPaletteServiceGetColor } from '../reducers/non_serializable_instances';
-import { DatashaderLayer } from '../classes/layers/datashader_layer/datashader_layer';
+import { DatashaderLayer } from '../datashader/layer/datashader_layer';
 import { DatashaderLayerDescriptor } from '../../common/descriptor_types';
 import { DatashaderSource } from '../datashader/source/datashader_source';
 import { copyPersistentState, TRACKED_LAYER_DESCRIPTOR } from '../reducers/copy_persistent_state';
