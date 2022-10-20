@@ -7,10 +7,12 @@
 import React from 'react';
 import fetch from 'node-fetch';
 import _ from 'lodash';
-import { Query } from '../../../../../../../../src/plugins/data/public';
-import { esKuery, esQuery } from '../../../../../../../../src/plugins/data/public';
+import type { Query } from '@kbn/es-query';
 import { DatashaderStyle } from '../../datashader_style';
 import { DataRequest } from '../../../../classes/util/data_request';
+import { fromKueryExpression, luceneStringToDsl, toElasticsearchQuery } from '@kbn/es-query';
+// @ts-expect-error
+import { ValidatedRange } from "./validated_range";
 
 interface Props {
   query?: Query;
@@ -22,9 +24,24 @@ interface Props {
 }
 
 interface State {
+  bucketRange: [number,number];
   legend: any;
   url: string;
 }
+export const DATASHADER_BUCKET_SELECT:any = {}
+const debounce = (func: (a: any) => void,timeout:number = 500) => {
+  let timer: NodeJS.Timeout | number | null | undefined;
+  return function (...args: any) {
+    // @ts-expect-error
+    const context = this;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      func.apply(context, args);
+    }, timeout);
+  };
+};
+
 
 export class DatashaderLegend extends React.Component<Props, State> {
   private _isMounted: boolean = false;
@@ -32,6 +49,7 @@ export class DatashaderLegend extends React.Component<Props, State> {
   state: State = {
     legend: undefined,
     url: '',
+    bucketRange:[0,1]
   }
 
   async _fetch(url: string) {
@@ -112,14 +130,14 @@ export class DatashaderLegend extends React.Component<Props, State> {
       currentParamsObj.filters = [...dataMetaFilters];
       
       if (dataMeta.query && dataMeta.query.language === "kuery") {
-        const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
-        const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+        const kueryNode = fromKueryExpression(dataMeta.query.query);
+        const kueryDSL = toElasticsearchQuery(kueryNode);
         currentParamsObj.query = {
           language: "dsl",
           query: kueryDSL,
         };
       } else if (dataMeta.query && dataMeta.query.language === "lucene") {
-        const luceneDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
+        const luceneDSL = luceneStringToDsl(dataMeta.query.query);
         currentParamsObj.query = {
           language: "dsl",
           query: luceneDSL,
@@ -133,8 +151,8 @@ export class DatashaderLegend extends React.Component<Props, State> {
     currentParamsObj.zoom = dataMeta.zoom;
     
     if (this.props.query && this.props.query.language === "kuery") {
-      const kueryNode = esKuery.fromKueryExpression(this.props.query.query);
-      const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+      const kueryNode = fromKueryExpression(this.props.query.query);
+      const kueryDSL = toElasticsearchQuery(kueryNode);
       currentParamsObj.filters.push( {
         "meta": {
           "type" : "bool",
@@ -142,7 +160,7 @@ export class DatashaderLegend extends React.Component<Props, State> {
         "query": kueryDSL
        } ); 
     } else if (this.props.query && this.props.query.language === "lucene") {
-      const luceneDSL = esQuery.luceneStringToDsl(this.props.query.query);
+      const luceneDSL = luceneStringToDsl(this.props.query.query);
       currentParamsObj.filters.push( {
         "meta": {
           "type" : "bool",
@@ -184,8 +202,22 @@ export class DatashaderLegend extends React.Component<Props, State> {
   }
 
   render() {
+    const [min,max] = [0,1] //FIXME get the real min and max values for the buckets probably want to fetch from backend and not directly from ES
+    const descriptor = this.props.style._descriptor;
+    const showBucketFilter = !descriptor.properties.showEllipses
+    const bucketOnChange = debounce((v:[number, number])=>{
+      DATASHADER_BUCKET_SELECT[this.props.style._layer.getDescriptor().id] =v
+      
+      this.setState({bucketRange:v})
+      var map = this.props.style._layer._mbMap
+      if(map){
+          map.setBearing(0)//Trigger kibana maps to reload on slider change
+      }
+  },1000)
+    const bucketFilter = (<ValidatedRange label="Selection Range" step={0.01} min={min} max={max} value={this.state.bucketRange} onChange={bucketOnChange}/>)
+
     if (this.state.legend === null) {
-      return null;
+      return <div>{showBucketFilter? bucketFilter: null}</div>;
     }
 
     return this.props.style.renderBreakedLegend({

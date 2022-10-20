@@ -23,7 +23,8 @@ import {
   DatashaderStylePropertiesDescriptor,
   StyleDescriptor,
 } from '../../../common/descriptor_types/style_property_descriptor_types';
-import { Query } from '../../../../../../src/plugins/data/public';
+import type { Query } from '@kbn/es-query';
+import { DATASHADER_BUCKET_SELECT } from "./components/legend/datashader_legend";
 
 export class DatashaderStyle implements IStyle {
   static type = LAYER_STYLE_TYPE.DATASHADER;
@@ -199,6 +200,14 @@ export class DatashaderStyle implements IStyle {
   getStyleUrlParams(data: any) {
     let urlParams = "";
 
+    //Check to see if the legend changed any params. (kinda a hacky way to do this but the layer descriptor cannot be changed unless editing)
+    var bucket_select = DATASHADER_BUCKET_SELECT[this._layer.getDescriptor().id] 
+    if(!bucket_select){
+      bucket_select = [0,100] //use the full range if not specified
+    }
+
+    let [bucket_min, bucket_max] = bucket_select;
+
     // the current implementation of auto is too slow, so remove it
     let span = this._descriptor.properties.spanRange;
     //if (span === "auto") {
@@ -207,6 +216,8 @@ export class DatashaderStyle implements IStyle {
 
     urlParams = urlParams.concat(
         "&span=", span,
+        "&bucket_min=",bucket_min,
+        "&bucket_max=",bucket_max
     )
 
     if (this._descriptor.properties.showEllipses &&
