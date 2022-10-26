@@ -21,7 +21,8 @@ import {
   MAX_ZOOM,
 } from '../../../common/constants';
 import { LayerDescriptor, DatashaderLayerDescriptor } from '../../../common/descriptor_types';
-import { esKuery, esQuery } from '../../../../../../src/plugins/data/public';
+import { fromKueryExpression, luceneStringToDsl, toElasticsearchQuery } from '@kbn/es-query';
+
 
 registerLayerWizardExternal(datashaderWizardConfig)
 const urlRe = /^(\w+):\/\/([^/?]*)(\/[^?]+)?\??(.+)?/;
@@ -236,14 +237,14 @@ export class DatashaderLayer extends AbstractLayer {
         currentParamsObj.filters = [...dataMetaFilters];
         
         if (dataMeta.query && dataMeta.query.language === "kuery") {
-          const kueryNode = esKuery.fromKueryExpression(dataMeta.query.query);
-          const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+          const kueryNode = fromKueryExpression(dataMeta.query.query);
+          const kueryDSL = toElasticsearchQuery(kueryNode);
           currentParamsObj.query = {
             language: "dsl",
             query: kueryDSL,
           };
         } else if (dataMeta.query && dataMeta.query.language === "lucene") {
-          const luceneDSL = esQuery.luceneStringToDsl(dataMeta.query.query);
+          const luceneDSL = luceneStringToDsl(dataMeta.query.query);
           currentParamsObj.query = {
             language: "dsl",
             query: luceneDSL,
@@ -257,8 +258,8 @@ export class DatashaderLayer extends AbstractLayer {
       currentParamsObj.zoom = dataMeta.zoom;
       if (this._descriptor.query) {
         if (this._descriptor.query.language === "kuery") {
-          const kueryNode = esKuery.fromKueryExpression(this._descriptor.query.query);
-          const kueryDSL = esKuery.toElasticsearchQuery(kueryNode);
+          const kueryNode = fromKueryExpression(this._descriptor.query.query);
+          const kueryDSL = toElasticsearchQuery(kueryNode);
           currentParamsObj.filters.push({
             "meta": {
               "type" : "bool",
@@ -266,7 +267,7 @@ export class DatashaderLayer extends AbstractLayer {
             "query": kueryDSL
           });
         } else if (this._descriptor.query.language === "lucene") {
-          const luceneDSL = esQuery.luceneStringToDsl(this._descriptor.query.query);
+          const luceneDSL = luceneStringToDsl(this._descriptor.query.query);
           currentParamsObj.filters.push({
             "meta": {
               "type" : "bool",

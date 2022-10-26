@@ -22,9 +22,9 @@ import {
 } from '../../../common/constants';
 import { DatashaderSourceDescriptor } from '../../../common/descriptor_types/source_descriptor_types';
 import { getDataSourceLabel, getUrlLabel } from '../../../common/i18n_getters';
-import { IndexPattern } from '../../../../../../src/plugins/data_views/common/data_views';
+import { DataViewField,DataView } from '@kbn/data-views-plugin/common';
 import { FieldFormat } from '../../../../../../src/plugins/field_formats/common/field_format';
-import { DataViewField } from '../../../../../../src/plugins/data/common';
+
 
 const NUMBER_DATA_TYPES = [ "number" ]
 
@@ -184,7 +184,7 @@ export class DatashaderSource extends AbstractESSource {
     return [];
   }
 
-  async getIndexPattern(): Promise<IndexPattern> {
+  async getIndexPattern(): Promise<DataView> {
     if (this.indexPattern) {
       return this.indexPattern;
     }
