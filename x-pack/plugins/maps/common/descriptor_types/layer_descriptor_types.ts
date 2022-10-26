@@ -12,6 +12,7 @@ import { Feature } from 'geojson';
 import {
   EMSVectorTileStyleDescriptor,
   HeatmapStyleDescriptor,
+  DatashaderStyleDescriptor,
   StyleDescriptor,
   VectorStyleDescriptor,
 } from './style_property_descriptor_types';
@@ -84,6 +85,10 @@ export type HeatmapLayerDescriptor = LayerDescriptor & {
   style: HeatmapStyleDescriptor;
 };
 
+export type DatashaderLayerDescriptor = LayerDescriptor & {
+  type: LAYER_TYPE.DATASHADER;
+  style: DatashaderStyleDescriptor;
+};
 export type EMSVectorTileLayerDescriptor = LayerDescriptor & {
   type: LAYER_TYPE.EMS_VECTOR_TILE;
   style: EMSVectorTileStyleDescriptor;
