@@ -251,6 +251,8 @@ export enum VECTOR_STYLES {
 }
 
 export enum DATASHADER_STYLES {
+  TIME_OVERLAP = "timeOverlap",
+  TIME_OVERLAP_SIZE = "timeOverlapSize",
   COLOR_RAMP_NAME = 'colorRampName',
   COLOR_KEY_NAME = 'colorKeyName',
   SPREAD = 'spread',

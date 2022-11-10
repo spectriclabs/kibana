@@ -3,6 +3,8 @@ import { DatashaderStylePropertiesDescriptor } from '../../../common/descriptor_
 
 export function getDefaultProperties(): DatashaderStylePropertiesDescriptor {
   return {
+    [DATASHADER_STYLES.TIME_OVERLAP]:false,
+    [DATASHADER_STYLES.TIME_OVERLAP_SIZE]:"auto",
     [DATASHADER_STYLES.COLOR_RAMP_NAME]: "bmy",
     [DATASHADER_STYLES.COLOR_KEY_NAME]: "glasbey_light",
     [DATASHADER_STYLES.SPREAD]: "auto",

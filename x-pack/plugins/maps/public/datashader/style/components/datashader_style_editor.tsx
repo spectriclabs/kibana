@@ -6,14 +6,15 @@
 
 import _ from 'lodash';
 import React, { ChangeEvent, Component, Fragment } from 'react';
-import { EuiFormRow, EuiSuperSelect, EuiSelect, EuiSwitch, EuiSwitchEvent, EuiHorizontalRule } from '@elastic/eui';
+import { EuiFormRow, EuiSuperSelect, EuiSelect, EuiSwitch, EuiSwitchEvent, EuiHorizontalRule, EuiCallOut } from '@elastic/eui';
 
-import {  getIndexPatternService } from '../../../kibana_services';
+import {  getIndexPatternService,getTimeFilter } from '../../../kibana_services';
 import { SingleFieldSelect } from '../../../components/single_field_select';
 import { IField } from '../../../classes/fields/field';
 
 import {
   DATASHADER_STYLES,
+  ES_GEO_FIELD_TYPE,
   FIELD_ORIGIN,
 } from '../../../../common/constants';
 
@@ -24,6 +25,7 @@ import {
 
 import { DatashaderLayer } from '../../layer/datashader_layer';
 import { DatashaderStylePropertiesDescriptor } from '../../../../common/descriptor_types/style_property_descriptor_types';
+import { DataViewField } from '@kbn/data-views-plugin/common';
 
 const colorRampOptions = [
   {
@@ -338,18 +340,22 @@ interface Props {
   layer: DatashaderLayer;
   properties: DatashaderStylePropertiesDescriptor;
 }
-
+function filterGeoField(field: DataViewField) {
+  return [ES_GEO_FIELD_TYPE.GEO_POINT.valueOf(), ES_GEO_FIELD_TYPE.GEO_SHAPE.valueOf()].includes(field.type);
+}
 interface State {
   categoryFields: FieldMeta[];
   numberFields: FieldMeta[];
+  geoFields: DataViewField[];
 }
-
+//indexPattern = await getIndexPatternService().get(indexPatternId);
 export class DatashaderStyleEditor extends Component<Props, State> {
   _isMounted = false;
   
   state = {
     categoryFields: [],
     numberFields: [],
+    geoFields: [],
   }
 
   constructor(props: Props) {
@@ -403,7 +409,13 @@ export class DatashaderStyleEditor extends Component<Props, State> {
         origin: field.getOrigin(),
       };
     };
+    const indexPattern = await getIndexPatternService().get(this.props.layer.getIndexPatternIds()[0]);
 
+    const geoFields = indexPattern.fields
+    .filter(filterGeoField);
+    if (this._isMounted && !_.isEqual(geoFields,this.state.geoFields)){
+      this.setState({ geoFields });
+    }
     const categoryFields = await this.props.layer.getCategoricalFields();
     const categoryFieldPromises = categoryFields.map(getFieldMeta);
     const categoryFieldsArray = (await Promise.all(categoryFieldPromises)).filter((f) => (f !== null));
@@ -417,6 +429,7 @@ export class DatashaderStyleEditor extends Component<Props, State> {
     if (this._isMounted && !_.isEqual(numberFieldsArray, this.state.numberFields)) {
       this.setState({ numberFields: numberFieldsArray });
     }
+
   }
 
   onColorRampChange(selectedColorRampName: string) {
@@ -495,6 +508,18 @@ export class DatashaderStyleEditor extends Component<Props, State> {
   onShowEllipsesChanged(event: EuiSwitchEvent) {
     this.props.handlePropertyChange(
       { [DATASHADER_STYLES.SHOW_ELLIPSES]: event.target.checked }
+    );
+  };
+
+  onUseTimeOverlapChanged(event: EuiSwitchEvent) {
+    this.props.handlePropertyChange(
+      { [DATASHADER_STYLES.TIME_OVERLAP]: event.target.checked }
+    );
+  };
+
+  onUseTimeOverlapSizeChanged(event: ChangeEvent<HTMLSelectElement>) {
+    this.props.handlePropertyChange(
+      { [DATASHADER_STYLES.TIME_OVERLAP_SIZE]: event.target.value }
     );
   };
 
@@ -786,12 +811,91 @@ export class DatashaderStyleEditor extends Component<Props, State> {
     }
 
   }
+  _renderTimeOverlapSelection(){
+    //return null
+    if(!this.props.layer){
+      return null
+    }
+    let geofield = this.state.geoFields.find(g=>g.spec.name === this.props.layer._descriptor.sourceDescriptor.geoField)
+    if(!geofield || geofield.type !== "geo_shape"){
+      return null
+    }
+    let timeSpan = getTimeFilter().getAbsoluteTime()
+    //Calculate the auto duration in minutes
+    let start = new Date(timeSpan.from);
+    let stop = new Date(timeSpan.to);
+    let minutes = (stop.getTime() - start.getTime())/1000/60;
+    let step = 1;
+    while(minutes/step >546){
+      step += 1
+    }
+    const timeOverlapOptions = [
+      {
+        value: "auto",
+        text: `Auto (${step} Minutes)`
+      },
+      {
+        value: "1y",
+        text: "Year"
+      },
+      {
+        value: "1M",
+        text: "Month"
+      },
+      {
+        value: "1d",
+        text: "Day"
+      },
+      {
+        value: "1h",
+        text: "Hour"
+      },
+      {
+        value: "1m",
+        text: "Minute"
+      }
+    ];
+    return (
+    <div>
+      <EuiFormRow
+        label={'Use Time Overlap'}
+        display="columnCompressed"
+      >
+        <EuiSwitch
+          label={'Time Overlap'}
+          checked={this.props.properties.timeOverlap}
+          onChange={(e)=>this.onUseTimeOverlapChanged(e)}
+          compressed
+        />
+      </EuiFormRow>
 
+      {this.props.properties.timeOverlap?
+      <Fragment>
+          <EuiCallOut title={"Search Overload"} color="warning" iconType="help">
+          <p>
+            Using Time Overlap Size setting other than auto can cause Elasticsearch to break if the total search time ranges aren't reasonably small. Utilize specific settings only if you and your users know what they are doing.
+          </p>
+        </EuiCallOut>
+        <EuiFormRow
+          label={'Time Overlap Size'}
+          display="columnCompressed"
+        >
+          <EuiSelect
+            options={timeOverlapOptions}
+            value={this.props.properties.timeOverlapSize}
+            onChange={(e)=>this.onUseTimeOverlapSizeChanged(e)}
+          />
+        </EuiFormRow>
+      </Fragment>
+      :null}
+    </div>)
+    
+  }
   render() {
     return (
       <Fragment>
 
-
+        {this._renderTimeOverlapSelection()}
         {this._renderColorStyleConfiguration()}
         <EuiHorizontalRule margin="xs" />
         {this._renderStyleConfiguration()}

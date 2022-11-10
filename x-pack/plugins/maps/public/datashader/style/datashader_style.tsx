@@ -232,11 +232,15 @@ export class DatashaderStyle implements IStyle {
         "&ellipse_units=", this._descriptor.properties.ellipseUnits,
         "&ellipse_search=", this._descriptor.properties.ellipseSearchDistance,
         "&spread=", this._descriptor.properties.ellipseThickness.toString(),
+        "&timeOverlap=",this._descriptor.properties.timeOverlap.toString(),
+        "&timeOverlapSize=",this._descriptor.properties.timeOverlapSize
       );
     } else {
       urlParams = urlParams.concat(
         "&spread=", this._descriptor.properties.spread,
-        "&resolution=", this._descriptor.properties.gridResolution
+        "&resolution=", this._descriptor.properties.gridResolution,
+        "&timeOverlap=",this._descriptor.properties.timeOverlap.toString(),
+        "&timeOverlapSize=",this._descriptor.properties.timeOverlapSize
       )
     }
 
