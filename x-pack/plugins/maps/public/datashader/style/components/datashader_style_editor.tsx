@@ -26,6 +26,7 @@ import {
 import { DatashaderLayer } from '../../layer/datashader_layer';
 import { DatashaderStylePropertiesDescriptor } from '../../../../common/descriptor_types/style_property_descriptor_types';
 import { DataViewField } from '@kbn/data-views-plugin/common';
+import { DatashaderSourceDescriptor } from '@kbn/maps-plugin/common/descriptor_types/source_descriptor_types';
 
 const colorRampOptions = [
   {
@@ -813,11 +814,17 @@ export class DatashaderStyleEditor extends Component<Props, State> {
   }
   _renderTimeOverlapSelection(){
     //return null
-    if(!this.props.layer){
+    if(this.props.layer == null){
       return null
     }
-    let geofield = this.state.geoFields.find(g=>g.spec.name === this.props.layer._descriptor.sourceDescriptor.geoField)
-    if(!geofield || geofield.type !== "geo_shape"){
+    let discriptor = this.props.layer.getDescriptor()
+    let sourceDescriptor = discriptor.sourceDescriptor as DatashaderSourceDescriptor
+    let geofield:DataViewField|undefined = this.state.geoFields.find((g:DataViewField) =>sourceDescriptor && g.spec.name === sourceDescriptor.geoField) 
+    if(geofield == undefined){
+      return null
+    }
+    geofield = geofield as DataViewField
+    if(geofield.type !== "geo_shape"){
       return null
     }
     let timeSpan = getTimeFilter().getAbsoluteTime()
