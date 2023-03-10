@@ -98,6 +98,7 @@ export class SearchInterceptor {
     MAX_CACHE_ITEMS,
     MAX_CACHE_SIZE_MB
   );
+  private preHooks: Function[];
 
   /**
    * Observable that emits when the number of pending requests changes.
@@ -121,6 +122,8 @@ export class SearchInterceptor {
   constructor(private readonly deps: SearchInterceptorDeps) {
     this.deps.http.addLoadingCountSource(this.pendingCount$);
 
+    this.preHooks = []
+
     this.deps.startServices.then(([coreStart]) => {
       this.application = coreStart.application;
       this.docLinks = coreStart.docLinks;
@@ -141,6 +144,16 @@ export class SearchInterceptor {
         this.bFetchDisabled = bFetchDisabled;
       })
     );
+  }
+
+  public addPreSearchHook(fn: Function) {
+    this.preHooks.push(fn)
+  }
+  public removePreSearchHook(fn: Function) {
+    let index = this.preHooks.indexOf(fn);
+    if (index != -1) {
+      this.preHooks.splice(index, 1)
+    }
   }
 
   public stop() {
@@ -247,7 +260,7 @@ export class SearchInterceptor {
     const search = () => {
       const [{ isSearchStored }, afterPoll] = searchTracker?.beforePoll() ?? [
         { isSearchStored: false },
-        ({ isSearchStored: boolean }) => {},
+        ({ isSearchStored: boolean }) => { },
       ];
       return this.runSearch(
         { id, ...request },
@@ -270,13 +283,13 @@ export class SearchInterceptor {
 
     const searchTracker = this.deps.session.isCurrentSession(sessionId)
       ? this.deps.session.trackSearch({
-          abort: () => searchAbortController.abort(),
-          poll: async () => {
-            if (id) {
-              await search();
-            }
-          },
-        })
+        abort: () => searchAbortController.abort(),
+        poll: async () => {
+          if (id) {
+            await search();
+          }
+        },
+      })
       : undefined;
 
     // track if this search's session will be send to background
@@ -427,6 +440,10 @@ export class SearchInterceptor {
     }
 
     const { sessionId, abortSignal } = searchOptions;
+
+    for( let hook of this.preHooks){
+      request = hook(request)
+    }
 
     return this.createRequestHash$(request, searchOptions).pipe(
       switchMap((requestHash) => {

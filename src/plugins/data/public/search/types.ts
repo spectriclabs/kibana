@@ -14,6 +14,7 @@ import { UsageCollectionSetup } from '@kbn/usage-collection-plugin/public';
 import { ISearchGeneric, ISearchStartSearchSource, SearchRequest } from '../../common/search';
 import { AggsSetup, AggsSetupDependencies, AggsStart, AggsStartDependencies } from './aggs';
 import { SearchUsageCollector } from './collectors';
+import { ISearchInterceptor } from './search_interceptor';
 import { ISessionsClient, ISessionService } from './session';
 
 export { SEARCH_EVENT_TYPE } from './collectors';
@@ -54,6 +55,8 @@ export interface ISearchStart {
    * {@link ISearchGeneric}
    */
   search: ISearchGeneric;
+
+  searchInterceptor: ISearchInterceptor;
   /**
    * Show toast for caught error
    * @param e Error

@@ -276,6 +276,7 @@ export class SearchService implements Plugin<ISearchSetup, ISearchStart> {
     return {
       aggs,
       search,
+      searchInterceptor:this.searchInterceptor,
       showError: (e) => {
         this.searchInterceptor.showError(e);
       },
