@@ -69,6 +69,7 @@ export class RasterTileLayer extends AbstractLayer {
     const source = this.getSource();
     const nextMeta = {
       ...dataFilters,
+      sourceQuery: this.getQuery() || undefined,
       applyGlobalTime: source.getApplyGlobalTime(),
     };
     const prevDataRequest = this.getSourceDataRequest();
@@ -80,7 +81,7 @@ export class RasterTileLayer extends AbstractLayer {
     try {
       startLoading(SOURCE_DATA_REQUEST_ID, requestToken, nextMeta);
       const data: RasterTileSourceData = {
-        url: await source.getUrlTemplate(dataFilters),
+        url: await source.getUrlTemplate(nextMeta),
       };
       stopLoading(SOURCE_DATA_REQUEST_ID, requestToken, data, {});
     } catch (error) {
