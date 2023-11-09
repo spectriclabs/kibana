@@ -1,6 +1,9 @@
 /* eslint-disable @kbn/eslint/require-license-header */
 import { KibanaRequest } from '@kbn/core-http-server';
 import { QueryDslQueryContainer } from '@kbn/data-views-plugin/common/types';
+import { IUiSettingsClient, UiSettingsServiceSetup } from '@kbn/core/server';
+import { uiSetting } from '@kbn/expressions-plugin/common';
+import { schema } from '@kbn/config-schema';
 import { getHttpService } from './fields_for';
 import { IndexPatternsFetcher } from '../../fetcher';
 // Cache the last recently used
@@ -34,9 +37,11 @@ class LRUCache {
     return this.cache.keys().next().value;
   }
 }
-const userCache = new LRUCache(100); // Store most recent 100 users
+let currentIndexDepth = 30;
+let indexCache = new LRUCache(currentIndexDepth); // Store most recent 100 users
 
 export const getFieldsForWildcard = async (
+  ctx: any,
   indexPatterns: IndexPatternsFetcher,
   request: KibanaRequest,
   options: {
@@ -49,17 +54,20 @@ export const getFieldsForWildcard = async (
     fields?: string[];
   }
 ) => {
-  const http = getHttpService();
-  const authState: any = http.auth.get(request).state;
+  const uiSettingClient: IUiSettingsClient = (await ctx.core).uiSettings.client;
+  const [ccsEnabled, indexDepth, debug] = await Promise.all([
+    uiSettingClient.get<boolean>('cachedCCSFields:enabled'),
+    uiSettingClient.get<number>('cachedCCSFields:indexDepth'),
+    uiSettingClient.get<number>('cachedCCSFields:debug'),
+  ]);
+  if (indexDepth !== currentIndexDepth) {
+    currentIndexDepth = indexDepth;
+    indexCache = new LRUCache(currentIndexDepth); // Store most recent 100 users
+  }
   let cache: LRUCache | undefined;
-  // Only build cached responses if we can get the username and roles
-  if (authState) {
-    const userKey = authState.username + authState.roles;
-    cache = userCache.get(userKey);
-    if (!cache) {
-      cache = new LRUCache(30); // store 30 indicies per user
-      userCache.set(userKey, cache);
-    }
+
+  if (debug) {
+    console.log(indexCache);
   }
   // Remove the index filter??
   // this is a filter to only return the columns that are avalible in the current dataset (using the time/filter)
@@ -70,9 +78,11 @@ export const getFieldsForWildcard = async (
   // delete options.indexFilter;
 
   if (options.indexFilter) {
-    cache = undefined; // Lets not cache these for now we can reassess
+    cache = undefined; // Lets not cache these for now we can reassess (this changes with the time filters)
+  } else {
+    cache = indexCache;
   }
-  if (cache && cache.get(JSON.stringify(options))) {
+  if (ccsEnabled && cache && cache.get(JSON.stringify(options))) {
     const cached = cache.get(JSON.stringify(options));
     // Do a lookup that is async of the cached return to always keep the cache up to date.
     indexPatterns.getFieldsForWildcard(options).then(({ fields, indices }: any) => {
@@ -85,9 +95,45 @@ export const getFieldsForWildcard = async (
     // Nothing in cache lets do a fresh query
     const { fields, indices } = await indexPatterns.getFieldsForWildcard(options);
     // Set the cache if we have authenticated users and a cache
-    if (cache) {
+    if (ccsEnabled && cache) {
       cache.set(JSON.stringify(options), { fields, indices });
     }
     return { fields, indices };
   }
+};
+
+export const setupCCSCacheSettings = (uiSettings: UiSettingsServiceSetup) => {
+  uiSettings.register({
+    'cachedCCSFields:enabled': {
+      name: 'Enable',
+      description: 'Enables caching for Cross cluster fields',
+      category: ['crossClusterCache'],
+      order: 1,
+      type: 'boolean',
+      value: false,
+      requiresPageReload: false,
+      schema: schema.boolean(),
+    },
+    'cachedCCSFields:indexDepth': {
+      name: 'Index Depth',
+      description: 'The number of indexes to cache',
+      sensitive: true,
+      category: ['crossClusterCache'],
+      order: 2,
+      type: 'number',
+      value: currentIndexDepth,
+      requiresPageReload: false,
+      schema: schema.number({ min: 1, max: 1000 }),
+    },
+    'cachedCCSFields:debug': {
+      name: 'Cross cluster cache debug',
+      description: 'Causes a log event in the kibana logs everytime the cache is called',
+      category: ['crossClusterCache'],
+      order: 3,
+      type: 'boolean',
+      value: false,
+      requiresPageReload: false,
+      schema: schema.boolean(),
+    },
+  });
 };

@@ -8,7 +8,7 @@
 
 import { estypes } from '@elastic/elasticsearch';
 import { schema } from '@kbn/config-schema';
-import { HttpServiceStart, IRouter, RequestHandler, StartServicesAccessor } from '@kbn/core/server';
+import { IRouter, RequestHandler, StartServicesAccessor } from '@kbn/core/server';
 import { FullValidationConfig } from '@kbn/core-http-server';
 import { getFieldsForWildcard } from './cached_field_for';
 import { INITIAL_REST_VERSION_INTERNAL as version } from '../../constants';
@@ -38,11 +38,6 @@ export const parseFields = (fields: string | string[]): string[] => {
       'metaFields should be an array of field names, a JSON-stringified array of field names, or a single field name'
     );
   }
-};
-
-let httpService: HttpServiceStart;
-export const getHttpService = () => {
-  return httpService;
 };
 
 const access = 'internal';
@@ -155,7 +150,12 @@ const handler: (isRollupsEnabled: () => boolean) => RequestHandler<{}, IQuery, I
         indexFilter,
         ...(parsedFields.length > 0 ? { fields: parsedFields } : {}),
       };
-      const { fields, indices } = await getFieldsForWildcard(indexPatterns, request, options);
+      const { fields, indices } = await getFieldsForWildcard(
+        context,
+        indexPatterns,
+        request,
+        options
+      );
       const body: { fields: FieldDescriptorRestResponse[]; indices: string[] } = {
         fields,
         indices,
@@ -197,9 +197,6 @@ export const registerFieldForWildcard = async (
 ) => {
   const configuredHandler = handler(isRollupsEnabled);
 
-  getStartServices().then((start) => {
-    httpService = start[0].http;
-  });
   // handler
   router.versioned.put({ path, access }).addVersion({ version, validate }, configuredHandler);
   router.versioned.post({ path, access }).addVersion({ version, validate }, configuredHandler);

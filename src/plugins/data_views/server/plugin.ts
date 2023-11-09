@@ -22,6 +22,7 @@ import {
   DataViewsServerPluginStartDependencies,
 } from './types';
 import { DataViewsStorage } from './content_management';
+import { setupCCSCacheSettings } from './rest_api_routes/internal/cached_field_for';
 
 export class DataViewsServerPlugin
   implements
@@ -46,7 +47,7 @@ export class DataViewsServerPlugin
     core.savedObjects.registerType(dataViewSavedObjectType);
     core.capabilities.registerProvider(capabilitiesProvider);
     const dataViewRestCounter = usageCollection?.createUsageCounter('dataViewsRestApi');
-
+    setupCCSCacheSettings(core.uiSettings);
     registerRoutes(
       core.http,
       core.getStartServices,
